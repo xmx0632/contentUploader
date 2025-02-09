@@ -86,6 +86,14 @@
   - 使用：直接添加 `--headless` 参数
   - 说明：首次使用需要先用非 headless 模式登录，登录信息会被保存供后续 headless 模式使用
 
+### 打包
+
+    ```bash
+    npm install -g pkg
+    npx pkg . --targets node18-macos-arm64  --out-path dist/
+
+    ``` 
+
 ### 登录机制
 
 1. 首次使用：

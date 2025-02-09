@@ -310,53 +310,40 @@ async function uploadVideo() {
                 }
                 
                 // Fill in video description
-                await page.evaluate((description) => {
-                    const editor = document.querySelector('div[contenteditable][data-placeholder="添加描述"]');
-                    if (editor) {
-                        // 清空当前内容
+                const editor = await page.$('div[contenteditable][data-placeholder="添加描述"]');
+                if (editor) {
+                    await page.evaluate(() => {
+                        const editor = document.querySelector('div[contenteditable][data-placeholder="添加描述"]');
                         editor.textContent = '';
-                        
-                        // 聚焦到编辑器
                         editor.focus();
-                        
-                        // 插入新内容
-                        document.execCommand('insertText', false, description);
-                        
-                        // 触发多个事件确保内容更新
-                        ['input', 'change', 'blur'].forEach(eventType => {
-                            editor.dispatchEvent(new Event(eventType, { bubbles: true }));
-                        });
-                        
-                        // 在内容外点击以失去焦点
+                    });
+                    await page.keyboard.type(description);
+                    await page.evaluate(() => {
                         document.body.click();
-                    }
-                }, description);
+                    });
+                }
                 
                 // 等待一段时间让系统处理内容更新
                 await delay(5000);
 
                 // Click collection dropdown
-                await page.evaluate(() => {
-                    const albumDisplay = document.querySelector('.post-album-display');
-                    if (albumDisplay) {
-                        albumDisplay.click();
-                    }
-                });
+                const albumDisplay = await page.$('.post-album-display');
+                if (albumDisplay) {
+                    await albumDisplay.click();
+                }
 
                 await delay(3000);
 
                 // Select target collection
                 const collectionNameValue = getCollectionName();
-                const selected = await page.evaluate((collectionNameValue) => {
-                    const items = Array.from(document.querySelectorAll('.option-item'));
-                    const targetItem = items.find(item => {
+                const selected = await page.evaluate(name => {
+                    const items = document.querySelectorAll('.option-item');
+                    for (const item of items) {
                         const nameDiv = item.querySelector('.name');
-                        return nameDiv && nameDiv.textContent.trim() === collectionNameValue;
-                    });
-                    
-                    if (targetItem) {
-                        targetItem.click();
-                        return true;
+                        if (nameDiv && nameDiv.textContent.trim() === name) {
+                            item.click();
+                            return true;
+                        }
                     }
                     return false;
                 }, collectionNameValue);
