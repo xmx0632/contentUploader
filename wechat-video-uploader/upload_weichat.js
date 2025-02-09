@@ -24,15 +24,9 @@ try {
 // 加载 ai_util.js
 let generateMultiWordDescription;
 try {
-    const aiUtilPath = path.join(appRoot, 'ai_util.js');
-    if (fs.existsSync(aiUtilPath)) {
-        const aiUtil = require(aiUtilPath);
-        generateMultiWordDescription = aiUtil.generateMultiWordDescription;
-        console.log('Loaded ai_util.js from:', aiUtilPath);
-    } else {
-        console.log('Warning: ai_util.js not found at:', aiUtilPath);
-        generateMultiWordDescription = async (text) => text;
-    }
+    const aiUtil = require('./ai_util.js');
+    generateMultiWordDescription = aiUtil.generateMultiWordDescription;
+    console.log('Loaded ai_util.js');
 } catch (error) {
     console.error('Error loading ai_util.js:', error);
     generateMultiWordDescription = async (text) => text;

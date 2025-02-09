@@ -88,11 +88,54 @@
 
 ### 打包
 
-    ```bash
-    npm install -g pkg
-    npx pkg . --targets node18-macos-arm64  --out-path dist/
+#### 安装打包工具
 
-    ``` 
+```bash
+# 全局安装 pkg
+npm install -g pkg
+```
+
+#### 打包命令
+
+```bash
+# 打包所有平台
+pkg . --public
+
+# 或者只打包特定平台
+pkg . --targets node18-macos-arm64,node18-macos-x64,node18-win-x64,node18-linux-x64 --public
+```
+
+打包后的文件会生成在 `dist` 目录下，包括：
+- Windows: `wechat-video-uploader-win-x64.exe`
+- Linux: `wechat-video-uploader-linux-x64`
+- macOS Intel: `wechat-video-uploader-macos-x64`
+- macOS Apple Silicon: `wechat-video-uploader-macos-arm64`
+
+#### 运行打包后的程序
+
+1. 创建一个新目录用于运行程序
+2. 复制以下文件到该目录：
+   - 对应平台的可执行文件
+   - `.env` 文件（包含配置信息）
+
+示例（以 macOS 为例）：
+```bash
+# 创建运行目录
+mkdir -p ~/wechat-uploader
+cd ~/wechat-uploader
+
+# 复制必要文件
+cp /path/to/dist/wechat-video-uploader-macos-arm64 .
+cp /path/to/.env .
+
+# 运行程序
+./wechat-video-uploader-macos-arm64
+```
+
+**注意事项：**
+1. 确保 `.env` 文件中的配置正确
+2. 首次运行需要手动登录，登录信息会被保存
+3. 建议先使用非 headless 模式测试，确保一切正常后再使用 headless 模式
 
 ### 登录机制
 

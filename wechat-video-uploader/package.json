@@ -18,7 +18,6 @@
     "scripts": "upload_weichat.js",
     "assets": [
       "ai_util.js",
-      
       ".env.example",
       "temp/**/*",
       "node_modules/puppeteer-core/**/*",
