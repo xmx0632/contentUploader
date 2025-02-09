@@ -33,28 +33,47 @@
 7. 点击“发表”按钮，页面跳转到 https://channels.weixin.qq.com/platform/post/list?tab=post, 页面代码在 pages/list.html 中
 8. 如果还有未上传的文件，继续执行步骤3到7，直到目录下的文件都上传完毕结束
 
+### 环境设置
+
+    ```bash
+    # 使用 nrm 管理多个源
+    npm install -g nrm
+
+    # 查看可用的镜像源
+    nrm ls
+
+    # 验证是否切换成功
+    nrm use taobao
+
+    # 验证是否切换成功
+    nrm current
+
+    #切换回官方源
+    nrm use npm
+    ```
+
 
 ### 运行命令
 
-```bash
-# 安装依赖
-npm install dotenv axios puppeteer
+    ```bash
+    # 安装依赖
+    npm install dotenv axios puppeteer
 
-# 测试生成单词卡片
-node ai_util.js
+    # 测试生成单词卡片
+    node ai_util.js
 
-# 上传视频 (使用默认设置)
-node upload_weichat.js
+    # 上传视频 (使用默认设置)
+    node upload_weichat.js
 
-# 指定视频目录
-node upload_weichat.js --dir /path/to/videos
+    # 指定视频目录
+    node upload_weichat.js --dir /path/to/videos
 
-# 使用无界面模式
-node upload_weichat.js --headless
+    # 使用无界面模式
+    node upload_weichat.js --headless
 
-# 同时指定目录和无界面模式
-node upload_weichat.js --dir /path/to/videos --headless
-```
+    # 同时指定目录和无界面模式
+    node upload_weichat.js --dir /path/to/videos --headless
+    ```
 
 ### 命令行参数
 

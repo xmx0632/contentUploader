@@ -61,13 +61,13 @@ function getMP4Files() {
 
 async function saveCookies(page) {
     const cookies = await page.cookies();
-    await fs.promises.writeFile('cookies.json', JSON.stringify(cookies, null, 2));
+    await fs.promises.writeFile('temp/cookies.json', JSON.stringify(cookies, null, 2));
     console.log('Cookies saved successfully');
 }
 
 async function loadCookies(page) {
     try {
-        const cookiesString = await fs.promises.readFile('cookies.json', 'utf8');
+        const cookiesString = await fs.promises.readFile('temp/cookies.json', 'utf8');
         const cookies = JSON.parse(cookiesString);
         await page.setCookie(...cookies);
         console.log('Cookies loaded successfully');
@@ -104,6 +104,7 @@ async function uploadVideo() {
         // 先用有界面模式打开进行登录
         browser = await puppeteer.launch({
             headless: false,
+            args: ['--start-maximized'],
             defaultViewport: null
         });
         
@@ -142,6 +143,7 @@ async function uploadVideo() {
         // 非 headless 模式直接启动
         browser = await puppeteer.launch({
             headless: false,
+            args: ['--start-maximized'],
             defaultViewport: null
         });
     }
@@ -181,7 +183,7 @@ async function uploadVideo() {
                 console.log(`Uploading: ${videoFile}`);
                 
                 // 等待页面加载完成
-                await delay(10000);
+                await delay(8000);
 
                 // 调试信息：打印所有按钮的文本
                 const buttonTexts = await page.evaluate(() => {
@@ -235,7 +237,7 @@ async function uploadVideo() {
                 }
 
                 // Wait for the page to stabilize
-                await delay(10000);
+                await delay(8000);
                 
                 // Handle file upload - wait longer for the file input to appear
                 const inputElement = await page.waitForSelector('input[type=file]', {
@@ -309,7 +311,7 @@ async function uploadVideo() {
                     }
                 });
 
-                await delay(10000);
+                await delay(3000);
 
                 // Select target collection
                 const selected = await page.evaluate(() => {
@@ -330,7 +332,7 @@ async function uploadVideo() {
                     console.log('Warning: Could not find or select the target collection');
                 }
 
-                await delay(10000);
+                await delay(3000);
                 
                 // 详细记录页面上所有按钮的状态
                 const buttonDetails = await page.evaluate(() => {
@@ -395,7 +397,7 @@ async function uploadVideo() {
                 }
 
                 console.log('Publish button clicked, waiting for completion...');
-                await delay(10000);  // 等待更长时间
+                await delay(8000);  // 等待更长时间
 
                 // 检查是否有确认对话框并点击
                 const confirmResult = await page.evaluate(() => {
@@ -432,14 +434,11 @@ async function uploadVideo() {
                     console.log('Warning: Timeout waiting for button state change');
                 }
 
-                // 不等待导航，而是等待一段时间后继续
-                await delay(10000);
                 console.log('Publication process completed');
-                
                 console.log(`Successfully uploaded: ${videoFile}`);
                 
                 // Add a small delay between uploads
-                await delay(10000);
+                await delay(5000);
             } catch (error) {
                 console.error(`Failed to upload ${videoFile}:`, error);
                 // Try to navigate back to the list page if there's an error

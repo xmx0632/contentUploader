@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 temp
+video/*.mp4
