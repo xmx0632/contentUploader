@@ -35,22 +35,50 @@
 
 ### 环境设置
 
-    ```bash
-    # 使用 nrm 管理多个源
-    npm install -g nrm
+#### NPM 源设置
 
-    # 查看可用的镜像源
-    nrm ls
+```bash
+# 使用 nrm 管理多个源
+npm install -g nrm
 
-    # 验证是否切换成功
-    nrm use taobao
+# 查看可用的镜像源
+nrm ls
 
-    # 验证是否切换成功
-    nrm current
+# 验证是否切换成功
+nrm use taobao
 
-    #切换回官方源
-    nrm use npm
-    ```
+# 验证是否切换成功
+nrm current
+
+#切换回官方源
+nrm use npm
+```
+
+#### 延迟时间配置
+
+程序中的各个等待时间可以通过 `.env` 文件配置，所有时间单位为毫秒：
+
+```ini
+# 页面加载后的等待时间
+DELAY_PAGE_LOAD=8000
+
+# 视频上传后的处理等待时间
+DELAY_VIDEO_PROCESS=15000
+
+# 内容更新后的等待时间
+DELAY_CONTENT_UPDATE=5000
+
+# 点击操作后的等待时间
+DELAY_AFTER_CLICK=3000
+
+# 发布按钮点击后的等待时间
+DELAY_AFTER_PUBLISH=8000
+
+# 上传间隔时间
+DELAY_BETWEEN_UPLOADS=5000
+```
+
+如果某个配置项未设置，程序会使用默认值。在网络较慢或系统响应较慢的情况下，可以适当增加这些等待时间。
 
 
 ### 运行命令
@@ -163,3 +191,5 @@ cp /path/to/.env .
 示例：
 - `ranunculus.mp4`
 - `ranunculus-relay.mp4`
+
+

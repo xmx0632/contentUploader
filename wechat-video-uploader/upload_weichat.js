@@ -301,7 +301,7 @@ async function uploadVideo() {
                 }
 
                 // Wait for the page to stabilize
-                await delay(8000);
+                await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
                 
                 // Handle file upload - wait longer for the file input to appear
                 const inputElement = await page.waitForSelector('input[type=file]', {
@@ -312,7 +312,7 @@ async function uploadVideo() {
                 console.log('File uploaded, waiting for processing...');
                 
                 // Wait for video processing
-                await delay(15000);
+                await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
 
                 // Get video filename as description
                 const videoFileName = path.basename(videoFile, path.extname(videoFile));
@@ -356,7 +356,7 @@ async function uploadVideo() {
                 }
                 
                 // 等待一段时间让系统处理内容更新
-                await delay(5000);
+                await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
 
                 // 只在 WECHAT_COLLECTION_NAME 不为空时设置合集
                 const collectionNameValue = getCollectionName();
@@ -365,7 +365,7 @@ async function uploadVideo() {
                     const albumDisplay = await page.$('.post-album-display');
                     if (albumDisplay) {
                         await albumDisplay.click();
-                        await delay(3000);
+                        await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
 
                         // Select target collection
                         const selected = await page.evaluate(name => {
@@ -384,7 +384,7 @@ async function uploadVideo() {
                             console.log('Warning: Could not find or select the target collection');
                         }
 
-                        await delay(3000);
+                        await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
                     }
                 }
                 
@@ -451,7 +451,7 @@ async function uploadVideo() {
                 }
 
                 console.log('Publish button clicked, waiting for completion...');
-                await delay(8000);  // 等待更长时间
+                await delay(parseInt(process.env.DELAY_AFTER_PUBLISH || '8000'));  // 等待更长时间
 
                 // 检查是否有确认对话框并点击
                 const confirmResult = await page.evaluate(() => {
@@ -472,7 +472,7 @@ async function uploadVideo() {
                 });
 
                 console.log('Confirm dialog check result:', JSON.stringify(confirmResult, null, 2));
-                await delay(5000);
+                await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
 
                 // 等待发表按钮消失或页面变化
                 try {
@@ -492,7 +492,7 @@ async function uploadVideo() {
                 console.log(`Successfully uploaded: ${videoFile}`);
                 
                 // Add a small delay between uploads
-                await delay(5000);
+                await delay(parseInt(process.env.DELAY_BETWEEN_UPLOADS || '5000'));
             } catch (error) {
                 console.error(`Failed to upload ${videoFile}:`, error);
                 // Try to navigate back to the list page if there's an error
