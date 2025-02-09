@@ -1,10 +1,42 @@
-require('dotenv').config();
-
-const puppeteer = require('puppeteer');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
+const puppeteer = require('puppeteer');
 const readline = require('readline');
-const { generateMultiWordDescription } = require('./ai_util');
+
+// 确定应用根目录
+const isPackaged = process.pkg !== undefined;
+const appRoot = isPackaged ? path.dirname(process.execPath) : __dirname;
+
+// 加载环境变量
+try {
+    const envPath = path.join(appRoot, '.env');
+    if (fs.existsSync(envPath)) {
+        dotenv.config({ path: envPath });
+        console.log('Loaded .env from:', envPath);
+    } else {
+        console.log('Warning: .env file not found at:', envPath);
+    }
+} catch (error) {
+    console.error('Error loading .env file:', error);
+}
+
+// 加载 ai_util.js
+let generateMultiWordDescription;
+try {
+    const aiUtilPath = path.join(appRoot, 'ai_util.js');
+    if (fs.existsSync(aiUtilPath)) {
+        const aiUtil = require(aiUtilPath);
+        generateMultiWordDescription = aiUtil.generateMultiWordDescription;
+        console.log('Loaded ai_util.js from:', aiUtilPath);
+    } else {
+        console.log('Warning: ai_util.js not found at:', aiUtilPath);
+        generateMultiWordDescription = async (text) => text;
+    }
+} catch (error) {
+    console.error('Error loading ai_util.js:', error);
+    generateMultiWordDescription = async (text) => text;
+}
 
 // 获取命令行参数
 const args = process.argv.slice(2);
@@ -87,18 +119,24 @@ function getMP4Files() {
 
 async function saveCookies(page) {
     const cookies = await page.cookies();
-    await fs.promises.writeFile('temp/cookies.json', JSON.stringify(cookies, null, 2));
+    const tempDir = path.join(appRoot, 'temp');
+    if (!fs.existsSync(tempDir)) {
+        await fs.promises.mkdir(tempDir);
+    }
+    await fs.promises.writeFile(path.join(tempDir, 'cookies.json'), JSON.stringify(cookies, null, 2));
     console.log('Cookies saved successfully');
 }
 
 async function loadCookies(page) {
     try {
         // 检查是否存在 temp 目录
-        if (!fs.existsSync('temp')) {
-            await fs.promises.mkdir('temp');
+        const tempDir = path.join(appRoot, 'temp');
+        if (!fs.existsSync(tempDir)) {
+            await fs.promises.mkdir(tempDir);
         }
-        if (fs.existsSync('temp/cookies.json')) {
-            const cookiesString = await fs.promises.readFile('temp/cookies.json', 'utf8');
+        const cookiesPath = path.join(tempDir, 'cookies.json');
+        if (fs.existsSync(cookiesPath)) {
+            const cookiesString = await fs.promises.readFile(cookiesPath, 'utf8');
             const cookies = JSON.parse(cookiesString);
             await page.setCookie(...cookies);
             console.log('Cookies loaded successfully');

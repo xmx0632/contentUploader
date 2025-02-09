@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Automated video uploader for WeChat channels",
   "main": "upload_weichat.js",
-  "bin": "upload_weichat.js",
+  "bin": {
+    "wechat-video-uploader": "./upload_weichat.js"
+  },
   "scripts": {
     "start": "node upload_weichat.js"
   },
@@ -13,23 +15,22 @@
     "puppeteer": "^22.15.0"
   },
   "pkg": {
-    "scripts": [
-      "upload_weichat.js",
-      "ai_util.js"
-    ],
+    "scripts": "upload_weichat.js",
     "assets": [
-      "run.bat",
-      "run.sh",
       "ai_util.js",
+      
       ".env.example",
       "temp/**/*",
-      "node_modules/**/*"
+      "node_modules/puppeteer-core/**/*",
+      "node_modules/dotenv/**/*",
+      "node_modules/axios/**/*"
     ],
     "targets": [
-      "node18-win-x64",
-      "node18-linux-x64",
+      "node18-macos-arm64",
       "node18-macos-x64",
-      "node18-macos-arm64"
+      "node18-win-x64",
+      "node18-linux-x64"
+
     ],
     "outputPath": "dist"
   }
