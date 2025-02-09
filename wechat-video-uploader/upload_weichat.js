@@ -88,8 +88,8 @@ function getCollectionName() {
     if (process.env.WECHAT_COLLECTION_NAME) {
         return process.env.WECHAT_COLLECTION_NAME;
     }
-    // 最后是默认值
-    return '日语英语对照学';
+    // 没有配置时返回空值
+    return null;
 }
 
 async function waitForEnter() {
@@ -358,33 +358,35 @@ async function uploadVideo() {
                 // 等待一段时间让系统处理内容更新
                 await delay(5000);
 
-                // Click collection dropdown
-                const albumDisplay = await page.$('.post-album-display');
-                if (albumDisplay) {
-                    await albumDisplay.click();
-                }
-
-                await delay(3000);
-
-                // Select target collection
+                // 只在 WECHAT_COLLECTION_NAME 不为空时设置合集
                 const collectionNameValue = getCollectionName();
-                const selected = await page.evaluate(name => {
-                    const items = document.querySelectorAll('.option-item');
-                    for (const item of items) {
-                        const nameDiv = item.querySelector('.name');
-                        if (nameDiv && nameDiv.textContent.trim() === name) {
-                            item.click();
-                            return true;
+                if (collectionNameValue) {
+                    // Click collection dropdown
+                    const albumDisplay = await page.$('.post-album-display');
+                    if (albumDisplay) {
+                        await albumDisplay.click();
+                        await delay(3000);
+
+                        // Select target collection
+                        const selected = await page.evaluate(name => {
+                            const items = document.querySelectorAll('.option-item');
+                            for (const item of items) {
+                                const nameDiv = item.querySelector('.name');
+                                if (nameDiv && nameDiv.textContent.trim() === name) {
+                                    item.click();
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }, collectionNameValue);
+
+                        if (!selected) {
+                            console.log('Warning: Could not find or select the target collection');
                         }
+
+                        await delay(3000);
                     }
-                    return false;
-                }, collectionNameValue);
-
-                if (!selected) {
-                    console.log('Warning: Could not find or select the target collection');
                 }
-
-                await delay(3000);
                 
                 // 详细记录页面上所有按钮的状态
                 const buttonDetails = await page.evaluate(() => {
