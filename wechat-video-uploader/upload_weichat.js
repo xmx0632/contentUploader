@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
@@ -8,8 +10,9 @@ const { generateMultiWordDescription } = require('./ai_util');
 const args = process.argv.slice(2);
 
 // 处理命令行参数
-let videoDir = 'F:\dev\workspace\contentUploader\video';
+let videoDir = null;
 let isHeadless = false;
+let collectionName = null;
 
 // 解析参数
 for (let i = 0; i < args.length; i++) {
@@ -18,16 +21,25 @@ for (let i = 0; i < args.length; i++) {
     } else if (args[i] === '--dir' && args[i + 1]) {
         videoDir = args[i + 1].replace(/\\/g, '/'); // 将反斜杠替换为正斜杠
         i++; // 跳过下一个参数
+    } else if (args[i] === '--collection' && args[i + 1]) {
+        collectionName = args[i + 1];
+        i++; // 跳过下一个参数
     }
+}
+
+// 如果没有指定目录，则使用环境变量或默认值
+if (!videoDir) {
+    videoDir = process.env.VIDEO_DIR || 'F:\\dev\\workspace\\contentUploader\\video';
 }
 
 // 检查目录是否存在
 if (!fs.existsSync(videoDir)) {
     console.error(`Error: Directory not found: ${videoDir}`);
-    console.error('Usage: node upload_weichat.js [--dir <video_directory_path>] [--headless]');
+    console.error('Usage: node upload_weichat.js [--dir <video_directory_path>] [--headless] [--collection <collection_name>]');
     console.error('Options:');
-    console.error('  --dir      指定视频文件夹路径');
-    console.error('  --headless 无界面模式运行');
+    console.error('  --dir        指定视频文件夹路径');
+    console.error('  --headless   无界面模式运行');
+    console.error('  --collection 指定合集名称（也可通过 WECHAT_COLLECTION_NAME 环境变量设置）');
     process.exit(1);
 }
 
@@ -39,6 +51,20 @@ const VIDEO_DIR = videoDir;
 
 // 添加延时函数
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// 获取集合名称的函数
+function getCollectionName() {
+    // 命令行参数优先
+    if (collectionName) {
+        return collectionName;
+    }
+    // 其次是环境变量
+    if (process.env.WECHAT_COLLECTION_NAME) {
+        return process.env.WECHAT_COLLECTION_NAME;
+    }
+    // 最后是默认值
+    return '日语英语对照学';
+}
 
 async function waitForEnter() {
     const rl = readline.createInterface({
@@ -67,15 +93,21 @@ async function saveCookies(page) {
 
 async function loadCookies(page) {
     try {
-        const cookiesString = await fs.promises.readFile('temp/cookies.json', 'utf8');
-        const cookies = JSON.parse(cookiesString);
-        await page.setCookie(...cookies);
-        console.log('Cookies loaded successfully');
-        return true;
-    } catch (error) {
-        console.log('No saved cookies found or error loading cookies');
-        return false;
+        // 检查是否存在 temp 目录
+        if (!fs.existsSync('temp')) {
+            await fs.promises.mkdir('temp');
+        }
+        if (fs.existsSync('temp/cookies.json')) {
+            const cookiesString = await fs.promises.readFile('temp/cookies.json', 'utf8');
+            const cookies = JSON.parse(cookiesString);
+            await page.setCookie(...cookies);
+            console.log('Cookies loaded successfully');
+            return true;
+        }
+    } catch (err) {
+        console.log('No valid cookies found, proceeding to login');
     }
+    return false;
 }
 
 async function checkLogin(page) {
@@ -314,11 +346,12 @@ async function uploadVideo() {
                 await delay(3000);
 
                 // Select target collection
-                const selected = await page.evaluate(() => {
+                const collectionNameValue = getCollectionName();
+                const selected = await page.evaluate((collectionNameValue) => {
                     const items = Array.from(document.querySelectorAll('.option-item'));
                     const targetItem = items.find(item => {
                         const nameDiv = item.querySelector('.name');
-                        return nameDiv && nameDiv.textContent.trim() === '日语英语对照学';
+                        return nameDiv && nameDiv.textContent.trim() === collectionNameValue;
                     });
                     
                     if (targetItem) {
@@ -326,7 +359,7 @@ async function uploadVideo() {
                         return true;
                     }
                     return false;
-                });
+                }, collectionNameValue);
 
                 if (!selected) {
                     console.log('Warning: Could not find or select the target collection');
