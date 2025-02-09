@@ -16,7 +16,7 @@ for (let i = 0; i < args.length; i++) {
     if (args[i] === '--headless') {
         isHeadless = true;
     } else if (args[i] === '--dir' && args[i + 1]) {
-        videoDir = args[i + 1];
+        videoDir = args[i + 1].replace(/\\/g, '/'); // 将反斜杠替换为正斜杠
         i++; // 跳过下一个参数
     }
 }

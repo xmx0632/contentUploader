@@ -82,6 +82,8 @@ VIDEO_DIR="/path/to/your/video"
   或者在 Windows 上：
   ```cmd
   run.bat
+  或者
+  npm run start -- --dir "F:\dev\workspace\contentUploader\video"
   ```
 
 - **调试模式（不带 `--headless` 参数）**
