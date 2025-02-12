@@ -70,36 +70,6 @@ async function callAIAPI(prompt) {
 }
 
 /**
- * 生成单词的翻译卡片
- * @param {string} word - 要翻译的单词
- * @returns {Promise<string>} - 卡片内容
- */
-async function generateWordDescription(word, includeHashtags = true) {
-    try {
-        const prompt = `
-        你是一位中国人，而且是一个经验丰富的日语老师，负责教授美国同学日语。
-        根据输入的英语单词，给出英语单词的音标和日本单词音标和日语翻译，给出中文意思。
-        不要额外增加其他单词的内容。
-        返回格式：
-        
-        ✨ **${word}**   
-        🍑: [音标]  
-        🌸: [日语假名]  「日语汉字」
-        🀄️:  中文意思
-        ${includeHashtags ? `
-
-        #英语 #日语 #${word}` : ''}
-        `;
-
-        return await callAIAPI(prompt);
-    } catch (error) {
-        console.error(`Error generating word description for '${word}': ${error.message}`);
-        const errorMsg = `✨ **${word}**\n🍑: [音标获取失败]\n🌸: [翻译失败]\n🀄️: [翻译失败]`;
-        return includeHashtags ? errorMsg + `\n#英语 #日语 #${word}` : errorMsg;
-    }
-}
-
-/**
  * 生成多个单词的翻译卡片
  * @param {string} words - 要翻译的单词，使用短横线(-)分隔
  * @returns {Promise<string>} - 合并后的卡片内容
@@ -143,19 +113,12 @@ async function generateMultiWordDescription(words) {
 }
 
 module.exports = {
-    generateWordDescription,
     generateMultiWordDescription
 };
 
 // 测试代码
 async function test() {
     try {
-        // console.log('\n=== 测试单个单词 ===');
-        // const singleWord = 'apple';
-        // console.log(`\n正在处理单词: ${singleWord}`);
-        // const singleResult = await generateWordDescription(singleWord);
-        // console.log('\n结果:');
-        // console.log(singleResult);
 
         console.log('\n' + '='.repeat(50));
 
