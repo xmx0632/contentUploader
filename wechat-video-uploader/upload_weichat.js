@@ -106,9 +106,21 @@ async function waitForEnter() {
 }
 
 function getMP4Files() {
-    return fs.readdirSync(VIDEO_DIR)
+
+    // 获取最大上传数量，默认为5
+    const maxUploadCount = parseInt(process.env.MAX_UPLOAD_COUNT || '5');
+    
+    // 获取所有MP4文件
+    const files = fs.readdirSync(VIDEO_DIR)
         .filter(file => file.toLowerCase().endsWith('.mp4'))
         .map(file => path.join(VIDEO_DIR, file));
+    
+    // 如果文件数量小于最大上传数量，返回所有文件
+    if (files.length <= maxUploadCount) {
+        return files;
+    }
+    // 只返回指定数量的文件
+    return files.slice(0, maxUploadCount);
 }
 
 async function saveCookies(page) {
@@ -247,7 +259,7 @@ async function uploadVideo() {
                 console.log(`Uploading: ${videoFile}`);
                 
                 // 等待页面加载完成
-                await delay(8000);
+                await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
 
                 // 调试信息：打印所有按钮的文本
                 const buttonTexts = await page.evaluate(() => {
@@ -308,6 +320,7 @@ async function uploadVideo() {
                     visible: false,
                     timeout: 60000
                 });
+                // 上传文件
                 await inputElement.uploadFile(videoFile);
                 console.log('File uploaded, waiting for processing...');
                 
@@ -491,6 +504,23 @@ async function uploadVideo() {
                 console.log('Publication process completed');
                 console.log(`Successfully uploaded: ${videoFile}`);
                 
+                // 创建日期目录并移动文件
+                const today = new Date();
+                const dateDir = path.join(VIDEO_DIR, today.getFullYear().toString() +
+                    (today.getMonth() + 1).toString().padStart(2, '0') +
+                    today.getDate().toString().padStart(2, '0'));
+                
+                // 创建日期目录（如果不存在）
+                if (!fs.existsSync(dateDir)) {
+                    fs.mkdirSync(dateDir, { recursive: true });
+                }
+                
+                // 移动文件到日期目录
+                const targetPath = path.join(dateDir, videoFileName + ".mp4");
+                console.log(`Moving ${videoFile} to ${targetPath}`);
+                fs.renameSync(videoFile, targetPath);
+                console.log(`Completed: Moved file to: ${targetPath}`);
+                
                 // Add a small delay between uploads
                 await delay(parseInt(process.env.DELAY_BETWEEN_UPLOADS || '5000'));
             } catch (error) {
@@ -513,3 +543,7 @@ async function uploadVideo() {
 }
 
 uploadVideo().catch(console.error);
+
+// 打印结果
+// mp4files = getMP4Files();
+// console.log(mp4files);
