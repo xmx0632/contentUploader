@@ -91,11 +91,12 @@ async function loadCookies(page) {
 
 // 初始化浏览器
 async function initBrowser(isHeadless = false) {
-    return await puppeteer.launch({
-        headless: isHeadless,
+    const options = {
+        headless: isHeadless ? true : false,
         args: ['--start-maximized'],
         defaultViewport: null
-    });
+    };
+    return await puppeteer.launch(options);
 }
 
 // 解析命令行参数
