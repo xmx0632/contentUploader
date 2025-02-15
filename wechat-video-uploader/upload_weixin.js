@@ -183,9 +183,6 @@ async function uploadToWeixin(browser, videoFiles, options) {
         
         // 等待视频处理
         await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
-        
-        // 等待视频处理
-        await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
 
         // 获取视频标题（使用文件名，去掉扩展名）
         const videoTitle = path.basename(videoFile, path.extname(videoFile));
