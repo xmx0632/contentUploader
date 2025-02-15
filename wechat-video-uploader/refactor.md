@@ -92,3 +92,74 @@
    - 支持批量上传
    - 上传状态记录
    - 失败重试机制
+
+
+
+---
+
+改动说明：
+
+导入模块：
+
+从 upload_common.js 导入所需的通用函数。
+
+导入各个平台的上传函数（uploadToWeixin、uploadToRednote、uploadToKuaishou）。
+
+main 函数：
+
+加载环境变量。
+
+使用 parseCommandLineArgs 解析命令行参数，获取包含 platform、videoDir、isHeadless、collectionName 等属性的 options 对象。
+
+使用 getMP4Files 获取要上传的视频文件列表。
+
+使用 initBrowser 初始化浏览器实例。
+
+平台选择逻辑： 使用 switch 语句，根据 options.platform 的值选择相应的上传函数。如果 platform 参数无效，则抛出错误。
+
+调用上传函数： 调用选定的上传函数，并传入浏览器实例、视频文件列表和 options 对象。
+
+错误处理： 使用 try...catch...finally 结构捕获错误，并在 finally 块中关闭浏览器。
+
+程序入口：
+
+调用 main() 函数并捕获可能发生的错误。
+
+使用方法：
+
+现在您可以通过以下方式运行脚本：
+
+微信视频号：
+
+node main.js --platform weixin --dir <视频目录> [--headless] [--collection <合集名称>]
+Use code with caution.
+Bash
+小红书：
+
+node main.js --platform rednote --dir <视频目录> [--headless]
+Use code with caution.
+Bash
+快手：
+
+node main.js --platform kuaishou --dir <视频目录> [--headless]
+Use code with caution.
+Bash
+参数说明：
+
+--platform: 必需，指定上传平台 (weixin, rednote, kuaishou)。
+
+--dir: 可选，指定视频文件夹路径。如果不指定，将使用 .env 文件中的 VIDEO_DIR 变量，如果该变量也未设置，则使用默认值。
+
+--headless: 可选，以无头模式运行浏览器（不显示界面）。
+
+--collection: 可选, 指定微信视频号上传的合集名称.
+
+注意事项：
+
+.env 文件中与平台相关的配置参数，如微信视频号的 WECHAT_COLLECTION_NAME 依然有效。
+
+默认上传文件数量依然由 .env 文件中的 MAX_UPLOAD_COUNT 控制。
+
+确保已安装所有必需的依赖项 (puppeteer, dotenv, 等)。
+
+现在，main.js 已经完全按照您的重构计划进行了重构，成为了一个统一的、可扩展的程序入口。
