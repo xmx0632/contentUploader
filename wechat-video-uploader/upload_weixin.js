@@ -158,31 +158,94 @@ async function uploadToWeixin(browser, videoFiles, options) {
                     console.log('警告：未找到或无法选择目标合集');
                 }
 
+                console.log('合集已选择，等待完成...');
                 await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
             }
         }
 
-        // 尝试点击发布按钮
-        const clicked = await page.evaluate(() => {
-            const buttons = document.querySelectorAll('button');
-            for (const button of buttons) {
-                if (button.textContent.includes('发布') && button.offsetParent !== null) {
-                    button.click();
-                    return true;
-                }
+        // 尝试点击发表按钮
+        const publishResult = await page.evaluate(() => {
+            // 使用精确的选择器找到发表按钮
+            const publishButton = Array.from(document.querySelectorAll('button')).find(button => 
+                button.textContent.trim() === '发表' && 
+                button.className.includes('weui-desktop-btn_primary') &&
+                !button.disabled
+            );
+
+            if (publishButton) {
+                // 使用原生事件触发点击
+                const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                });
+                publishButton.dispatchEvent(clickEvent);
+                return { success: true, text: publishButton.textContent.trim() };
             }
-            return false;
+            return { success: false };
         });
-        
-        console.log('发布按钮点击结果:', clicked);
-        
-        if (!clicked) {
-            throw new Error('无法找到或点击发布按钮');
+
+        if (!publishResult.success) {
+            console.log('无法找到或点击发表按钮');
+            throw new Error('无法找到或点击发表按钮');
         }
 
-        // 等待发布完成
-        await delay(parseInt(process.env.DELAY_AFTER_PUBLISH || '10000'));
+        console.log('发表按钮已点击，等待完成...');
+        await delay(parseInt(process.env.DELAY_AFTER_PUBLISH || '8000'));
+
+        // 检查是否有确认对话框并点击
+        const confirmResult = await page.evaluate(() => {
+            const confirmButtons = Array.from(document.querySelectorAll('button')).filter(button => 
+                (button.textContent.trim() === '确定' || button.textContent.trim() === '确认') &&
+                button.className.includes('weui-desktop-btn_primary'));
+            
+            if (confirmButtons.length > 0) {
+                const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                });
+                confirmButtons[0].dispatchEvent(clickEvent);
+                return { hasConfirm: true };
+            }
+            return { hasConfirm: false };
+        });
+
+        console.log('确认对话框检查结果:', JSON.stringify(confirmResult, null, 2));
+        await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
+
+        // 等待发表按钮消失或页面变化
+        try {
+            await page.waitForFunction(
+                () => {
+                    const publishButton = document.querySelector('button.weui-desktop-btn.weui-desktop-btn_primary');
+                    return !publishButton || publishButton.textContent.trim() !== '发表';
+                },
+                { timeout: 30000 }
+            );
+            console.log('发表按钮已消失或状态已改变');
+        } catch (error) {
+            console.warn('等待发表按钮状态变化超时，继续执行...');
+        }
+
         console.log(`视频 ${videoFile} 上传成功`);
+
+        // // 创建日期目录并移动文件
+        // const today = new Date();
+        // const dateDir = path.join(VIDEO_DIR, today.getFullYear().toString() +
+        //     (today.getMonth() + 1).toString().padStart(2, '0') +
+        //     today.getDate().toString().padStart(2, '0'));
+        
+        // // 创建日期目录（如果不存在）
+        // if (!fs.existsSync(dateDir)) {
+        //     fs.mkdirSync(dateDir, { recursive: true });
+        // }
+        
+        // // 移动文件到日期目录
+        // const targetPath = path.join(dateDir, videoFileName + ".mp4");
+        // console.log(`Moving ${videoFile} to ${targetPath}`);
+        // fs.renameSync(videoFile, targetPath);
+        // console.log(`Completed: Moved file to: ${targetPath}`);
 
         // 等待一下再继续下一个
         await delay(parseInt(process.env.DELAY_BETWEEN_VIDEOS || '2000'));
