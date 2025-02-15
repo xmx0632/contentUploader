@@ -9,6 +9,17 @@ const { uploadToWeixin } = require('./upload_weixin');
 const { uploadToRednote } = require('./upload_rednote');
 const { uploadToKuaishou } = require('./upload_kuaishou');
 
+// 加载 AI 描述生成工具
+let generateMultiWordDescription;
+try {
+    const aiUtil = require('./ai_util.js');
+    generateMultiWordDescription = aiUtil.generateMultiWordDescription;
+    console.log('Loaded ai_util.js');
+} catch (error) {
+    console.error('Error loading ai_util.js:', error);
+    generateMultiWordDescription = async (text) => text;
+}
+
 // 支持的平台列表
 const SUPPORTED_PLATFORMS = ['weixin', 'rednote', 'kuaishou'];
 
@@ -55,9 +66,15 @@ async function main() {
 
         const uploadFunction = platformUploadMap[options.platform];
         
+        // 添加 generateMultiWordDescription 到 options
+        const uploadOptions = {
+            ...options,
+            generateMultiWordDescription
+        };
+        
         // 执行上传
         console.log('开始上传视频...');
-        await uploadFunction(browser, videoFiles, options);
+        await uploadFunction(browser, videoFiles, uploadOptions);
         console.log('所有视频上传完成！');
 
     } catch (error) {

@@ -94,7 +94,6 @@
    - 失败重试机制
 
 
-
 ---
 
 改动说明：
@@ -129,22 +128,29 @@ main 函数：
 
 现在您可以通过以下方式运行脚本：
 
+```Bash
+
+node main.js --platform weixin --dir /Users/xmx0632/aivideo/dist/videos/ --collection 日语英语对照学
+node main.js --platform rednote --dir /Users/xmx0632/aivideo/dist/videos/ --collection 日语英语对照学
+node main.js --platform kuaishou --dir /Users/xmx0632/aivideo/dist/videos/ --collection 日语英语对照学
+
+node main.js --platform weixin --dir /Users/xmx0632/aivideo/dist/videos/ [--headless] [--collection <合集名称>]
+
 微信视频号：
 
 node main.js --platform weixin --dir <视频目录> [--headless] [--collection <合集名称>]
-Use code with caution.
-Bash
+
 小红书：
 
 node main.js --platform rednote --dir <视频目录> [--headless]
-Use code with caution.
-Bash
+
+
 快手：
 
 node main.js --platform kuaishou --dir <视频目录> [--headless]
-Use code with caution.
-Bash
-参数说明：
+```
+
+#### 参数说明：
 
 --platform: 必需，指定上传平台 (weixin, rednote, kuaishou)。
 

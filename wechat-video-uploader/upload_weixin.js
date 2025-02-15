@@ -1,4 +1,5 @@
-const { delay, loadCookies, saveCookies } = require('./upload_common');
+const path = require('path');
+const { delay, loadCookies, saveCookies, waitForEnter } = require('./upload_common');
 
 // 检查登录状态
 async function checkLogin(page) {
@@ -84,24 +85,55 @@ async function uploadToWeixin(browser, videoFiles, options) {
             { timeout: 300000 } // 5分钟超时
         );
         
+        // 获取视频标题（使用文件名，去掉扩展名）
+        const videoTitle = path.basename(videoFile, path.extname(videoFile));
+        console.log('视频标题：', videoTitle);
+
+        // 使用AI生成多个描述
+        const description = await options.generateMultiWordDescription(videoTitle);
+        console.log('生成的描述：', description);
+
+        // 填写标题
+        await page.type('.weui-desktop-form__input', videoTitle);
+
+        // 填写描述
+        const textareas = await page.$$('textarea');
+        if (textareas.length > 0) {
+            await textareas[0].type(description);
+        }
+
         // 如果有合集名称，选择合集
         if (collectionName) {
-            await page.click('.collection-select');
-            await page.type('.collection-select-input', collectionName);
-            await page.click(`[title="${collectionName}"]`);
+            // 点击合集按钮
+            const collectionButton = await page.waitForSelector('.weui-desktop-form__collection-add');
+            await collectionButton.click();
+
+            // 等待合集输入框出现
+            await page.waitForSelector('.weui-desktop-form__input');
+            await page.type('.weui-desktop-form__input', collectionName);
+
+            // 等待并点击第一个合集建议
+            await page.waitForSelector('.weui-desktop-form__collection-item');
+            const suggestions = await page.$$('.weui-desktop-form__collection-item');
+            if (suggestions.length > 0) {
+                await suggestions[0].click();
+            } else {
+                // 如果没有找到现有合集，创建新合集
+                const createButton = await page.waitForSelector('.weui-desktop-dialog__ft .weui-desktop-btn_primary');
+                await createButton.click();
+            }
+
+            console.log('已添加到合集：', collectionName);
         }
-        
+
         // 点击发布按钮
-        await page.click('.publish-btn');
-        
-        // 等待发布成功
-        await page.waitForFunction(
-            () => document.querySelector('.success-page'),
-            { timeout: 30000 }
-        );
-        
+        const publishButton = await page.waitForSelector('.weui-desktop-dialog__ft .weui-desktop-btn_primary');
+        await publishButton.click();
+
+        // 等待发布完成
+        await page.waitForSelector('.weui-desktop-card__title', { timeout: 60000 });
         console.log(`视频 ${videoFile} 上传成功`);
-        
+
         // 等待一下再继续下一个
         await delay(2000);
     }
