@@ -70,72 +70,122 @@ async function uploadToWeixin(browser, videoFiles, options) {
             waitUntil: 'networkidle0'
         });
         
-        // 等待上传按钮出现
-        const uploadButton = await page.waitForSelector('input[type="file"]');
+        // 等待页面加载
+        await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
+        
+        // 等待文件上传按钮
+        const uploadButton = await page.waitForSelector('input[type=file]', {
+            visible: false,
+            timeout: 60000
+        });
         
         // 上传视频文件
         await uploadButton.uploadFile(videoFile);
+        console.log('File uploaded, waiting for processing...');
         
-        // 等待视频上传完成
-        await page.waitForFunction(
-            () => {
-                const progressBar = document.querySelector('.weui-progress__inner-bar');
-                return progressBar && progressBar.style.width === '100%';
-            },
-            { timeout: 300000 } // 5分钟超时
-        );
+        // 等待视频处理
+        await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
         
+        // 等待视频处理
+        await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
+
         // 获取视频标题（使用文件名，去掉扩展名）
         const videoTitle = path.basename(videoFile, path.extname(videoFile));
         console.log('视频标题：', videoTitle);
 
-        // 使用AI生成多个描述
-        const description = await options.generateMultiWordDescription(videoTitle);
-        console.log('生成的描述：', description);
+        // 使用AI生成描述
+        let description;
+        try {
+            // 将文件名按照 - 分割成单词
+            const words = videoTitle
+                .split('-')
+                .map(word => word.trim().toLowerCase())
+                .filter(word => word);
+            
+            if (words.length > 0) {
+                description = await options.generateMultiWordDescription(words.join('-'));
+                console.log('生成的描述：', description);
+            }
+        } catch (error) {
+            console.error('生成描述时出错：', error);
+        }
 
-        // 填写标题
-        await page.type('.weui-desktop-form__input', videoTitle);
+        // 如果生成失败，使用原文件名
+        if (!description) {
+            description = videoTitle;
+            console.log('使用原文件名作为描述：', description);
+        }
 
         // 填写描述
-        const textareas = await page.$$('textarea');
-        if (textareas.length > 0) {
-            await textareas[0].type(description);
+        const editor = await page.$('div[contenteditable][data-placeholder="添加描述"]');
+        if (editor) {
+            await page.evaluate(() => {
+                const editor = document.querySelector('div[contenteditable][data-placeholder="添加描述"]');
+                editor.textContent = '';
+                editor.focus();
+            });
+            await page.keyboard.type(description);
+            await page.evaluate(() => {
+                document.body.click();
+            });
         }
+        
+        // 等待内容更新
+        await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
 
         // 如果有合集名称，选择合集
         if (collectionName) {
-            // 点击合集按钮
-            const collectionButton = await page.waitForSelector('.weui-desktop-form__collection-add');
-            await collectionButton.click();
+            // 点击合集下拉框
+            const albumDisplay = await page.$('.post-album-display');
+            if (albumDisplay) {
+                await albumDisplay.click();
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
 
-            // 等待合集输入框出现
-            await page.waitForSelector('.weui-desktop-form__input');
-            await page.type('.weui-desktop-form__input', collectionName);
+                // 选择目标合集
+                const selected = await page.evaluate(name => {
+                    const items = document.querySelectorAll('.option-item');
+                    for (const item of items) {
+                        const nameDiv = item.querySelector('.name');
+                        if (nameDiv && nameDiv.textContent.trim() === name) {
+                            item.click();
+                            return true;
+                        }
+                    }
+                    return false;
+                }, collectionName);
 
-            // 等待并点击第一个合集建议
-            await page.waitForSelector('.weui-desktop-form__collection-item');
-            const suggestions = await page.$$('.weui-desktop-form__collection-item');
-            if (suggestions.length > 0) {
-                await suggestions[0].click();
-            } else {
-                // 如果没有找到现有合集，创建新合集
-                const createButton = await page.waitForSelector('.weui-desktop-dialog__ft .weui-desktop-btn_primary');
-                await createButton.click();
+                if (!selected) {
+                    console.log('警告：未找到或无法选择目标合集');
+                }
+
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
             }
-
-            console.log('已添加到合集：', collectionName);
         }
 
-        // 点击发布按钮
-        const publishButton = await page.waitForSelector('.weui-desktop-dialog__ft .weui-desktop-btn_primary');
-        await publishButton.click();
+        // 尝试点击发布按钮
+        const clicked = await page.evaluate(() => {
+            const buttons = document.querySelectorAll('button');
+            for (const button of buttons) {
+                if (button.textContent.includes('发布') && button.offsetParent !== null) {
+                    button.click();
+                    return true;
+                }
+            }
+            return false;
+        });
+        
+        console.log('发布按钮点击结果:', clicked);
+        
+        if (!clicked) {
+            throw new Error('无法找到或点击发布按钮');
+        }
 
         // 等待发布完成
-        await page.waitForSelector('.weui-desktop-card__title', { timeout: 60000 });
+        await delay(parseInt(process.env.DELAY_AFTER_PUBLISH || '10000'));
         console.log(`视频 ${videoFile} 上传成功`);
 
         // 等待一下再继续下一个
-        await delay(2000);
+        await delay(parseInt(process.env.DELAY_BETWEEN_VIDEOS || '2000'));
     }
 
     await page.close();
