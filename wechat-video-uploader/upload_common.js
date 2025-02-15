@@ -147,6 +147,32 @@ function parseCommandLineArgs() {
     return options;
 }
 
+// 归档视频文件
+async function archiveVideo(videoFile, baseDir) {
+    try {
+        const today = new Date();
+        const dateDir = path.join(baseDir, today.getFullYear().toString() +
+            (today.getMonth() + 1).toString().padStart(2, '0') +
+            today.getDate().toString().padStart(2, '0'));
+        
+        // 创建日期目录（如果不存在）
+        if (!fs.existsSync(dateDir)) {
+            fs.mkdirSync(dateDir, { recursive: true });
+        }
+        
+        // 移动文件到日期目录
+        const videoFileName = path.basename(videoFile, path.extname(videoFile));
+        const targetPath = path.join(dateDir, videoFileName + ".mp4");
+        console.log(`移动文件: ${videoFile} 到 ${targetPath}`);
+        fs.renameSync(videoFile, targetPath);
+        console.log(`完成: 文件已移动到: ${targetPath}`);
+        return targetPath;
+    } catch (error) {
+        console.error('归档视频文件时出错:', error);
+        throw error;
+    }
+}
+
 // 导出通用功能
 module.exports = {
     appRoot,
@@ -157,5 +183,6 @@ module.exports = {
     saveCookies,
     loadCookies,
     initBrowser,
-    parseCommandLineArgs
+    parseCommandLineArgs,
+    archiveVideo
 };

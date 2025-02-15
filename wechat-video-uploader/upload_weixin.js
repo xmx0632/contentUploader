@@ -1,5 +1,5 @@
 const path = require('path');
-const { delay, loadCookies, saveCookies, waitForEnter } = require('./upload_common');
+const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo } = require('./upload_common');
 
 // 检查登录状态
 async function checkLogin(page) {
@@ -230,22 +230,9 @@ async function uploadToWeixin(browser, videoFiles, options) {
 
         console.log(`视频 ${videoFile} 上传成功`);
 
-        // // 创建日期目录并移动文件
-        // const today = new Date();
-        // const dateDir = path.join(VIDEO_DIR, today.getFullYear().toString() +
-        //     (today.getMonth() + 1).toString().padStart(2, '0') +
-        //     today.getDate().toString().padStart(2, '0'));
-        
-        // // 创建日期目录（如果不存在）
-        // if (!fs.existsSync(dateDir)) {
-        //     fs.mkdirSync(dateDir, { recursive: true });
-        // }
-        
-        // // 移动文件到日期目录
-        // const targetPath = path.join(dateDir, videoFileName + ".mp4");
-        // console.log(`Moving ${videoFile} to ${targetPath}`);
-        // fs.renameSync(videoFile, targetPath);
-        // console.log(`Completed: Moved file to: ${targetPath}`);
+        // 归档视频文件
+        const videoDir = path.dirname(videoFile);
+        await archiveVideo(videoFile, videoDir);
 
         // 等待一下再继续下一个
         await delay(parseInt(process.env.DELAY_BETWEEN_VIDEOS || '2000'));
