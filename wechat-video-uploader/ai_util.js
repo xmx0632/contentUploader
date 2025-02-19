@@ -78,7 +78,7 @@ async function generateMultiWordDescription(words) {
     try {
         // 分割单词
         const wordList = words.split('-').map(w => w.trim()).filter(w => w);
-        
+
         if (wordList.length === 0) {
             throw new Error('没有提供有效的单词');
         }
@@ -101,10 +101,10 @@ async function generateMultiWordDescription(words) {
         }));
 
         // 合并结果，添加分隔线和底部标签
-        const combinedContent = results.join('\n\n');
+        const combinedContent = results.join('\r\n\r\n');
         const tags = `#英语 #日语 ${wordList.map(w => `#${w}`).join(' ')}`;
 
-        return combinedContent + '\n\n' + tags;
+        return combinedContent + '\r\n\r\n' + tags;
 
     } catch (error) {
         console.error(`Error generating multiple word descriptions: ${error.message}`);
@@ -128,7 +128,7 @@ async function test() {
         const multiResult = await generateMultiWordDescription(multiWords);
         console.log('\n结果:');
         console.log(multiResult);
-        
+
 
     } catch (error) {
         console.error('\n错误:', error.message);

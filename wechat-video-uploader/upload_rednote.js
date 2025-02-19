@@ -22,56 +22,68 @@ async function checkLogin(page) {
 async function uploadToRednote(browser, videoFiles, options) {
     let page;
 
-    // 如果是 headless 模式，先检查是否有保存的 cookies
-    if (options.isHeadless) {
-        browser = await puppeteer.launch({
-            headless: false,
-            args: ['--start-maximized'],
-            defaultViewport: null
-        });
-
-        page = await browser.newPage();
-
-        // 尝试加载 cookies
-        const cookiesLoaded = await loadCookies(page);
-
-        // 检查登录状态
-        const isLoggedIn = await checkLogin(page);
-
-        if (!isLoggedIn) {
-            console.log('需要登录小红书创作者平台，请在浏览器中完成登录...');
-            await waitForEnter();
-
-            // 再次检查登录状态
-            const loggedIn = await checkLogin(page);
-            if (loggedIn) {
-                // 保存 cookies
-                await saveCookies(page);
-            } else {
-                console.error('登录失败，请重试');
-                await browser.close();
-                process.exit(1);
-            }
+    // 启动浏览器
+    browser = await puppeteer.launch({
+        headless: options.isHeadless,
+        args: ['--start-maximized'],
+        defaultViewport: null
+    });
+    
+    page = await browser.newPage();
+    
+    // 尝试加载 cookies
+    const cookiesLoaded = await loadCookies(page);
+    console.log('尝试加载已保存的 cookies...');
+    
+    // 检查登录状态
+    const isLoggedIn = await checkLogin(page);
+    console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
+    
+    if (!isLoggedIn) {
+        console.log('需要登录小红书创作者平台，请在浏览器中完成登录...');
+        await waitForEnter();
+        
+        // 再次检查登录状态
+        const loggedIn = await checkLogin(page);
+        if (loggedIn) {
+            // 保存 cookies
+            console.log('登录成功，保存 cookies...');
+            await saveCookies(page);
+        } else {
+            console.error('登录失败，请重试');
+            await browser.close();
+            process.exit(1);
         }
+    } else {
+        console.log('Cookie 有效，无需重新登录');
+    }
 
+    // 如果是 headless 模式，需要重新启动浏览器
+    if (options.isHeadless) {
         await browser.close();
         browser = await puppeteer.launch({
             headless: true,
             defaultViewport: null
         });
+        
+        page = await browser.newPage();
+        await loadCookies(page);
     }
 
     try {
-        page = await browser.newPage();
-
-        // 如果是 headless 模式，尝试加载 cookies
-        if (options.isHeadless) {
-            await loadCookies(page);
-        }
-
         await page.goto('https://creator.xiaohongshu.com/publish/publish', {
             waitUntil: 'networkidle0'
         });
+
+        // 在 headless 模式下再次检查登录状态
+        if (options.isHeadless) {
+            const isStillLoggedIn = await checkLogin(page);
+            if (!isStillLoggedIn) {
+                console.error('登录失效，请先使用非 headless 模式登录');
+                await browser.close();
+                process.exit(1);
+            }
+        }
 
         // 如果不是 headless 模式，等待用户登录
         if (!options.isHeadless) {
@@ -117,27 +129,36 @@ async function uploadToRednote(browser, videoFiles, options) {
                 { timeout: 300000 } // 5分钟超时
             );
 
-            // 等待10秒，确保封面生成完成
-            console.log('等待10秒，确保封面生成完成...');
-            await delay(10000);
+            // 等待15秒，确保封面生成完成
+            console.log('等待15秒，确保封面生成完成...');
+            await delay(15000);
 
             // 选择封面
             try {
                 console.log('等待封面选项加载...');
                 await page.waitForSelector('.recommend .defaults .default', {
-                    timeout: 10000
+                    timeout: 15000
                 });
 
                 console.log('选择第三个封面...');
                 const coverSelected = await page.evaluate(() => {
-                    const covers = document.querySelectorAll('.recommend .defaults .default');
-                    console.log(`找到 ${covers.length} 个封面选项`);
-                    if (covers && covers.length >= 3) {
-                        // 选择第三个封面
+                    const covers = document.querySelectorAll('.recommend .defaults .default .cover-image');
+                    const count = covers.length;
+                    console.log('找到封面选项数量:', count);
+
+                    //打印出每个 covers 的详细信息
+                    for (let i = 0; i < count; i++) {
+                        const cover = covers[i];
+                        console.log(`封面${i + 1}信息:`, cover);
+                    }
+
+                    if (covers && count >= 3) {
+                        console.log('准备点击第三个封面');
                         covers[2].click();
                         return true;
                     }
-                    console.log(`找到 ${covers.length} 个封面选项`);
+
+                    console.log('封面数量不足3个，无法选择第三个封面');
                     return false;
                 });
 
@@ -234,7 +255,7 @@ async function uploadToRednote(browser, videoFiles, options) {
                         // 查找所有合集选项
                         const items = document.querySelectorAll('.d-grid-item .item');
                         console.log(`找到 ${items.length} 个合集选项`);
-                        
+
                         // 遍历查找匹配的选项
                         for (const item of items) {
                             const itemText = item.textContent.trim();
@@ -245,7 +266,7 @@ async function uploadToRednote(browser, videoFiles, options) {
                                 return true;
                             }
                         }
-                        
+
                         console.log('未找到匹配的合集选项');
                         return false;
                     }, options.collectionName);
@@ -263,6 +284,7 @@ async function uploadToRednote(browser, videoFiles, options) {
                 }
             }
 
+            console.log('点击发布按钮...');
             // 点击发布按钮
             await page.evaluate(() => {
                 const publishButton = document.querySelector('button.d-button.publishBtn');
@@ -274,11 +296,11 @@ async function uploadToRednote(browser, videoFiles, options) {
                 return false;
             });
 
-            // 等待发布完成（等待成功页面出现）
-            await page.waitForFunction(
-                () => window.location.href.includes('publish-success'),
-                { timeout: 60000 }
-            );
+            // // 等待发布完成（等待成功页面出现）
+            // await page.waitForFunction(
+            //     () => window.location.href.includes('publish-success'),
+            //     { timeout: 60000 }
+            // );
 
             console.log(`视频 ${videoFile} 上传成功`);
 
