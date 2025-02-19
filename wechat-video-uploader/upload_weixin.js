@@ -7,17 +7,17 @@ async function checkLogin(page) {
     await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
         waitUntil: 'networkidle0'
     });
-    
+
     // 检查是否需要登录
     const needLogin = await page.evaluate(() => {
-        // 如果发现“发表视频”按钮，则说明已登录
+        // 如果发现"发表视频"按钮，则说明已登录
         const buttons = Array.from(document.querySelectorAll('button'));
-        return !buttons.some(button => 
-            button.textContent.trim() === '发表视频' && 
+        return !buttons.some(button =>
+            button.textContent.trim() === '发表视频' &&
             button.offsetParent !== null
         );
     });
-    
+
     return !needLogin;
 }
 
@@ -35,98 +35,108 @@ function getCollectionName(options) {
     return null;
 }
 
-    // 上传视频到微信视频号
-    async function uploadToWeixin(browser, videoFiles, options) {
-        console.log('传入的参数:', {
-            headless: options.headless,
-            isHeadless: options.isHeadless,
-            videoFiles: videoFiles.length
-        });
-        let page;
-    
-        // 启动浏览器
+// 上传视频到微信视频号
+async function uploadToWeixin(browser, videoFiles, options) {
+    console.log('传入的参数:', {
+        headless: options.headless,
+        isHeadless: options.isHeadless,
+        videoFiles: videoFiles.length
+    });
+    let page;
+
+    // 先以 headless 模式尝试加载 cookies
+    browser = await puppeteer.launch({
+        headless: true,
+        args: ['--start-maximized'],
+        defaultViewport: null
+    });
+
+    page = await browser.newPage();
+
+    // 尝试加载 cookies
+    const cookiesLoaded = await loadCookies(page, 'weixin');
+    console.log('尝试加载已保存的 cookies...');
+
+    // 检查登录状态
+    const isLoggedIn = await checkLogin(page);
+    console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
+
+    // 如果未登录，切换到有界面模式
+    if (!isLoggedIn) {
+        console.log('Cookie无效或未找到，切换到有界面模式进行登录...');
+        await browser.close();
+
+        // 重新以有界面模式启动浏览器
         browser = await puppeteer.launch({
-            headless: options.isHeadless,
+            headless: false,
             args: ['--start-maximized'],
             defaultViewport: null
         });
-        
-        page = await browser.newPage();
-        
-        // 尝试加载 cookies
-        const cookiesLoaded = await loadCookies(page, 'weixin');
-        console.log('尝试加载已保存的 cookies...');
-        
-        // 检查登录状态
-        const isLoggedIn = await checkLogin(page);
-        console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
-        
-        if (!isLoggedIn) {
-            console.log('需要登录微信视频号，请在浏览器中完成登录...');
-            await waitForEnter();
-            
-            // 再次检查登录状态
-            const loggedIn = await checkLogin(page);
-            if (loggedIn) {
-                // 保存 cookies
-                console.log('登录成功，保存 cookies...');
-                await saveCookies(page, 'weixin');
-            } else {
-                console.error('登录失败，请重试');
-                await browser.close();
-                process.exit(1);
-            }
-        } else {
-            console.log('Cookie 有效，无需重新登录');
-        }
 
-        // 如果是 headless 模式，需要重新启动浏览器
-        if (options.isHeadless) {
+        page = await browser.newPage();
+        await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
+            waitUntil: 'networkidle0'
+        });
+        console.log('需要登录微信视频号，请在浏览器中完成登录...');
+        await waitForEnter();
+
+        // 再次检查登录状态
+        const loggedIn = await checkLogin(page);
+        if (loggedIn) {
+            // 保存 cookies
+            console.log('登录成功，保存 cookies...');
+            await saveCookies(page, 'weixin');
+
+            // 关闭有界面浏览器，重新以 headless 模式启动
             await browser.close();
             browser = await puppeteer.launch({
                 headless: true,
                 defaultViewport: null
             });
-            
             page = await browser.newPage();
-            await loadCookies(page);
+            await loadCookies(page, 'weixin');
+        } else {
+            console.error('登录失败，请重试');
+            await browser.close();
+            process.exit(1);
+        }
+    }
+
+    try {
+        await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
+            waitUntil: 'networkidle0'
+        });
+
+        // 在 headless 模式下再次检查登录状态
+        if (options.isHeadless) {
+            const isStillLoggedIn = await checkLogin(page);
+            if (!isStillLoggedIn) {
+                console.error('登录失效，请先使用非 headless 模式登录');
+                await browser.close();
+                process.exit(1);
+            }
         }
 
-        try {
-            await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
-                waitUntil: 'networkidle0'
-            });
+        // 保存新的 cookies
+        await saveCookies(page, 'weixin');
 
-            // 在 headless 模式下再次检查登录状态
-            if (options.isHeadless) {
-                const isStillLoggedIn = await checkLogin(page);
-                if (!isStillLoggedIn) {
-                    console.error('登录失效，请先使用非 headless 模式登录');
-                    await browser.close();
-                    process.exit(1);
-                }
-            }
+        // 获取合集名称
+        const collectionName = getCollectionName(options);
 
-            // 保存新的 cookies
-            await saveCookies(page, 'weixin');
-
-            // 获取合集名称
-            const collectionName = getCollectionName(options);
-
-            // 开始上传视频
-            for (const videoFile of videoFiles) {
+        // 开始上传视频
+        for (const videoFile of videoFiles) {
             console.log(`正在上传视频: ${videoFile}`);
-            
+
             // 进入视频列表页面
             await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
                 waitUntil: 'networkidle0',
                 timeout: 60000
             });
-            
+
             // 等待页面加载
             console.log('等待页面加载...');
             await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
-            
+
             // 点击发表视频按钮
             console.log('尝试点击发表视频按钮...');
             try {
@@ -134,12 +144,12 @@ function getCollectionName(options) {
                 console.log('点击发表按钮成功');
             } catch (clickError) {
                 console.log('直接点击失败，尝试其他方法...');
-                
+
                 const clicked = await page.evaluate(() => {
                     const buttons = Array.from(document.querySelectorAll('button'));
                     for (const button of buttons) {
-                        if (button.textContent.trim() === '发表视频' && 
-                            button.offsetParent !== null && 
+                        if (button.textContent.trim() === '发表视频' &&
+                            button.offsetParent !== null &&
                             button.classList.contains('weui-desktop-btn_primary') &&
                             !button.classList.contains('weui-desktop-btn_mini')) {
                             button.click();
@@ -148,7 +158,7 @@ function getCollectionName(options) {
                     }
                     return false;
                 });
-                
+
                 if (!clicked) {
                     throw new Error('找不到发表视频按钮或点击失败');
                 }
@@ -156,19 +166,19 @@ function getCollectionName(options) {
 
             // 等待跳转到发布页面
             await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
-            
+
             // 等待文件上传按钮
             console.log('等待上传按钮出现...');
             const uploadButton = await page.waitForSelector('input[type=file]', {
                 visible: false,
                 timeout: 30000
             });
-            
+
             // 上传视频文件
             console.log('开始上传视频文件:', videoFile);
             await uploadButton.uploadFile(videoFile);
             console.log('视频文件已上传，等待处理...');
-            
+
             // 等待视频处理
             await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
 
@@ -184,7 +194,7 @@ function getCollectionName(options) {
                     .split('-')
                     .map(word => word.trim().toLowerCase())
                     .filter(word => word);
-                
+
                 if (words.length > 0) {
                     description = await options.generateMultiWordDescription(words.join('-'));
                     console.log('生成的描述：', description);
@@ -212,7 +222,7 @@ function getCollectionName(options) {
                     document.body.click();
                 });
             }
-            
+
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
 
@@ -249,8 +259,8 @@ function getCollectionName(options) {
             // 尝试点击发表按钮
             const publishResult = await page.evaluate(() => {
                 // 使用精确的选择器找到发表按钮
-                const publishButton = Array.from(document.querySelectorAll('button')).find(button => 
-                    button.textContent.trim() === '发表' && 
+                const publishButton = Array.from(document.querySelectorAll('button')).find(button =>
+                    button.textContent.trim() === '发表' &&
                     button.className.includes('weui-desktop-btn_primary') &&
                     !button.disabled
                 );
@@ -278,10 +288,10 @@ function getCollectionName(options) {
 
             // 检查是否有确认对话框并点击
             const confirmResult = await page.evaluate(() => {
-                const confirmButtons = Array.from(document.querySelectorAll('button')).filter(button => 
+                const confirmButtons = Array.from(document.querySelectorAll('button')).filter(button =>
                     (button.textContent.trim() === '确定' || button.textContent.trim() === '确认') &&
                     button.className.includes('weui-desktop-btn_primary'));
-                
+
                 if (confirmButtons.length > 0) {
                     const clickEvent = new MouseEvent('click', {
                         view: window,
@@ -321,15 +331,15 @@ function getCollectionName(options) {
             await delay(parseInt(process.env.DELAY_BETWEEN_VIDEOS || '2000'));
         }
 
+        await browser.close();
+    } catch (error) {
+        console.error('上传过程中发生错误:', error);
+        if (browser) {
             await browser.close();
-        } catch (error) {
-            console.error('上传过程中发生错误:', error);
-            if (browser) {
-                await browser.close();
-            }
-            throw error;
         }
+        throw error;
     }
+}
 
 module.exports = {
     checkLogin,

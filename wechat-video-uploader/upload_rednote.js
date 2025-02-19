@@ -20,11 +20,16 @@ async function checkLogin(page) {
 
 // 上传视频到小红书
 async function uploadToRednote(browser, videoFiles, options) {
+    console.log('传入的参数:', {
+        headless: options.headless,
+        isHeadless: options.isHeadless,
+        videoFiles: videoFiles.length
+    });
     let page;
 
     // 启动浏览器
     browser = await puppeteer.launch({
-        headless: options.isHeadless,
+        headless: false, // 先用有界面模式启动
         args: ['--start-maximized'],
         defaultViewport: null
     });
@@ -39,6 +44,7 @@ async function uploadToRednote(browser, videoFiles, options) {
     const isLoggedIn = await checkLogin(page);
     console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
     
+    // 如果未登录，让用户手动登录
     if (!isLoggedIn) {
         console.log('需要登录小红书创作者平台，请在浏览器中完成登录...');
         await waitForEnter();
@@ -65,9 +71,8 @@ async function uploadToRednote(browser, videoFiles, options) {
             headless: true,
             defaultViewport: null
         });
-        
         page = await browser.newPage();
-        await loadCookies(page);
+        await loadCookies(page, 'rednote');
     }
 
     try {
@@ -84,6 +89,9 @@ async function uploadToRednote(browser, videoFiles, options) {
                 process.exit(1);
             }
         }
+
+        // 保存新的 cookies
+        await saveCookies(page, 'rednote');
 
         // 如果不是 headless 模式，等待用户登录
         if (!options.isHeadless) {
