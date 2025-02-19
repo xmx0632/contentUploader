@@ -32,7 +32,7 @@ async function uploadToRednote(browser, videoFiles, options) {
     page = await browser.newPage();
     
     // 尝试加载 cookies
-    const cookiesLoaded = await loadCookies(page);
+    const cookiesLoaded = await loadCookies(page, 'rednote');
     console.log('尝试加载已保存的 cookies...');
     
     // 检查登录状态
@@ -48,7 +48,7 @@ async function uploadToRednote(browser, videoFiles, options) {
         if (loggedIn) {
             // 保存 cookies
             console.log('登录成功，保存 cookies...');
-            await saveCookies(page);
+            await saveCookies(page, 'rednote');
         } else {
             console.error('登录失败，请重试');
             await browser.close();

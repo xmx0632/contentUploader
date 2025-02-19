@@ -44,12 +44,12 @@ async function waitForEnter() {
 function getMP4Files(videoDir) {
     // 获取最大上传数量，默认为5
     const maxUploadCount = parseInt(process.env.MAX_UPLOAD_COUNT || '5');
-    
+
     // 获取所有MP4文件
     const files = fs.readdirSync(videoDir)
         .filter(file => file.toLowerCase().endsWith('.mp4'))
         .map(file => path.join(videoDir, file));
-    
+
     // 如果文件数量小于最大上传数量，返回所有文件
     if (files.length <= maxUploadCount) {
         return files;
@@ -59,32 +59,34 @@ function getMP4Files(videoDir) {
 }
 
 // Cookie 管理
-async function saveCookies(page) {
+async function saveCookies(page, platform = '') {
     const cookies = await page.cookies();
     const tempDir = path.join(appRoot, 'temp');
     if (!fs.existsSync(tempDir)) {
         await fs.promises.mkdir(tempDir);
     }
-    await fs.promises.writeFile(path.join(tempDir, 'cookies.json'), JSON.stringify(cookies, null, 2));
-    console.log('Cookies saved successfully');
+    const cookieFileName = platform ? `cookies-${platform}.json` : 'cookies.json';
+    await fs.promises.writeFile(path.join(tempDir, cookieFileName), JSON.stringify(cookies, null, 2));
+    console.log(`Cookies saved successfully for platform: ${platform || 'default'}`);
 }
 
-async function loadCookies(page) {
+async function loadCookies(page, platform = '') {
     try {
         const tempDir = path.join(appRoot, 'temp');
         if (!fs.existsSync(tempDir)) {
             await fs.promises.mkdir(tempDir);
         }
-        const cookiesPath = path.join(tempDir, 'cookies.json');
+        const cookieFileName = platform ? `cookies-${platform}.json` : 'cookies.json';
+        const cookiesPath = path.join(tempDir, cookieFileName);
         if (fs.existsSync(cookiesPath)) {
             const cookiesString = await fs.promises.readFile(cookiesPath, 'utf8');
             const cookies = JSON.parse(cookiesString);
             await page.setCookie(...cookies);
-            console.log('Cookies loaded successfully');
+            console.log(`Cookies loaded successfully for platform: ${platform || 'default'}`);
             return true;
         }
     } catch (err) {
-        console.log('No valid cookies found, proceeding to login');
+        console.log(`No valid cookies found for platform: ${platform || 'default'}`);
     }
     return false;
 }
@@ -155,12 +157,12 @@ async function archiveVideo(videoFile, baseDir) {
         const dateDir = path.join(baseDir, today.getFullYear().toString() +
             (today.getMonth() + 1).toString().padStart(2, '0') +
             today.getDate().toString().padStart(2, '0'));
-        
+
         // 创建日期目录（如果不存在）
         if (!fs.existsSync(dateDir)) {
             fs.mkdirSync(dateDir, { recursive: true });
         }
-        
+
         // 移动文件到日期目录
         const videoFileName = path.basename(videoFile, path.extname(videoFile));
         const targetPath = path.join(dateDir, videoFileName + ".mp4");

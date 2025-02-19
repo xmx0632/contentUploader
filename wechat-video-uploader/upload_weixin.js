@@ -27,7 +27,7 @@ function getCollectionName(options) {
     if (options.collectionName) {
         return options.collectionName;
     }
-    // 其次是环境变量
+    // 首先是环境变量
     if (process.env.WECHAT_COLLECTION_NAME) {
         return process.env.WECHAT_COLLECTION_NAME;
     }
@@ -54,7 +54,7 @@ function getCollectionName(options) {
         page = await browser.newPage();
         
         // 尝试加载 cookies
-        const cookiesLoaded = await loadCookies(page);
+        const cookiesLoaded = await loadCookies(page, 'weixin');
         console.log('尝试加载已保存的 cookies...');
         
         // 检查登录状态
@@ -70,7 +70,7 @@ function getCollectionName(options) {
             if (loggedIn) {
                 // 保存 cookies
                 console.log('登录成功，保存 cookies...');
-                await saveCookies(page);
+                await saveCookies(page, 'weixin');
             } else {
                 console.error('登录失败，请重试');
                 await browser.close();
@@ -108,7 +108,7 @@ function getCollectionName(options) {
             }
 
             // 保存新的 cookies
-            await saveCookies(page);
+            await saveCookies(page, 'weixin');
 
             // 获取合集名称
             const collectionName = getCollectionName(options);
