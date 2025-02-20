@@ -8,6 +8,7 @@ const {
 const { uploadToWeixin } = require('./upload_weixin');
 const { uploadToRednote } = require('./upload_rednote');
 const { uploadToKuaishou } = require('./upload_kuaishou');
+const { uploadToDouyin } = require('./upload_douyin');
 
 // 加载 AI 描述生成工具
 let generateMultiWordDescription;
@@ -21,7 +22,7 @@ try {
 }
 
 // 支持的平台列表
-const SUPPORTED_PLATFORMS = ['weixin', 'rednote', 'kuaishou'];
+const SUPPORTED_PLATFORMS = ['weixin', 'rednote', 'kuaishou', 'douyin'];
 
 async function main() {
     console.log('视频上传工具启动...');
@@ -61,7 +62,8 @@ async function main() {
         const platformUploadMap = {
             'weixin': uploadToWeixin,
             'rednote': uploadToRednote,
-            'kuaishou': uploadToKuaishou
+            'kuaishou': uploadToKuaishou,
+            'douyin': uploadToDouyin
         };
 
         const uploadFunction = platformUploadMap[options.platform];
