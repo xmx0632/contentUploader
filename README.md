@@ -1,15 +1,18 @@
-# 微信视频号文件上传自动化脚本
+# 多平台视频上传自动化脚本
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-这是一个自动化脚本，旨在帮助用户批量上传视频文件到微信视频号平台。通过该脚本，您可以轻松实现文件的自动上传、目录管理以及调试模式切换，从而提高工作效率。
+这是一个自动化脚本，旨在帮助用户批量上传视频文件到各大视频平台。通过该脚本，您可以轻松实现文件的自动上传、目录管理以及调试模式切换，从而提高工作效率。
 
 ---
 
 ## 功能特点
 
+- **多平台支持**：支持微信视频号、抖音、快手、小红书等主流平台。
 - **批量上传**：支持从指定目录中读取视频文件并自动上传。
-- **灵活配置**：通过简单的命令行参数控制运行模式（如调试模式或无头模式）。
+- **AI 描述生成**：自动从视频文件名生成多语言（中英日）单词卡片描述。
+- **自动归档**：上传成功后自动将文件归档到日期子目录。
+- **灵活配置**：通过环境变量和命令行参数灵活控制运行模式。
 - **跨平台支持**：支持 Windows、Linux 和 macOS 系统。
 - **易于扩展**：代码结构清晰，方便根据需求进行二次开发。
 
@@ -61,57 +64,55 @@ npm install
 
 #### 3. 配置视频目录
 
-编辑 `run.bat` 或 `run.sh` 文件中的 `VIDEO_DIR` 变量，设置为您的视频文件所在目录。例如：
+编辑 `.env` 文件，设置视频文件所在目录和其他配置项：
 
-```bat
-set "VIDEO_DIR=F:\dev\workspace\contentUploader\video"
-```
+```ini
+# 视频目录路径
+VIDEO_DIR=/path/to/your/video
 
-或者在 Linux/macOS 中：
+# 每次上传文件的最大数量
+MAX_UPLOAD_COUNT=5
 
-```bash
-VIDEO_DIR="/path/to/your/video"
+# 页面加载后的等待时间（毫秒）
+DELAY_PAGE_LOAD=8000
+
+# 视频上传后的处理等待时间
+DELAY_VIDEO_PROCESS=15000
+
+# 内容更新后的等待时间
+DELAY_CONTENT_UPDATE=5000
+
+# 点击操作后的等待时间
+DELAY_AFTER_CLICK=3000
+
+# 发布按钮点击后的等待时间
+DELAY_AFTER_PUBLISH=8000
+
+# 上传间隔时间
+DELAY_BETWEEN_UPLOADS=5000
 ```
 
 #### 4. 运行脚本
 
-- **默认模式（带 `--headless` 参数）**
+- **微信视频号**
   ```bash
-  ./run.sh
-  ```
-  或者在 Windows 上：
-  ```cmd
-  run.bat
-  或者
-  npm run start -- --dir "F:\dev\workspace\contentUploader\video"
+  node upload_weichat.js [--dir /path/to/videos] [--headless]
   ```
 
-- **调试模式（不带 `--headless` 参数）**
+- **抖音**
   ```bash
-  ./run.sh debug
-  ```
-  或者在 Windows 上：
-  ```cmd
-  run.bat debug
+  node upload_douyin.js [--dir /path/to/videos] [--headless]
   ```
 
----
+- **快手**
+  ```bash
+  node upload_kuaishou.js [--dir /path/to/videos] [--headless]
+  ```
 
-## 脚本说明
-
-### 主要文件
-
-| 文件名            | 描述                                                                 |
-|-------------------|----------------------------------------------------------------------|
-| `upload_weichat.js` | 核心脚本，负责处理视频上传逻辑。                                     |
-| `run.bat`         | Windows 批处理文件，用于运行脚本并传递参数。                         |
-| `run.sh`          | Linux/macOS Shell 脚本，用于运行脚本并传递参数。                     |
-
-### 参数说明
-
-- **`debug` 参数**
-  - 如果传入 `debug` 参数，脚本将以非无头模式运行（显示浏览器界面）。
-  - 默认情况下，脚本以无头模式运行（隐藏浏览器界面）。
+- **小红书**
+  ```bash
+  node upload_rednote.js [--dir /path/to/videos] [--headless]
+  ```
 
 ---
 
@@ -120,13 +121,17 @@ VIDEO_DIR="/path/to/your/video"
 ```plaintext
 ├── video/                      # 视频存放位置
 ├── wechat-video-uploader/
-├── ├── .env.example            # 参数配置模板
-├── ├── upload_weichat.js       # 核心脚本
-├── ├── run.bat                 # Windows 批处理文件
-├── ├── run.sh                  # Linux/macOS Shell 脚本
-├── ├── package.json            # 项目依赖配置
-├── README.md               # 项目说明文档
-└── LICENSE                 # 开源许可证
+│   ├── .env.example           # 参数配置模板
+│   ├── upload_weichat.js      # 微信视频号上传脚本
+│   ├── upload_douyin.js       # 抖音上传脚本
+│   ├── upload_kuaishou.js     # 快手上传脚本
+│   ├── upload_rednote.js      # 小红书上传脚本
+│   ├── ai_util.js            # AI 描述生成工具
+│   ├── upload_common.js       # 通用上传功能
+│   └── package.json          # 项目依赖配置
+├── pages/                     # 平台页面结构参考
+├── README.md                 # 项目说明文档
+└── LICENSE                   # 开源许可证
 ```
 
 ---
@@ -134,11 +139,15 @@ VIDEO_DIR="/path/to/your/video"
 ## 注意事项
 
 1. **登录问题**
-   - 第一次运行脚本时，可能需要手动完成微信视频号的登录操作。
-   - 登录后，Puppeteer 会保持会话状态，无需重复登录。
+   - 首次使用需要在非 headless 模式下手动登录各平台。
+   - 登录信息会被保存在 cookies.json 文件中。
+   - 如果登录失效，删除对应的 cookies 文件后重新登录。
 
 2. **文件格式**
-   - 确保视频文件符合微信视频号的上传要求（如分辨率、大小等）。
+   - 确保视频文件符合各平台的上传要求。
+   - 视频文件命名规范：
+     - 单个单词：`word.mp4`
+     - 多个单词：`word1-word2.mp4`
 
 3. **网络环境**
    - 脚本运行期间需要稳定的网络连接，建议在良好的网络环境下使用。

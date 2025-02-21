@@ -18,6 +18,20 @@ async function checkLogin(page) {
     }
 }
 
+// 获取合集名称
+function getCollectionName(options) {
+    // 命令行参数优先
+    if (options.collectionName) {
+        return options.collectionName;
+    }
+    // 其次是环境变量
+    if (process.env.REDNOTE_COLLECTION_NAME) {
+        return process.env.REDNOTE_COLLECTION_NAME;
+    }
+    // 没有配置时返回空值
+    return null;
+}
+
 // 上传视频到小红书
 async function uploadToRednote(browser, videoFiles, options) {
     console.log('传入的参数:', {
@@ -225,8 +239,11 @@ async function uploadToRednote(browser, videoFiles, options) {
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
 
+            // 获取合集名称
+            const collectionName = getCollectionName(options);
+
             // 选择合集
-            if (options.collectionName) {
+            if (collectionName) {
                 try {
                     console.log(`准备选择合集: ${options.collectionName}`);
 
