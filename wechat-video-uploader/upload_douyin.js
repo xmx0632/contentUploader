@@ -181,9 +181,14 @@ async function uploadToDouyin(browser, videoFiles, options) {
             await page.keyboard.press('Backspace');
             // 模拟用户输入描述
             await page.keyboard.type(description, {delay: 50}); // 设置50ms的输入延迟，模拟真实输入
+            await delay(500); // 等待输入完成
+            await page.keyboard.press('Enter'); // 模拟按下回车键
 
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
+            
+            console.log('等待 30s 封面选项加载...');
+            await delay('30000');
 
             // 选择封面（第三张）
             try {
@@ -212,11 +217,29 @@ async function uploadToDouyin(browser, videoFiles, options) {
                 await delay(30000);
 
                 if (coverSelected) {
-                    console.log('封面选择成功，等待3秒...');
-                    await delay(3000);
+                    console.log('封面选择成功，等待10秒...');
+                    await delay(10000);
                     // 等待确认按钮出现并点击
-                    await page.waitForSelector('.semi-button.semi-button-primary');
-                    await page.click('.semi-button.semi-button-primary');
+                    //  semi-modal-confirm 
+                    //  semi-button semi-button-primary
+                    // 等待并点击弹窗中的确定按钮
+                    const confirmButtonSelector = '.semi-modal-confirm .semi-modal-footer .semi-button.semi-button-primary';
+                    console.log('等待确定按钮出现...');
+                    await page.waitForSelector(confirmButtonSelector, { visible: true, timeout: 10000 });
+                    
+                    // 检查按钮是否可点击
+                    const buttonText = await page.$eval(confirmButtonSelector, button => {
+                        const span = button.querySelector('.semi-button-content');
+                        return span ? span.textContent : '';
+                    });
+                    console.log('找到按钮文本:', buttonText);
+                    
+                    if (buttonText === '确定') {
+                        console.log('点击确定按钮...');
+                        await page.click(confirmButtonSelector);
+                    } else {
+                        console.log('警告: 找到的按钮文本不是“确定”');
+                    }
                     console.log('已点击确认按钮');
                 }
                 console.log('确认封面后，等待30秒...');
@@ -240,12 +263,13 @@ async function uploadToDouyin(browser, videoFiles, options) {
                         // semi-select select-collection-nkL6sA semi-select-single 
                         // semi-select-arrow
                         const arrowButton = document.querySelector('.mix-sel-wrap-NmP0rP .semi-select.select-collection-nkL6sA.semi-select-single .semi-select-arrow');
-                        console.log('合集下拉按钮信息:', {
-                            found: !!arrowButton,
-                            className: arrowButton ? arrowButton.className : null,
-                            visible: arrowButton ? arrowButton.offsetParent !== null : false
-                        });
+                        // console.log('合集下拉按钮信息:', {
+                        //     found: !!arrowButton,
+                        //     className: arrowButton ? arrowButton.className : null,
+                        //     visible: arrowButton ? arrowButton.offsetParent !== null : false
+                        // });
 
+                        console.log('找到合集下拉按钮:',arrowButton);
                         if (arrowButton) {
                             arrowButton.click();
                             return true;
