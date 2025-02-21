@@ -187,8 +187,8 @@ async function uploadToDouyin(browser, videoFiles, options) {
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
             
-            console.log('等待 30s 封面选项加载...');
-            await delay('30000');
+            console.log('等待 15s 封面选项加载...');
+            await delay('15000');
 
             // 选择封面（第三张）
             try {
@@ -212,9 +212,9 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     }
                     return false;
                 });
-                // 等待5s
-                console.log('等待30秒...');
-                await delay(30000);
+                // 等待10s
+                console.log('等待10秒...');
+                await delay(10000);
 
                 if (coverSelected) {
                     console.log('封面选择成功，等待10秒...');
@@ -237,13 +237,13 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     if (buttonText === '确定') {
                         console.log('点击确定按钮...');
                         await page.click(confirmButtonSelector);
+                        console.log('已点击确认按钮');
                     } else {
                         console.log('警告: 找到的按钮文本不是“确定”');
                     }
-                    console.log('已点击确认按钮');
                 }
-                console.log('确认封面后，等待30秒...');
-                await delay(30000);
+                console.log('确认封面后，等待10秒...');
+                await delay(10000);
             } catch (error) {
                 console.log('选择封面时出错:', error.message);
             }
@@ -255,67 +255,53 @@ async function uploadToDouyin(browser, videoFiles, options) {
             if (collectionName) {
                 try {
                     console.log(`准备选择合集: ${options.collectionName}`);
-
                     // 点击下拉箭头按钮
                     const arrowClicked = await page.evaluate(() => {
-
-                        // mix-sel-wrap-NmP0rP 
-                        // semi-select select-collection-nkL6sA semi-select-single 
-                        // semi-select-arrow
-                        const arrowButton = document.querySelector('.mix-sel-wrap-NmP0rP .semi-select.select-collection-nkL6sA.semi-select-single .semi-select-arrow');
-                        // console.log('合集下拉按钮信息:', {
-                        //     found: !!arrowButton,
-                        //     className: arrowButton ? arrowButton.className : null,
-                        //     visible: arrowButton ? arrowButton.offsetParent !== null : false
-                        // });
-
-                        console.log('找到合集下拉按钮:',arrowButton);
-                        if (arrowButton) {
-                            arrowButton.click();
-                            return true;
+                        // 使用更通用的选择器，不依赖于随机生成的类名
+                        const selectButton = document.querySelector('div[class*="semi-select"][class*="select-collection"]');
+                        if (selectButton) {
+                            // 检查是否是合集选择框
+                            const selectionText = selectButton.querySelector('.semi-select-selection-text div');
+                            if (selectionText && selectionText.textContent === '请选择合集') {
+                                selectButton.click();
+                                return true;
+                            }
                         }
                         return false;
                     });
 
-                    console.log('点合集下拉按钮，等待5秒...');
-                    await delay(5000);
-
                     if (!arrowClicked) {
-                        console.log('警告：未找到或无法点击合集下拉箭头按钮');
-                    } else {
-                        await delay(2000); // 等待下拉列表显示
+                        console.log('警告: 未找到合集选择框');
+                        return;
+                    }
 
-                        // 选择指定的合集
-                        const selected = await page.evaluate((name) => {
-                            // 查找所有带有mix-name类的元素
-                            const items = document.querySelectorAll('.mix-name-nwgwa1');
-                            console.log('找到合集选项数量:', items.length);
+                    // 等待下拉选项出现
+                    await delay(1000);
 
-                            // 打印所有合集选项
-                            const collections = Array.from(items).map(item => ({
-                                text: item.textContent,
-                                cleanText: item.textContent.replace(/^合集·/, '').trim(),
-                                className: item.className,
-                                visible: item.offsetParent !== null
-                            }));
-                            console.log('可用的合集选项:', collections);
-
-                            for (const item of items) {
-                                const itemText = item.textContent.replace(/^合集·/, '').trim();
-                                if (itemText === name) {
-                                    item.click();
-                                    return true;
-                                }
+                    // 选择指定的合集
+                    const collectionSelected = await page.evaluate((targetName) => {
+                        // 查找所有合集选项
+                        const options = Array.from(document.querySelectorAll('.semi-select-option.collection-option'));
+                        
+                        for (const option of options) {
+                            // 查找合集标题元素（使用通用属性）
+                            const titleSpan = option.querySelector('span[class*="option-title"]');
+                            if (titleSpan && titleSpan.textContent === targetName) {
+                                option.click();
+                                return true;
                             }
-                            return false;
-                        }, options.collectionName);
-
-                        if (!selected) {
-                            console.log('警告：未找到或无法选择目标合集');
                         }
+                        return false;
+                    }, collectionName);
+
+                    if (collectionSelected) {
+                        console.log(`已选择合集: ${collectionName}`);
+                        await delay(2000); // 等待选择生效
+                    } else {
+                        console.log(`警告: 未找到合集 ${collectionName}`);
                     }
                 } catch (error) {
-                    console.log('选择合集时出错:', error.message);
+                    console.error('选择合集时出错:', error);
                 }
             }
 

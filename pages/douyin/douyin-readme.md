@@ -25,7 +25,21 @@ https://creator.douyin.com/creator-micro/content/publish?enter_from=publish_page
 
 设置封面图片（选择第三张），点击封面图片后，弹出确认框，需要点”确认”按钮设置封面图片
 
-添加到合集，点“请选择合集”下拉框，按名字选择合集
+添加到合集，点“请选择合集”下拉框，按名字选择合集，
+需要注意：
+其中的 select-collection-VQbX7A 是随机生成的，每次不同。
+下拉选项中的 <span class="option-title-YS6TS3"> 中的 class 也是随机生成的，需要考虑使用更精确定位的方法来定位。
+
+
+```html
+    // 点击下拉按钮
+    <div class="semi-select select-collection-VQbX7A semi-select-open semi-select-single" tabindex="0"><div class="semi-select-selection"><div class="semi-select-content-wrapper"><span class="semi-select-selection-text"><div>请选择合集</div></span></div></div><div class="semi-select-arrow"><svg class="semi-icons semi-icons-chevron_down semi-icons-default" aria-hidden="true"><use xlink:href="#semi-icons-chevron_down"></use></svg></div></div>
+
+    // 选中合集下拉选项
+    // <div class="semi-select-option semi-select-option-selected collection-option" role="option"><div class="semi-select-option-icon"><svg class="semi-icons semi-icons-tick semi-icons-default" aria-hidden="true"><use xlink:href="#semi-icons-tick"></use></svg></div><div class="collection-option-tooltip-FWqZ66"><div class="option-left-jqNoPt"><div class="option-img-wrapper-Ckm0l_"><img src="https://p3-sign.douyinpic.com/obj/tos-cn-i-dy/abe7c23206534007899749aa7c8490bc?lk3s=f3356eed&amp;x-expires=1740157200&amp;x-signature=88%2F36mUWJ%2BW9QHZMD6fFs5hn8kc%3D&amp;from=4080365293&amp;s=PackSourceEnum_MIX_WEB&amp;se=false&amp;sc=mix_cover&amp;biz_tag=aweme_mix&amp;l=20250221192411BE2D2BC57575800ECB2B" class="option-img-P0DKMa"></div><span class="option-title-YS6TS3">日语英语对照学</span></div><span class="option-extra-text-d4tBUD">共5个作品</span></div></div>
+```
+
+
 
 
 ## 4. 点“发布”按钮，发布视频
