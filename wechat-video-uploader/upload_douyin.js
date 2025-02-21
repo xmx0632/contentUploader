@@ -3,6 +3,20 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo } = require('./upload_common');
 
+// 获取合集名称
+function getCollectionName(options) {
+    // 命令行参数优先
+    if (options.collectionName) {
+        return options.collectionName;
+    }
+    // 其次是环境变量
+    if (process.env.DOUYIN_COLLECTION_NAME) {
+        return process.env.DOUYIN_COLLECTION_NAME;
+    }
+    // 没有配置时返回空值
+    return null;
+}
+
 // 检查登录状态
 async function checkLogin(page) {
     await page.goto('https://creator.douyin.com/creator-micro/content/upload', {
@@ -169,8 +183,11 @@ async function uploadToDouyin(browser, videoFiles, options) {
                 console.log('选择封面时出错:', error.message);
             }
 
+            // 获取合集名称
+            const collectionName = getCollectionName(options);
+
             // 如果有合集名称，选择合集
-            if (options.collectionName) {
+            if (collectionName) {
                 try {
                     console.log(`准备选择合集: ${options.collectionName}`);
                     await page.click('.collection-selector');
@@ -234,5 +251,6 @@ async function uploadToDouyin(browser, videoFiles, options) {
 
 module.exports = {
     checkLogin,
-    uploadToDouyin
+    uploadToDouyin,
+    getCollectionName
 };
