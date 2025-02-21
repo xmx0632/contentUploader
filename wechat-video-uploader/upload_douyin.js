@@ -9,7 +9,7 @@ function getCollectionName(options) {
     if (options.collectionName) {
         return options.collectionName;
     }
-    // 其次是环境变量
+    // 首先是环境变量
     if (process.env.DOUYIN_COLLECTION_NAME) {
         return process.env.DOUYIN_COLLECTION_NAME;
     }
@@ -47,22 +47,22 @@ async function uploadToDouyin(browser, videoFiles, options) {
         args: ['--start-maximized'],
         defaultViewport: null
     });
-    
+
     page = await browser.newPage();
-    
+
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'douyin');
     console.log('尝试加载已保存的 cookies...');
-    
+
     // 检查登录状态
     const isLoggedIn = await checkLogin(page);
     console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
-    
+
     // 如果未登录，让用户手动登录
     if (!isLoggedIn) {
         console.log('需要登录抖音创作者平台，请在浏览器中完成登录...');
         await waitForEnter();
-        
+
         // 再次检查登录状态
         const loggedIn = await checkLogin(page);
         if (loggedIn) {
@@ -149,11 +149,39 @@ async function uploadToDouyin(browser, videoFiles, options) {
             }
 
             // 填写标题和描述
+            // 填写标题
+            await page.waitForSelector('input.semi-input.semi-input-default[placeholder="填写作品标题，为作品获得更多流量"]');
+            await page.evaluate((title) => {
+                const titleInput = document.querySelector('input.semi-input.semi-input-default[placeholder="填写作品标题，为作品获得更多流量"]');
+                console.log('titleInput', titleInput);
+                if (titleInput) {
+                    // 模拟用户输入标题
+                    // 设置focus事件
+                    titleInput.focus();
+                    titleInput.value = title;
+                    // 触发更多事件来模拟真实的用户输入行为
+                    titleInput.dispatchEvent(new Event('focus', { bubbles: true }));
+                    titleInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    titleInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    titleInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                    // 触发合成事件来模拟输入法输入
+                    titleInput.dispatchEvent(new Event('compositionstart', { bubbles: true }));
+                    titleInput.dispatchEvent(new Event('compositionend', { bubbles: true }));
+                }
+            }, videoTitle);
+
+            // 填写描述
             await page.evaluate((text) => {
-                const textarea = document.querySelector('textarea');
-                if (textarea) {
-                    textarea.value = text;
-                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                const editor = document.querySelector('.editor-kit-container');
+                if (editor) {
+                    editor.dispatchEvent(new Event('focus', { bubbles: true }));
+                    editor.innerHTML = `<div class="zone-container editor-kit-container editor editor-comp-publish notranslate chrome chrome88" data-zone-id="0" data-zone-container="*" data-slate-editor="true" contenteditable="true" spellcheck="false" style="height: 97px;"><div class="ace-line" data-node="true"><div data-line-wrapper="true" dir="auto"><span class="" data-leaf="true"><span data-string="true">${text}</span></span><span class="" data-leaf="true"><span data-string="true" data-enter="true">​</span></span></div></div></div>`;
+                    editor.dispatchEvent(new Event('input'));
+                    editor.dispatchEvent(new Event('change', { bubbles: true }));
+                    editor.dispatchEvent(new Event('blur', { bubbles: true }));
+                    // 触发合成事件来模拟输入法输入
+                    editor.dispatchEvent(new Event('compositionstart', { bubbles: true }));
+                    editor.dispatchEvent(new Event('compositionend', { bubbles: true }));
                 }
             }, description);
 
@@ -164,21 +192,38 @@ async function uploadToDouyin(browser, videoFiles, options) {
             try {
                 console.log('等待封面选项加载...');
                 const coverSelected = await page.evaluate(() => {
-                    const covers = document.querySelectorAll('.cover-image');
+                    const covers = document.querySelectorAll('.recommendCover-vWWsHB');
+                    console.log('找到封面选项数量:', covers.length);
+
+                    // 打印每个封面的详细信息
+                    covers.forEach((cover, index) => {
+                        console.log(`封面${index + 1}信息:`, {
+                            className: cover.className,
+                            style: cover.getAttribute('style'),
+                            visible: cover.offsetParent !== null
+                        });
+                    });
+
                     if (covers && covers.length >= 3) {
                         covers[2].click();
                         return true;
                     }
                     return false;
                 });
+                // 等待5s
+                console.log('等待5秒...');
+                await delay(5000);
 
                 if (coverSelected) {
-                    console.log('封面选择成功');
+                    console.log('封面选择成功，等待3秒...');
+                    await delay(3000);
                     // 等待确认按钮出现并点击
-                    await page.waitForSelector('button.confirm-button');
-                    await page.click('button.confirm-button');
-                    await delay(2000);
+                    await page.waitForSelector('.semi-button.semi-button-primary');
+                    await page.click('.semi-button.semi-button-primary');
+                    console.log('已点击确认按钮');
                 }
+                console.log('确认封面后，等待5秒...');
+                await delay(5000);
             } catch (error) {
                 console.log('选择封面时出错:', error.message);
             }
@@ -190,23 +235,59 @@ async function uploadToDouyin(browser, videoFiles, options) {
             if (collectionName) {
                 try {
                     console.log(`准备选择合集: ${options.collectionName}`);
-                    await page.click('.collection-selector');
-                    await delay(2000);
 
-                    // 选择指定的合集
-                    const selected = await page.evaluate((name) => {
-                        const items = document.querySelectorAll('.collection-item');
-                        for (const item of items) {
-                            if (item.textContent.includes(name)) {
-                                item.click();
-                                return true;
-                            }
+                    // 点击下拉箭头按钮
+                    const arrowClicked = await page.evaluate(() => {
+                        const arrowButton = document.querySelector('.semi-select-arrow');
+                        console.log('合集下拉按钮信息:', {
+                            found: !!arrowButton,
+                            className: arrowButton ? arrowButton.className : null,
+                            visible: arrowButton ? arrowButton.offsetParent !== null : false
+                        });
+
+                        if (arrowButton) {
+                            arrowButton.click();
+                            return true;
                         }
                         return false;
-                    }, options.collectionName);
+                    });
 
-                    if (!selected) {
-                        console.log('警告：未找到或无法选择目标合集');
+                    console.log('点合集下拉按钮，等待5秒...');
+                    await delay(5000);
+
+                    if (!arrowClicked) {
+                        console.log('警告：未找到或无法点击合集下拉箭头按钮');
+                    } else {
+                        await delay(2000); // 等待下拉列表显示
+
+                        // 选择指定的合集
+                        const selected = await page.evaluate((name) => {
+                            // 查找所有带有mix-name类的元素
+                            const items = document.querySelectorAll('.mix-name-nwgwa1');
+                            console.log('找到合集选项数量:', items.length);
+
+                            // 打印所有合集选项
+                            const collections = Array.from(items).map(item => ({
+                                text: item.textContent,
+                                cleanText: item.textContent.replace(/^合集·/, '').trim(),
+                                className: item.className,
+                                visible: item.offsetParent !== null
+                            }));
+                            console.log('可用的合集选项:', collections);
+
+                            for (const item of items) {
+                                const itemText = item.textContent.replace(/^合集·/, '').trim();
+                                if (itemText === name) {
+                                    item.click();
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }, options.collectionName);
+
+                        if (!selected) {
+                            console.log('警告：未找到或无法选择目标合集');
+                        }
                     }
                 } catch (error) {
                     console.log('选择合集时出错:', error.message);
@@ -214,17 +295,18 @@ async function uploadToDouyin(browser, videoFiles, options) {
             }
 
             // 点击发布按钮
-            await page.click('.publish-button');
-            console.log('发布按钮已点击，等待完成...');
+            // TODO 模拟
+            await page.click('.button-dhlUZE.primary-cECiOJ.fixed-J9O8Yw');
+            console.log(' 发布按钮已点击，等待完成...');
 
             // 处理可能出现的短信验证码
-            try {
-                await page.waitForSelector('.sms-code-input', { timeout: 5000 });
-                console.log('需要输入短信验证码，请在浏览器中完成验证...');
-                await waitForEnter();
-            } catch (error) {
-                // 没有验证码，继续执行
-            }
+            // try {
+            //     await page.waitForSelector('.sms-code-input', { timeout: 5000 });
+            //     console.log('需要输入短信验证码，请在浏览器中完成验证...');
+            //     await waitForEnter();
+            // } catch (error) {
+            //     // 没有验证码，继续执行
+            // }
 
             // 等待发布完成
             await delay(parseInt(process.env.DELAY_AFTER_PUBLISH || '8000'));
