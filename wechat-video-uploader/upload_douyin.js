@@ -149,41 +149,38 @@ async function uploadToDouyin(browser, videoFiles, options) {
             }
 
             // 填写标题和描述
+            console.log('开始填写标题和描述...');
+
             // 填写标题
-            await page.waitForSelector('input.semi-input.semi-input-default[placeholder="填写作品标题，为作品获得更多流量"]');
-            await page.evaluate((title) => {
-                const titleInput = document.querySelector('input.semi-input.semi-input-default[placeholder="填写作品标题，为作品获得更多流量"]');
-                console.log('titleInput', titleInput);
-                if (titleInput) {
-                    // 模拟用户输入标题
-                    // 设置focus事件
-                    titleInput.focus();
-                    titleInput.value = title;
-                    // 触发更多事件来模拟真实的用户输入行为
-                    titleInput.dispatchEvent(new Event('focus', { bubbles: true }));
-                    titleInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    titleInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    titleInput.dispatchEvent(new Event('blur', { bubbles: true }));
-                    // 触发合成事件来模拟输入法输入
-                    titleInput.dispatchEvent(new Event('compositionstart', { bubbles: true }));
-                    titleInput.dispatchEvent(new Event('compositionend', { bubbles: true }));
-                }
-            }, videoTitle);
+            const titleSelector = 'input.semi-input.semi-input-default[placeholder="填写作品标题，为作品获得更多流量"]';
+            await page.waitForSelector(titleSelector);
+            
+            // 先点击标题输入框以获取焦点
+            await page.click(titleSelector);
+            // 清空现有内容
+            await page.keyboard.down('Control');
+            await page.keyboard.press('A');
+            await page.keyboard.up('Control');
+            await page.keyboard.press('Backspace');
+            // 模拟用户输入标题
+            await page.type(titleSelector, videoTitle, {delay: 100}); // 设置100ms的输入延迟，模拟真实输入
+            
+            // 等待一小段时间确保标题输入完成
+            await delay(1000);
 
             // 填写描述
-            await page.evaluate((text) => {
-                const editor = document.querySelector('.editor-kit-container');
-                if (editor) {
-                    editor.dispatchEvent(new Event('focus', { bubbles: true }));
-                    editor.innerHTML = `<div class="zone-container editor-kit-container editor editor-comp-publish notranslate chrome chrome88" data-zone-id="0" data-zone-container="*" data-slate-editor="true" contenteditable="true" spellcheck="false" style="height: 97px;"><div class="ace-line" data-node="true"><div data-line-wrapper="true" dir="auto"><span class="" data-leaf="true"><span data-string="true">${text}</span></span><span class="" data-leaf="true"><span data-string="true" data-enter="true">​</span></span></div></div></div>`;
-                    editor.dispatchEvent(new Event('input'));
-                    editor.dispatchEvent(new Event('change', { bubbles: true }));
-                    editor.dispatchEvent(new Event('blur', { bubbles: true }));
-                    // 触发合成事件来模拟输入法输入
-                    editor.dispatchEvent(new Event('compositionstart', { bubbles: true }));
-                    editor.dispatchEvent(new Event('compositionend', { bubbles: true }));
-                }
-            }, description);
+            const editorSelector = '.editor-kit-container';
+            await page.waitForSelector(editorSelector);
+            
+            // 点击编辑器获取焦点
+            await page.click(editorSelector);
+            // 清空现有内容
+            await page.keyboard.down('Control');
+            await page.keyboard.press('A');
+            await page.keyboard.up('Control');
+            await page.keyboard.press('Backspace');
+            // 模拟用户输入描述
+            await page.keyboard.type(description, {delay: 50}); // 设置50ms的输入延迟，模拟真实输入
 
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
@@ -211,8 +208,8 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     return false;
                 });
                 // 等待5s
-                console.log('等待5秒...');
-                await delay(5000);
+                console.log('等待30秒...');
+                await delay(30000);
 
                 if (coverSelected) {
                     console.log('封面选择成功，等待3秒...');
@@ -222,8 +219,8 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     await page.click('.semi-button.semi-button-primary');
                     console.log('已点击确认按钮');
                 }
-                console.log('确认封面后，等待5秒...');
-                await delay(5000);
+                console.log('确认封面后，等待30秒...');
+                await delay(30000);
             } catch (error) {
                 console.log('选择封面时出错:', error.message);
             }
@@ -238,7 +235,11 @@ async function uploadToDouyin(browser, videoFiles, options) {
 
                     // 点击下拉箭头按钮
                     const arrowClicked = await page.evaluate(() => {
-                        const arrowButton = document.querySelector('.semi-select-arrow');
+
+                        // mix-sel-wrap-NmP0rP 
+                        // semi-select select-collection-nkL6sA semi-select-single 
+                        // semi-select-arrow
+                        const arrowButton = document.querySelector('.mix-sel-wrap-NmP0rP .semi-select.select-collection-nkL6sA.semi-select-single .semi-select-arrow');
                         console.log('合集下拉按钮信息:', {
                             found: !!arrowButton,
                             className: arrowButton ? arrowButton.className : null,
