@@ -47,22 +47,22 @@ async function uploadToDouyin(browser, videoFiles, options) {
         args: ['--start-maximized'],
         defaultViewport: null
     });
-
+    
     page = await browser.newPage();
-
+    
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'douyin');
     console.log('尝试加载已保存的 cookies...');
-
+    
     // 检查登录状态
     const isLoggedIn = await checkLogin(page);
     console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
-
+    
     // 如果未登录，让用户手动登录
     if (!isLoggedIn) {
         console.log('需要登录抖音创作者平台，请在浏览器中完成登录...');
         await waitForEnter();
-
+        
         // 再次检查登录状态
         const loggedIn = await checkLogin(page);
         if (loggedIn) {
@@ -87,6 +87,14 @@ async function uploadToDouyin(browser, videoFiles, options) {
         });
         page = await browser.newPage();
         await loadCookies(page, 'douyin');
+        
+        // 在 headless 模式下再次检查登录状态
+        const isStillLoggedIn = await checkLogin(page);
+        if (!isStillLoggedIn) {
+            console.error('登录失效，请先使用非 headless 模式登录');
+            await browser.close();
+            process.exit(1);
+        }
     }
 
     try {
@@ -212,13 +220,13 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     }
                     return false;
                 });
-                // 等待10s
-                console.log('等待10秒...');
-                await delay(10000);
+                // 等待5s
+                console.log('等待5秒...');
+                await delay(5000);
 
                 if (coverSelected) {
-                    console.log('封面选择成功，等待10秒...');
-                    await delay(10000);
+                    console.log('封面选择成功，等待5秒...');
+                    await delay(5000);
                     // 等待确认按钮出现并点击
                     //  semi-modal-confirm 
                     //  semi-button semi-button-primary
@@ -242,8 +250,8 @@ async function uploadToDouyin(browser, videoFiles, options) {
                         console.log('警告: 找到的按钮文本不是“确定”');
                     }
                 }
-                console.log('确认封面后，等待10秒...');
-                await delay(10000);
+                console.log('确认封面后，等待5秒...');
+                await delay(5000);
             } catch (error) {
                 console.log('选择封面时出错:', error.message);
             }
@@ -309,15 +317,6 @@ async function uploadToDouyin(browser, videoFiles, options) {
             // TODO 模拟
             await page.click('.button-dhlUZE.primary-cECiOJ.fixed-J9O8Yw');
             console.log(' 发布按钮已点击，等待完成...');
-
-            // 处理可能出现的短信验证码
-            // try {
-            //     await page.waitForSelector('.sms-code-input', { timeout: 5000 });
-            //     console.log('需要输入短信验证码，请在浏览器中完成验证...');
-            //     await waitForEnter();
-            // } catch (error) {
-            //     // 没有验证码，继续执行
-            // }
 
             // 等待发布完成
             await delay(parseInt(process.env.DELAY_AFTER_PUBLISH || '8000'));
