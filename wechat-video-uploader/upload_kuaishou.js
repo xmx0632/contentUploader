@@ -358,8 +358,9 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             // 等待提交完成
             await page.waitForNavigation({ waitUntil: 'networkidle0' });
 
-            // 归档已上传视频
-            await archiveVideo(videoFile);
+            // 归档视频文件
+            const videoDir = path.dirname(videoFile);
+            await archiveVideo(videoFile, videoDir);
         }
     } catch (error) {
         console.error('上传过程中发生错误:', error);
