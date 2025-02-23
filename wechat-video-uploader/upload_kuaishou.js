@@ -89,13 +89,14 @@ async function uploadToKuaishou(browser, videoFiles, options) {
     }
 
     try {
-        await page.goto('https://cp.kuaishou.com/article/publish/video?tabType=1', {
-            waitUntil: 'networkidle0'
-        });
-
+        
         // 开始上传视频
         for (const videoFile of videoFiles) {
             console.log(`正在上传视频到快手: ${videoFile}`);
+            
+            await page.goto('https://cp.kuaishou.com/article/publish/video?tabType=1', {
+                waitUntil: 'networkidle0'
+            });
 
             // 选择视频文件
             // 等待上传按钮出现
@@ -358,8 +359,9 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             // 等待提交完成
             await page.waitForNavigation({ waitUntil: 'networkidle0' });
 
-            // 归档已上传视频
-            await archiveVideo(videoFile);
+            // 归档视频文件
+            const videoDir = path.dirname(videoFile);
+            await archiveVideo(videoFile, videoDir);
         }
     } catch (error) {
         console.error('上传过程中发生错误:', error);
