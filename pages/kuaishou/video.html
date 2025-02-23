@@ -63,33 +63,36 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
     <meta name="keyword" content="快手,快手创作者,创作者,创作者服务,机构,快手机构,MCN,公会">
     <meta name="description" content="快手创作者服务平台为创作者和机构提供强大的运营管理、高清视频上传、多维度数据分析、内容生产等辅助工具、依托平台丰富的资源提供热点趋势，更好的服务每个创作者。">
-    <link rel="shortcut icon" href="//h2.static.yximgs.com/udata/pkg/fe/favicon.70ff1fcc.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="//tx2.a.yximgs.com/udata/pkg/fe/favicon.70ff1fcc.ico" type="image/x-icon">
     <link rel="dns-prefetch" href="https://onvideo.kuaishou.com/">
     <title>快手创作者服务平台</title>
     <script crossorigin="anonymous"
+        src="https://static.yximgs.com/udata/pkg/ks-track-platform-new/weblogger/3.10.7/async/gzipper.min.js"
+        async=""></script>
+    <script crossorigin="anonymous"
         src="https://static.yximgs.com/udata/pkg/ks-track-platform-new/weblogger/3.10.41/async/gzipper.min.js"
         async=""></script>
-    <script>window.__CDN_DISPATCH__ = { "ks-fe-creator-platform": ["h2.static.yximgs.com", "h3.static.yximgs.com"] }</script>
+    <script>window.__CDN_DISPATCH__ = { "ks-fe-creator-platform": ["tx2.a.yximgs.com", "h3.static.yximgs.com"] }</script>
     <script
         charset="UTF-8">window['kConf_frontend.cp.creator-platform'] = { "blackSnapshotDetection": ["userId=223914018"] }</script>
     <script>window.kfxEnv = { "channelId": "98330", "version": "21995665" }</script>
     <script>var __radarSeedFunc__ = function (e) { "use strict"; var n = console, r = "ksurl.cn/csHfgepO, radar:", o = (n.log.bind(n, r), n.warn.bind(n, r), n.error.bind(n, r)), L = { unknown: 0, none: 1, wifi: 2, "4g": 3, "3g": 4, "2g": 5, "5g": 7, "slow-2g": 5 }, a = window, t = a.location, i = a.navigator, c = "__RADAR_PERFORMANCE_TIMING_", u = "__radarSeedStore__", s = "isCoreReady", d = "isRuning", l = "radarSessionId", f = "resource", v = "error", B = "event", n = "Queue", F = v + n, T = f + n, q = B + n, _ = "oInc", g = "dimension", m = "projectId", p = "connection", h = "immediate", x = "commonData", z = "customDimensions", k = "config", y = "queue"; function w(e) { return "function" == typeof e } function G() { for (var e = arguments, n = e[0], r = 1; r < e.length; r++) { var t = e[r]; if (t) for (var o in t) n[o] = t[o] } return n } function b(e, n, r) { return void 0 === r && (r = {}), (Object.assign || G)({}, e, n, r) } function R(e) { return JSON.stringify(e) } function S(e, n, r, t) { e.addEventListener(n, r, t) } function j(e, n, r, t) { e.removeEventListener(n, r, t) } function H(e, n) { a[e = void 0 === e ? c : e] = b(a[e] || {}, n) } function J() { var e = A(l, null, c); e || (e = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (e) { var n = 16 * Math.random() | 0; return ("x" === e ? n : 3 & n | 8).toString(16) }), K(l, e, c)) } function A(e, n, r) { return a[r = void 0 === r ? c : r] && void 0 !== a[r][e] ? a[r][e] : void 0 === n ? null : n } function K(e, n, r) { a[r = void 0 === r ? c : r] || H(r, {}), a[r][e] = n } function I(e, n) { return A(e, n = void 0 === n ? null : n, u) } function C(e, n) { K(e, n, u) } function Q(e, n) { try { a[u][e].push(n), (t = I("flush")) && w(t) && (r = I(y, []), (I(h) || 20 < r.length) && t()) } catch (e) { o("1000") } var r, t } var U = "unhandledrejection", D = "beforeunload", V = "visibilitychange", W = { name: "RadarSeedCollect", version: "1.2.12" }; function X(e, n) { var r = "getAttribute"; return w(e[r]) && e[r](n) || "" } function Y(e) { var n = e.target; return { failed: !0, file: (X(n, "src") || X(n, "href")) && (n.src || n.href || "").toString(), res_path: (n = e && e.path || e && e.composedPath && e.composedPath(), Array.isArray(n) ? n.map(function (e) { var n = X(e, "class") || e.className, r = e.tagName || ""; return e.id && (r += "#" + e.id), n && (r += n.split(/\s+/g).map(function (e) { return "." + e }).join("")), r }).filter(function (e) { return e }).join(",") : "") } } var Z = i.userAgent, r = a.screen, $ = { domain: t.hostname, url: t.href, hash: t.hash, online: i.onLine, downlink: i[p] && i[p].downlink, rtt: i[p] && i[p].rtt, screen_width: r.width, screen_height: r.height, device_pixel_ratio: a.devicePixelRatio || 1 }; function ee() { var e = { page: t.href }, n = A(l), r = I(m); return { h5_extra_attr: R($), refer_url_package: e, url_package: e, project_id: r, radar_session_id: n } } function ne() { var e = I(k, {})[z] || {}; return b({ event_client_timestamp: Date.now(), collect_version: W.version, collect_name: W.name }, e) } function re(e, n) { void 0 === n && (n = 1); var r, t = e.data, o = e.key, e = e.dimension || {}, a = {}; r = I(_, 0) + 1, C(_, r); switch (o) { case f: a = Y(t); break; case v: a = function (e) { try { var n = e.reason, r = e.error || (n && n.message ? n : void 0), t = r && r.message || e.message || e.reason; return { error_type: "script", error_cons_type: r && r.name || e.name, msg: t, stack: e.stack || r && r.stack, file: e.filename, line: e.lineno, col: e.colno } } catch (e) { return {} } }(t) }return b(e, { sample_rate: n, other_session_increase_id: r }, a || {}) } function N() { j(a, v, O, !0), j(a, U, O), j(a, D, N) } function O(e) { var n; I(s) ? N() : (n = (n = e).message || null != n.lineno || n.type === U, Q(y, ((n = { key: n ? v : f, data: e })[g] = ne(), n[x] = ee(), n))) } var P = null; function te(e) { var n = I(k, {}), e = function (e, n) { n = function (e) { return { identity_package: { device_id: E("did") || E("_did") || E("weblogger_did"), global_id: E("egid"), user_id: E("userId") || E("ud") || E("userName") }, app_package: { language: i.language, product_name: e, version_name: E("appver") || "" }, device_package: { ua: Z }, service_name: "radarSDK", network_package: { type: function () { var e = "", n = i[p] || i.mozConnection || i.webkitConnection; n && (e = n.type || n.effectiveType); return L[e] || 0 }() }, h5_extra_attr: R($) } }(n.product_name), e = (e || []).map(function (e) { var n, r = re(e); return b(((n = { key: e.key, value: e.value || {} })[g] = r, n), e[x]) }); return { common: n, logs: [{ client_timestamp: Date.now(), stat_package: { custom_stat_event: { key: "radar_log", value: R({ data: e }) } } }] } }(e, n), e = R(e), n = "https://" + ({ oversea: "logsdk.kwai-pro.com", logger: "data-track.corp.kuaishou.com" }[n.env] || "log-sdk.ksapisrv.com") + "/rest/wd/common/log/collect/radar", e = (n = { url: n, data: e }).url, n = n.data; if (i && w(i.sendBeacon)) try { i.sendBeacon(e, n) } catch (e) { o("1003") } else o("1002") } function E(e) { if (!P) { P = {}; for (var n, r = (document.cookie || "").split("; "), t = 0; t < r.length; t++)(n = r[t].split("="))[0] && (P[n[0]] = decodeURIComponent(n[1] || "")) } return P[e] || "" } function oe() { j(a, D, ie), j(document, V, M) } function ae() { oe(), N() } function ie() { M(), ae() } function M() { try { I(s) && oe(); var e = I(y, []); e.length && (te(e), C(y, [])) } catch (e) { o("1001") } } return e.destroy = ae, e.event = function (e, n) { var r, e = b(ne(), e); Q(y, ((r = { key: B })[g] = e, r.value = n, r[x] = ee(), r)) }, e.init = function (e) { var n, r; I(d) || ("object" == typeof e && e ? (n = e[m]) && "string" == typeof n ? ((r = {})[m] = n, r.flush = M, r[k] = e, r[h] = !!e[h], n = r, J(), r = b(((r = {})[d] = !1, r[s] = !1, r[_] = 0, r[y] = [], r[F] = [], r[T] = [], r[q] = [], r), n), H(u, r), null != (n = e.error) && !n || (S(a, v, O, !0), S(a, U, O, !0), S(a, D, N, !0)), S(a, D, ie, !0), S(document, V, M, !0), C(d, !0)) : o("109") : o("108")) }, e.push = function (e) { O(e) }, Object.defineProperty(e, "__esModule", { value: !0 }), e }({});</script>
     <script>__radarSeedFunc__.init({ projectId: 'f4821aa475' });</script>
-    <script defer="defer" src="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/js/manifest.f3a69018.js"></script>
-    <script defer="defer" src="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/js/chunk-chart.ef919397.js"></script>
-    <script defer="defer" src="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/js/chunk-kwai-ui.c575da43.js"></script>
-    <script defer="defer" src="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/js/chunk-vendors.7b9f0ab7.js"></script>
-    <script defer="defer" src="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/js/6522.5ca2f80e.js"></script>
-    <script defer="defer" src="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/js/cp.e7a37c30.js"></script>
-    <link href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/chunk-kwai-ui.736a3049.css" rel="stylesheet">
-    <link href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/chunk-vendors.d44505da.css" rel="stylesheet">
-    <link href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/2517.a3586b3c.css" rel="stylesheet">
-    <link href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/6522.e129fef7.css" rel="stylesheet">
-    <link href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/cp.97161ffc.css" rel="stylesheet">
+    <script defer="defer" src="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/js/manifest.f3a69018.js"></script>
+    <script defer="defer" src="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/js/chunk-chart.ef919397.js"></script>
+    <script defer="defer" src="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/js/chunk-kwai-ui.c575da43.js"></script>
+    <script defer="defer" src="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/js/chunk-vendors.7b9f0ab7.js"></script>
+    <script defer="defer" src="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/js/6522.5ca2f80e.js"></script>
+    <script defer="defer" src="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/js/cp.e7a37c30.js"></script>
+    <link href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/chunk-kwai-ui.736a3049.css" rel="stylesheet">
+    <link href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/chunk-vendors.d44505da.css" rel="stylesheet">
+    <link href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/2517.a3586b3c.css" rel="stylesheet">
+    <link href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/6522.e129fef7.css" rel="stylesheet">
+    <link href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/cp.97161ffc.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css"
-        href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/articlePublish.e9f4f813.css">
+        href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/articlePublish.e9f4f813.css">
     <link rel="stylesheet" type="text/css"
-        href="//h2.static.yximgs.com/kos/nlav11104/static/ks-cp/css/articlePublishVideo.70eeeb15.css">
+        href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/articlePublishVideo.70eeeb15.css">
     <style>
         /*haploid global style*/
         haploid-html,
@@ -187,7 +190,7 @@
     <link rel="stylesheet" href="https://p4-plat.wskwai.com/kos/nlav11104/onvideo-cp/static/css/index-DxWyE8Ks.css">
     <link rel="stylesheet"
         href="https://p4-plat.wskwai.com/kos/nlav11104/onvideo-cp/static/css/antd-custom-BpA6J0mo.css">
-    <style data-rc-order="append" rc-util-key="-ant-1740142337306-0.7974436641273934-dynamic-theme">
+    <style data-rc-order="append" rc-util-key="-ant-1740312879996-0.32331041555280815-dynamic-theme">
         :root {
             --ant-primary-color: rgb(254, 54, 102);
             --ant-primary-color-disabled: #ffd9dd;
@@ -215,6 +218,22 @@
             --ant-primary-color-active-deprecated-d-02: rgb(255, 230, 231);
         }
     </style>
+    <style>
+        .kid-root-svg {
+            position: absolute;
+            width: 0px;
+            height: 0px;
+            overflow: hidden
+        }
+
+        .svgfont {
+            fill: currentColor
+        }
+
+        @media(prefers-color-scheme:dark) {}
+    </style>
+    <link rel="stylesheet" type="text/css"
+        href="//tx2.a.yximgs.com/kos/nlav11104/static/ks-cp/css/articleManage.bf9b0ff9.css">
 </head>
 
 <body class=""><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -358,7 +377,7 @@
     </svg>
     <script>!function (e, t) { "object" == typeof exports && "undefined" != typeof module ? t(exports) : "function" == typeof define && define.amd ? define(["exports"], t) : t((e = "undefined" != typeof globalThis ? globalThis : e || self).ksBlankScreenDetector = {}) }(this, (function (e) { "use strict"; var t, n, r = "blank_screen", i = "one_second_".concat(r), o = "two_second_".concat(r), a = "three_second_".concat(r), c = ["HTML", "BODY"], s = "0.0.19", d = "".concat(r, "_other"), l = function (e) { if (!e) return ""; return e.id ? "#".concat(e.id) : e.className && "string" == typeof e.className ? "." + e.className.split(" ").filter((function (e) { return !!e })).join(".") : e.nodeName || "" }, m = function (e) { for (var t = 0, n = [], r = [], i = e.singleDirectionSamplePoints || 9, o = i + 1, a = i, c = window.innerWidth, s = window.innerHeight, d = function (i) { var d = function () { performance.now(); var d = c * i / o, m = s * i / o, u = document.elementsFromPoint(d, s / 2), p = []; if (p.push(u), i !== o / 2) { var g = document.elementsFromPoint(c / 2, m), f = document.elementsFromPoint(d, m), v = document.elementsFromPoint(d, s - m); p.push(g, f, v) } p.forEach((function (i) { var o = function (e) { var t = e.element, n = e.containers, r = e.ignoreContainers, i = l(t), o = !1; return n.indexOf(i) >= 0 && -1 === (r || []).indexOf(i) && (o = !0), { checkRes: o, serializeElement: i } }({ element: i[0], containers: e.containers, ignoreContainers: e.ignoreContainers }), a = o.checkRes, c = o.serializeElement; a && t++, n.push(i), r.push(c) })), --a || e.getSamplePointsCb({ emptyPoints: t, samplePoints: n, sampleSerializePoints: r }) }; if (e.sync) d(); else { var m = 0 + 16.6 * (i - 1); window.setTimeout(d, m) } }, m = 1; m <= i; m++)d(m) }, u = function (e) { var t = performance.now(); m({ containers: c.concat(e.containers || []), singleDirectionSamplePoints: e.singleDirectionSamplePoints, getSamplePointsCb: function (n) { var r = n.emptyPoints, i = n.samplePoints, o = n.sampleSerializePoints, a = !e.closeSameElesCheck && function (e) { for (var t, n, r = e.elements, i = e.paramPercentThreshold, o = e.ignoreContainers, a = {}, c = 0, s = void 0, d = function (e) { a[e].length > c && (c = a[e].length, s = e) }, m = 0; m < r.length; m++) { var u = r[m], p = !1; if (u && u.length) for (var g in a) { for (var f = !0, v = 0; v < 5; v++)if (a[g][0][v] !== u[v]) { f = !1; break } if (f) { a[g].push(u), p = !0, d(g); break } } p || (a[String(m)] = [u], d(String(m))) } var T = 0; if (s) { var _ = l(null === (n = null === (t = a[s]) || void 0 === t ? void 0 : t[0]) || void 0 === n ? void 0 : n[0]); -1 === (o || []).indexOf(_) && (T = c) } return T && T / r.length > (i || .7) }({ elements: i, paramPercentThreshold: e.sameElementsPercent, ignoreContainers: e.ignoreContainers }), c = r / i.length > (e.emptyElementsPercent || .7), s = a || c; e.detectCb({ blank: s, detectCostTime: performance.now() - t, sampleSerializePoints: o }) }, sync: e.sync }) }, p = (t = !1, n = 0, window.addEventListener("load", (function () { n = performance.now(), t = !0 }), !0), function () { return { isOnload: t, onloadTime: n } }), g = function () { return !!window.__radarSeedFunc__ }, f = function () { for (var e = arguments, t = e[0], n = 1; n < e.length; n++) { var r = e[n]; if (r) for (var i in r) t[i] = r[i] } return t }, v = function (e, t, n) { return void 0 === n && (n = {}), (Object.assign || f)({}, e, t, n) }, T = "__yodaBridge__", _ = "tool", S = "__ks_blank_detector_canuse_cb__", h = window, b = !1, y = function () { return b }; function k(e) { if (y()) { var t = e.detectTriggerType; h[T] && h[T].invoke && "function" == typeof h[T].invoke && function (e, t) { h[S] = function (e) { t(e), h[S] = null }; try { h[T].invokeCallback(_, "canIUse", JSON.stringify(e), S) } catch (e) { h[S]() } }({ namespace: "tool", name: "whiteScreenCheck" }, (function (n) { n && 1 === n.result && n.canUse && h[T].invoke("tool", "whiteScreenCheck", JSON.stringify({ delayMs: 0, reportMsg: { url: location.href, detectTriggerType: t, invokeId: e.invokeId || "" }, needImgUpload: !0, checkTime: "bridge" }), "") })) } } var w = function () { return "visible" === document.visibilityState }, D = !1, E = function (e) { var t = p(), n = t.isOnload, i = t.onloadTime, o = { name: e.radarEventName || r, result_type: e.result_type, message: n ? "isOnload" : "", extra_info: { url: location.href, isOnload: n, onloadTime: i, sdk_version: s, page_load_duration: performance.now(), detect_trigger_type: e.detectTriggerType, detect_cost_time: e.detectCostTime, sample_serialize_points: e.sampleSerializePoints, invokeId: e.invokeId } }; return 1 === e.result_type && (o.extra_info.blank_screen_time = e.blankScreenTime, o.extra_info.error_extra = e.errorGroup), o }, C = function (e) { e.logImmediate && window.__radarSeedStore__ && !window.__radarSeedStore__.immediate && window.__radarSeedStore__.flush() }, O = function (e) { if (g()) { var t = E(v(e, { result_type: 1 })); window.__radarSeedFunc__.event(t), C({ logImmediate: e.logImmediate }) } }, P = function (e) { if (g()) { var t = E(v(e, { result_type: 0 })); window.__radarSeedFunc__.event(t), C({ logImmediate: e.logImmediate }) } }, N = function (e) { g() && window.__radarSeedFunc__.event({ name: d, result_type: "info", extra_info: { url: location.href, sdk_version: s, message: e.message } }) }; D = function () { try { var e = window.__yodaCommonDataObject__.sampleData, t = "string" == typeof e ? JSON.parse(e) : e; if (t) { if (t.extra && void 0 !== t.extra.blank) { var n = Math.random(); return !!t.isHit && n <= t.extra.blank } return !!t.isHit } return !0 } catch (e) { return !0 } }(); var G = { debounceDuration: 1500, errorGroup: [], apiErrorGroup: [], blankScreen: !0, blankScreenTime: 0, detectOptions: { close123SDetect: !0, close1SDetect: !0, close2SDetect: !0, close3SDetect: !0 } }, I = function () { G.errorGroup = [], G.apiErrorGroup = [] }, x = function (e) { G[e] && clearTimeout(G[e]), G[e] = 0 }, z = function (e) { void 0 === e && (e = {}); var t, n = e.options || G.detectOptions || {}; return !w() || !D || (t = !0, window.MutationObserver || (t = !1, N({ message: "不支持MutationObserver" })), document.elementsFromPoint || (t = !1, N({ message: "不支持elementsFromPoint" })), !t) || n.doNotDetect }, H = function (e) { var t = e.blank, n = e.detectCostTime, r = e.sampleSerializePoints, i = e.pageUnloadTrigger; if (t) { var o = G.errorGroup, a = G.apiErrorGroup; if (!G.blankScreen || (i || function (e) { var t = e.errorGroup, n = void 0 === t ? [] : t, r = e.apiErrorGroup, i = void 0 === r ? [] : r; return !!n.length || !!i.length }({ errorGroup: o, apiErrorGroup: a }) || p().isOnload) && !G.hasLogBlankScreen) { var c = Date.now(); O({ blankScreenTime: G.blankScreenTime, detectTriggerType: G.detectTriggerType, errorGroup: G.errorGroup, detectCostTime: n, apiErrorGroup: G.apiErrorGroup, sampleSerializePoints: r, logImmediate: !0, invokeId: c }), k({ detectTriggerType: G.detectTriggerType, invokeId: c }), G.hasLogBlankScreen = !0, I() } G.blankScreen = !0 } else G.blankScreen && (G.pageHasRenderContent || G.hasLogBlankScreen) && P({ detectCostTime: n, detectTriggerType: G.detectTriggerType, sampleSerializePoints: r, logImmediate: !0 }), G.blankScreen = !1, G.pageHasRenderContent = !0 }, F = function (e) { G.detecting || (x("detectTimer"), G.blankScreenTime = Date.now(), G.detectTimer = window.setTimeout((function () { if (w()) { !function () { G.detecting = !0; u(v(e, { detectCb: function (e) { H(e), G.detectTimer = 0, G.detecting = !1 } })) }() } }), G.debounceDuration)) }; e.blankStore = G, e.clearDetectTimer = x, e.createDetectTimer = F, e.detectForApiHook = function (e) { z() || (G.apiErrorGroup.push({ url: e ? e.url : "", code: e ? e.code : "" }), F(G.detectOptions)) }, e.resetCollectData = I, e.startBlankScreenDetect = function (e) { if (void 0 === e && (e = {}), !z({ options: e }) && !G.hasStartDetecting) { var t; t = e.yodaBridgeSampleRate || 1, b = Math.random() <= t, G.debounceDuration = e.debounceDuration || 1500, G.detectOptions = v(G.detectOptions, e || {}), ["error", "unhandledrejection"].forEach((function (e) { window.addEventListener(e, (function (e) { !function (e) { if (w()) { try { var t = e.event, n = t.reason, r = t.error || (n && n.message ? n : void 0), i = r && r.message || t.message || t.reason; G.errorGroup.push({ name: r && r.name || t.name, message: i }) } catch (e) { } F(G.detectOptions) } }({ event: e }) }), !0) })); var n = function (e) { if (!G.pageUnloadHasHandled) { G.pageUnloadHasHandled = !0, G.detectTriggerType = e.detectTriggerType, G.blankScreenTime = Date.now(); (G.detectTimer || G.blankScreen) && (G.detectTimer && x("detectTimer"), u(v(G.detectOptions, { detectCb: function (e) { H(v(e, { pageUnloadTrigger: !0 })) }, sync: !0 }))), x(i), x(o), x(a) } }; window.addEventListener("visibilitychange", (function () { "visible" === document.visibilityState ? (G.pageUnloadHasHandled = !1, G.detectTriggerType = "visibilitychange-visible", F(G.detectOptions)) : n({ detectTriggerType: "visibilitychange" }) }), !0), ["pagehide", "beforeunload", "unload"].forEach((function (e) { window.addEventListener(e, (function () { n({ detectTriggerType: e }) }), !0) })), new MutationObserver((function (t) { !w() || e.ignoreElesWhenDomChange && e.ignoreElesWhenDomChange.length && !t.some((function (t) { return -1 === e.ignoreElesWhenDomChange.indexOf(l(t.target)) })) || (G.detectTriggerType = "mutationObserver", F(G.detectOptions)) })).observe(document.body, { childList: !0, subtree: !0 }), G.detectOptions.close123SDetect || function (e) { var t = function (e) { var t = e.detectRes, n = e.detectTriggerType, r = e.blankScreenTime, i = e.radarEventName, o = t.blank, a = t.detectCostTime, c = t.sampleSerializePoints; o ? O({ radarEventName: i, blankScreenTime: r, detectTriggerType: n, errorGroup: G.errorGroup, detectCostTime: a, apiErrorGroup: G.apiErrorGroup, sampleSerializePoints: c, logImmediate: !0 }) : P({ radarEventName: i, detectCostTime: a, detectTriggerType: n, sampleSerializePoints: c, logImmediate: !0 }) }, n = performance.now();[{ timerName: i, close: e.close1SDetect }, { timerName: o, close: e.close2SDetect }, { timerName: a, close: e.close3SDetect }].forEach((function (r, i) { if (!r.close && w()) { var o = 1e3 * (i + 1) - n; o >= 0 ? G[r.timerName] = window.setTimeout((function () { if (w()) { var e = Date.now(); u(v(G.detectOptions, { detectCb: function (n) { t({ detectRes: n, detectTriggerType: r.timerName, blankScreenTime: e, radarEventName: r.timerName }), G[r.timerName] = 0 } })), r.timerName === a && k({ detectTriggerType: a }) } }), o) : "htmlEnd" !== e.insertHTMLPos && t({ detectRes: { blank: !0, detectCostTime: 0, sampleSerializePoints: [] }, detectTriggerType: r.timerName, blankScreenTime: Date.now(), radarEventName: r.timerName }) } })) }(G.detectOptions), G.hasStartDetecting = !0 } } })); window.ksBlankScreenDetector.startBlankScreenDetect({ "containers": [".blank-screen-root"], "yodaBridgeSampleRate": 0, "close123SDetect": false, "close1SDetect": false, "close2SDetect": false, "close3SDetect": false, "ignoreContainers": ["iframe", ".blankscreen-detection-ignore"] });</script>
     <noscript><strong>请开启浏览器的 JavaScript 功能，否则页面无法正常工作</strong></noscript>
-    <script>window.__dynamic_base__ = '//h2.static.yximgs.com/kos/nlav11104/static/';</script>
+    <script>window.__dynamic_base__ = '//tx2.a.yximgs.com/kos/nlav11104/static/';</script>
     <div data-v-2d7f46bc="" id="app">
         <div data-v-2d7f46bc="" class="complete">
             <header data-v-2d7f46bc="" class="el-header" style="height: 64px;">
@@ -371,11 +390,11 @@
                 <section data-v-6e958b46="" data-v-2d7f46bc="" class="header-bar">
                     <div data-v-44d3e33e="" data-v-6e958b46="" class="download-center">
                         <div data-v-44d3e33e="" class="download-center-icon"><span data-v-44d3e33e="">
-                                <div role="tooltip" id="el-popover-4350" aria-hidden="true"
+                                <div role="tooltip" id="el-popover-2634" aria-hidden="true"
                                     class="el-popover el-popper el-popover--plain" tabindex="0" style="display: none;">
                                     <!---->数据下载中，请在下载中心查看进度</div>
                                 <div data-v-44d3e33e="" class="el-badge el-popover__reference"
-                                    aria-describedby="el-popover-4350" tabindex="0"><i data-v-44d3e33e=""
+                                    aria-describedby="el-popover-2634" tabindex="0"><i data-v-44d3e33e=""
                                         class="iconfont icon-download"></i><sup
                                         class="el-badge__content el-badge__content--undefined is-fixed"
                                         style="display: none;"></sup></div>
@@ -397,11 +416,11 @@
                                 style="display: none;">0</sup></div>
                     </div>
                     <div data-v-6e958b46="" class="user-info"><span data-v-6e958b46="" class="el-popper">
-                            <div role="tooltip" id="el-popover-4765" aria-hidden="true"
+                            <div role="tooltip" id="el-popover-8045" aria-hidden="true"
                                 class="el-popover el-popper user-info-popper" tabindex="0"
                                 style="width: 314px; display: none;"><!---->
                                 <div data-v-fa1e8232="" data-v-6e958b46="" class="header-info-card"><img
-                                        data-v-fa1e8232="" src="https://p4.a.yximgs.com/s1/i/def/head_u.png" alt=""
+                                        data-v-fa1e8232="" src="https://p1.a.yximgs.com/s1/i/def/head_u.png" alt=""
                                         class="user-image">
                                     <div data-v-fa1e8232="" class="user-name">hellowork</div>
                                     <div data-v-fa1e8232="" class="user-kwai-id"></div>
@@ -410,7 +429,7 @@
                                                 data-v-fa1e8232="">粉丝</span></div>
                                         <div data-v-fa1e8232="" class="user-cnt__item">148<span
                                                 data-v-fa1e8232="">关注</span></div>
-                                        <div data-v-fa1e8232="" class="user-cnt__item">218<span
+                                        <div data-v-fa1e8232="" class="user-cnt__item">219<span
                                                 data-v-fa1e8232="">获赞</span></div>
                                     </div>
                                     <div data-v-fa1e8232="" class="user-desc"></div>
@@ -421,9 +440,9 @@
                                 </div>
                             </div>
                             <div data-v-6e958b46="" class="user-info-dpd el-popover__reference"
-                                aria-describedby="el-popover-4765" tabindex="0">
+                                aria-describedby="el-popover-8045" tabindex="0">
                                 <div data-v-6e958b46="" class="user-info-avatar"><img data-v-6e958b46=""
-                                        src="https://p4.a.yximgs.com/s1/i/def/head_u.png"></div><i data-v-6e958b46=""
+                                        src="https://p1.a.yximgs.com/s1/i/def/head_u.png"></div><i data-v-6e958b46=""
                                     class="el-icon-caret-bottom"></i>
                             </div>
                         </span></div><!---->
@@ -460,7 +479,8 @@
                                             class="icon-image"><span data-v-2946014b="">内容管理</span></div><i
                                         class="el-submenu__icon-arrow el-icon-arrow-down"></i>
                                 </div>
-                                <ul role="menu" class="el-menu el-menu--inline" style="display: none;">
+                                <ul role="menu" class="el-menu el-menu--inline" style="display: none;"
+                                    data-old-padding-top="" data-old-padding-bottom="" data-old-overflow="">
                                     <li data-v-2946014b="" role="menuitem" tabindex="-1" class="el-menu-item"
                                         style="padding-left: 40px; color: rgb(34, 34, 34);"> 作品管理 <!----><!----></li>
                                     <li data-v-2946014b="" role="menuitem" tabindex="-1" class="el-menu-item"
@@ -565,7 +585,7 @@
 
 
                                                 <style type="text/css">
-                                                    /* https://tx2.a.yximgs.com/kos/nlav11104/onvideo-cp/static/css/index-G2zueJMh.css */
+                                                    /* https://h1.static.yximgs.com/kos/nlav11104/onvideo-cp/static/css/index-G2zueJMh.css */
                                                     /* removed @charset */
                                                     ._edit-file-container_iuuoa_7 {
                                                         box-sizing: content-box;
@@ -34733,140 +34753,836 @@
                                             </haploid-head><haploid-body class="haploid-body">
                                                 <div id="onvideo_creator_platform" class="haploid-app-root">
                                                     <div class="ant-tabs ant-tabs-top">
-                                                        <div role="tablist" class="ant-tabs-nav _tabs-item_8zj3y_7">
-                                                            <div class="ant-tabs-nav-wrap">
-                                                                <div class="ant-tabs-nav-list"
-                                                                    style="transform: translate(0px, 0px);">
-                                                                    <div class="ant-tabs-tab ant-tabs-tab-active">
-                                                                        <div role="tab" aria-selected="true"
-                                                                            class="ant-tabs-tab-btn" tabindex="0"
-                                                                            id="rc-tabs-0-tab-1"
-                                                                            aria-controls="rc-tabs-0-panel-1">上传视频</div>
-                                                                    </div>
-                                                                    <div class="ant-tabs-tab"
-                                                                        style="margin-left: 48px;">
-                                                                        <div role="tab" aria-selected="false"
-                                                                            class="ant-tabs-tab-btn" tabindex="0"
-                                                                            id="rc-tabs-0-tab-2"
-                                                                            aria-controls="rc-tabs-0-panel-2">上传图文</div>
-                                                                    </div>
-                                                                    <div class="ant-tabs-tab"
-                                                                        style="margin-left: 48px;">
-                                                                        <div role="tab" aria-selected="false"
-                                                                            class="ant-tabs-tab-btn" tabindex="0"
-                                                                            id="rc-tabs-0-tab-3"
-                                                                            aria-controls="rc-tabs-0-panel-3">上传全景视频
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="ant-tabs-ink-bar ant-tabs-ink-bar-animated"
-                                                                        style="left: 0px; width: 72px;"></div>
-                                                                </div>
-                                                            </div>
-                                                            <div
-                                                                class="ant-tabs-nav-operations ant-tabs-nav-operations-hidden">
-                                                                <button type="button" class="ant-tabs-nav-more"
-                                                                    tabindex="-1" aria-hidden="true"
-                                                                    aria-haspopup="listbox"
-                                                                    aria-controls="rc-tabs-0-more-popup"
-                                                                    id="rc-tabs-0-more" aria-expanded="false"
-                                                                    style="margin-left: 48px; visibility: hidden; order: 1;"><span
-                                                                        role="img" aria-label="ellipsis"
-                                                                        class="anticon anticon-ellipsis"><svg
-                                                                            viewBox="64 64 896 896" focusable="false"
-                                                                            data-icon="ellipsis" width="1em"
-                                                                            height="1em" fill="currentColor"
-                                                                            aria-hidden="true">
-                                                                            <path
-                                                                                d="M176 511a56 56 0 10112 0 56 56 0 10-112 0zm280 0a56 56 0 10112 0 56 56 0 10-112 0zm280 0a56 56 0 10112 0 56 56 0 10-112 0z">
-                                                                            </path>
-                                                                        </svg></span></button></div>
-                                                        </div>
                                                         <div class="ant-tabs-content-holder">
                                                             <div
                                                                 class="ant-tabs-content ant-tabs-content-top ant-tabs-content-animated">
                                                                 <div role="tabpanel" tabindex="0" aria-hidden="false"
                                                                     class="ant-tabs-tabpane ant-tabs-tabpane-active"
-                                                                    id="rc-tabs-0-panel-1"
-                                                                    aria-labelledby="rc-tabs-0-tab-1">
+                                                                    id="rc-tabs-2-panel-1"
+                                                                    aria-labelledby="rc-tabs-2-tab-1">
                                                                     <div id="joyride-wrapper"
                                                                         class="_publish-container_1vksx_7"><input
                                                                             type="file"
                                                                             accept="video/*,.mp4,.mov,.flv,.f4v,.webm,.mkv,.rm,.rmvb,.m4v,.3gp,.3g2,.wmv,.avi,.asf,.mpg,.mpeg,.ts"
                                                                             style="display: none; opacity: 0; width: 0px; height: 0px;">
                                                                         <main
-                                                                            class="_publish-container-upload_1vksx_12">
-                                                                            <section class="_upload-container_hlszi_12">
-                                                                                <div
-                                                                                    class="_dragger-container_hlszi_39">
+                                                                            class="_publish-container-wrapper_1vksx_15">
+                                                                            <div
+                                                                                class="_publish-container-header_1vksx_18">
+                                                                                发布视频</div>
+                                                                            <div class="_edit-container_ql0z6_7">
+                                                                                <div class="react-joyride"></div>
+                                                                                <div class="_edit-section_ql0z6_20 _last_ql0z6_26"
+                                                                                    style="display: grid;">
                                                                                     <div
-                                                                                        class="_dragger-content_hlszi_39">
-                                                                                        <div
-                                                                                            class="_upload-icon_hlszi_57">
+                                                                                        class="_edit-section-form_ql0z6_100">
+                                                                                        <div id="main-tours">
+                                                                                            <div
+                                                                                                class="_edit-form-item_oei9t_7">
+                                                                                                <label
+                                                                                                    class="_label_oei9t_19">作品描述</label>
+                                                                                                <div
+                                                                                                    style="width: 100%;">
+                                                                                                    <div
+                                                                                                        class="_edit-desc-container_oei9t_43">
+                                                                                                        <div class="_description_oei9t_59"
+                                                                                                            id="work-description-edit"
+                                                                                                            placeholder="添加合适的话题和描述，作品能获得更多推荐～"
+                                                                                                            contenteditable="true"
+                                                                                                            style="height: 92px;">
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_textarea-opera_oei9t_97">
+                                                                                                            <div
+                                                                                                                class="_textarea-opera-top_oei9t_103">
+                                                                                                                <div>
+                                                                                                                    <span
+                                                                                                                        class="_quick-tips_oei9t_353">@好友</span><span
+                                                                                                                        class="_quick-tips_oei9t_353 _quick-tips-topic_oei9t_372">#话题</span>
+                                                                                                                </div>
+                                                                                                                <span
+                                                                                                                    class="_text-tip_oei9t_250">0/500</span>
+                                                                                                            </div>
+                                                                                                            <div
+                                                                                                                class="_edit-desc-recommend_oei9t_261">
+                                                                                                                <div
+                                                                                                                    class="_recommend-title_oei9t_269">
+                                                                                                                    话题推荐：
+                                                                                                                </div>
+                                                                                                                <div
+                                                                                                                    class="_recommend-tags_oei9t_275">
+                                                                                                                    <span
+                                                                                                                        class="_tag_oei9t_283">#BeverTonliew</span><span
+                                                                                                                        class="_tag_oei9t_283">#谁还不是个大sai迷</span><span
+                                                                                                                        class="_tag_oei9t_283">#kattad_fan</span><span
+                                                                                                                        class="_tag_oei9t_283">#bogorkot</span><span
+                                                                                                                        class="_tag_oei9t_283">#在卡一种很新的点</span><span
+                                                                                                                        class="_tag_oei9t_283">#Ghost</span><span
+                                                                                                                        class="_tag_oei9t_283">#黑白人生</span><span
+                                                                                                                        class="_tag_oei9t_283">#欧美男神</span><span
+                                                                                                                        class="_tag_oei9t_283">#一图一曲</span><span
+                                                                                                                        class="_tag_oei9t_283">#肖申克的救赎</span>
+                                                                                                                </div>
+                                                                                                                <div
+                                                                                                                    class="_recommend-all_oei9t_328">
+                                                                                                                    全部
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="_edit-form-item_oei9t_7">
+                                                                                                <label
+                                                                                                    class="_label_oei9t_19">活动推荐<img
+                                                                                                        src="data:image/svg+xml,%3csvg%20width='14'%20height='14'%20viewBox='0%200%2014%2014'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_2343_81350)'%3e%3cmask%20id='mask0_2343_81350'%20style='mask-type:alpha'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='14'%20height='14'%3e%3cpath%20d='M0%200H14V14H0V0Z'%20fill='white'/%3e%3c/mask%3e%3cg%20mask='url(%23mask0_2343_81350)'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M11.6654%207.00065C11.6654%209.57798%209.57603%2011.6673%206.9987%2011.6673C4.42137%2011.6673%202.33203%209.57798%202.33203%207.00065C2.33203%204.42332%204.42137%202.33398%206.9987%202.33398C9.57603%202.33398%2011.6654%204.42332%2011.6654%207.00065ZM6.9987%2012.834C10.2204%2012.834%2012.832%2010.2223%2012.832%207.00065C12.832%203.77899%2010.2204%201.16732%206.9987%201.16732C3.77704%201.16732%201.16537%203.77899%201.16537%207.00065C1.16537%2010.2223%203.77704%2012.834%206.9987%2012.834Z'%20fill='%23C6C6C6'/%3e%3cpath%20d='M6.99515%204.0166C7.88614%204.0166%208.68862%204.76343%208.68862%205.65095C8.68862%206.3154%208.43881%206.70825%207.79489%207.28824L7.64525%207.4204L7.54331%207.50814L7.54349%208.06494H6.44682V7.25729C6.44682%207.10012%206.51426%206.9505%206.63203%206.84642L6.91715%206.6002L7.03564%206.49599L7.14056%206.40015C7.15696%206.38481%207.17281%206.36979%207.18814%206.35505L7.27396%206.26991C7.28725%206.25624%207.30005%206.24282%207.31237%206.22962L7.3806%206.15296C7.53729%205.96725%207.59195%205.82303%207.59195%205.65095C7.59195%205.38741%207.29738%205.11327%206.99515%205.11327C6.68051%205.11327%206.34052%205.38829%206.31155%205.6197L6.30956%205.65095V5.80972H5.21289V5.65095C5.21289%204.76269%206.09811%204.0166%206.99515%204.0166Z'%20fill='%23C6C6C6'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M6.9974%209.8151C7.31956%209.8151%207.58073%209.55393%207.58073%209.23177C7.58073%208.90961%207.31956%208.64844%206.9974%208.64844C6.67523%208.64844%206.41406%208.90961%206.41406%209.23177C6.41406%209.55393%206.67523%209.8151%206.9974%209.8151Z'%20fill='%23C6C6C6'/%3e%3c/g%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_2343_81350'%3e%3crect%20width='14'%20height='14'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e"
+                                                                                                        alt=""
+                                                                                                        width="14"
+                                                                                                        style="margin-left: 3px; margin-bottom: 3px; cursor: pointer;"></label>
+                                                                                                <div
+                                                                                                    class="_activity__item_3v4ib_1">
+                                                                                                    <div
+                                                                                                        class="_activity__item_left_3v4ib_19">
+                                                                                                        <img src="https://js.a.kspkg.com/udata/pkg/platform_operationDXWmwIUj.jpg"
+                                                                                                            alt="">
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_activity__item_main_3v4ib_49">
+                                                                                                        <div
+                                                                                                            class="_activity__item_main_title_3v4ib_56">
+                                                                                                            开学的精神状态
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_activity__item_main_opera_3v4ib_66 _r_hight_3v4ib_16">
+                                                                                                            <div>
+                                                                                                                <div
+                                                                                                                    class="_activity__item_main_opera_detail_3v4ib_85">
+                                                                                                                    <span>去领取</span><img
+                                                                                                                        src="data:image/svg+xml,%3csvg%20width='17'%20height='16'%20viewBox='0%200%2017%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.432%207.75L6.54289%2011.6391L7.25%2012.3462L11.8462%207.75L7.25%203.15381L6.54289%203.86092L10.432%207.75Z'%20fill='%23666666'/%3e%3c/svg%3e"
+                                                                                                                        alt="">
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_activity__item_right_3v4ib_94">
+                                                                                                        <div><img
+                                                                                                                src="data:image/svg+xml,%3csvg%20width='17'%20height='16'%20viewBox='0%200%2017%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.432%207.75L6.54289%2011.6391L7.25%2012.3462L11.8462%207.75L7.25%203.15381L6.54289%203.86092L10.432%207.75Z'%20fill='%23666666'/%3e%3c/svg%3e"
+                                                                                                                alt="">
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div
+                                                                                                    class="_activity__item_3v4ib_1">
+                                                                                                    <div
+                                                                                                        class="_activity__item_left_3v4ib_19">
+                                                                                                        <img src="https://s2-10939.kwimgs.com/kos/nlav10939/kwaihot/eQWIr_1740040529982.png"
+                                                                                                            alt="">
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_activity__item_main_3v4ib_49">
+                                                                                                        <div
+                                                                                                            class="_activity__item_main_title_3v4ib_56">
+                                                                                                            发牌</div>
+                                                                                                        <div
+                                                                                                            class="_activity__item_main_opera_3v4ib_66">
+                                                                                                            <div>
+                                                                                                                <div
+                                                                                                                    class="_activity__item_main_opera_add_3v4ib_75">
+                                                                                                                    <img src="data:image/svg+xml,%3csvg%20width='12'%20height='13'%20viewBox='0%200%2012%2013'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3ccircle%20cx='6'%20cy='6.5'%20r='5.5'%20stroke='%23666666'/%3e%3cline%20x1='3'%20y1='6.5'%20x2='9'%20y2='6.5'%20stroke='%23666666'/%3e%3cline%20x1='6'%20y1='9.5'%20x2='6'%20y2='3.5'%20stroke='%23666666'/%3e%3c/svg%3e"
+                                                                                                                        alt="">添加
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_activity__item_right_3v4ib_94">
+                                                                                                        <div><img
+                                                                                                                src="data:image/svg+xml,%3csvg%20width='17'%20height='16'%20viewBox='0%200%2017%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.432%207.75L6.54289%2011.6391L7.25%2012.3462L11.8462%207.75L7.25%203.15381L6.54289%203.86092L10.432%207.75Z'%20fill='%23666666'/%3e%3c/svg%3e"
+                                                                                                                alt="">
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div
+                                                                                                    class="_more__activity_qjrir_1">
+                                                                                                    全部</div>
+                                                                                            </div><input type="file"
+                                                                                                accept="image/apng,image/bmp,image/ico,image/cur,image/jpg,image/jpeg,image/jfif,image/pjpeg,image/pjp,image/png,image/webp"
+                                                                                                style="display: none; opacity: 0; width: 0px; height: 0px;">
+                                                                                            <div
+                                                                                                class="_high-cover-editor_y5cqm_1">
+                                                                                                <div
+                                                                                                    class="_high-cover-editor-wrapper_y5cqm_5">
+                                                                                                    <div
+                                                                                                        class="_high-cover-editor-label_y5cqm_8">
+                                                                                                        <span>封面设置</span><img
+                                                                                                            src="data:image/svg+xml,%3csvg%20width='14'%20height='14'%20viewBox='0%200%2014%2014'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_1842_59081)'%3e%3cmask%20id='mask0_1842_59081'%20style='mask-type:alpha'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='14'%20height='14'%3e%3cpath%20d='M0%200H14V14H0V0Z'%20fill='white'/%3e%3c/mask%3e%3cg%20mask='url(%23mask0_1842_59081)'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M11.6654%207.00065C11.6654%209.57798%209.57603%2011.6673%206.9987%2011.6673C4.42137%2011.6673%202.33203%209.57798%202.33203%207.00065C2.33203%204.42332%204.42137%202.33398%206.9987%202.33398C9.57603%202.33398%2011.6654%204.42332%2011.6654%207.00065ZM6.9987%2012.834C10.2204%2012.834%2012.832%2010.2223%2012.832%207.00065C12.832%203.77899%2010.2204%201.16732%206.9987%201.16732C3.77704%201.16732%201.16537%203.77899%201.16537%207.00065C1.16537%2010.2223%203.77704%2012.834%206.9987%2012.834Z'%20fill='%23C6C6C6'/%3e%3cpath%20d='M6.99515%204.0166C7.88614%204.0166%208.68862%204.76343%208.68862%205.65095C8.68862%206.3154%208.43881%206.70825%207.79489%207.28824L7.64525%207.4204L7.54331%207.50814L7.54349%208.06494H6.44682V7.25729C6.44682%207.10012%206.51426%206.9505%206.63203%206.84642L6.91715%206.6002L7.03564%206.49599L7.14056%206.40015C7.15696%206.38481%207.17281%206.36979%207.18814%206.35505L7.27396%206.26991C7.28725%206.25624%207.30005%206.24282%207.31237%206.22962L7.3806%206.15296C7.53729%205.96725%207.59195%205.82303%207.59195%205.65095C7.59195%205.38741%207.29738%205.11327%206.99515%205.11327C6.68051%205.11327%206.34052%205.38829%206.31155%205.6197L6.30956%205.65095V5.80972H5.21289V5.65095C5.21289%204.76269%206.09811%204.0166%206.99515%204.0166Z'%20fill='%23C6C6C6'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M6.9974%209.8151C7.31956%209.8151%207.58073%209.55393%207.58073%209.23177C7.58073%208.90961%207.31956%208.64844%206.9974%208.64844C6.67523%208.64844%206.41406%208.90961%206.41406%209.23177C6.41406%209.55393%206.67523%209.8151%206.9974%209.8151Z'%20fill='%23C6C6C6'/%3e%3c/g%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_1842_59081'%3e%3crect%20width='14'%20height='14'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e"
+                                                                                                            class="_icon_y5cqm_12"
+                                                                                                            alt="">
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_high-cover-editor-main_y5cqm_16">
+                                                                                                        <div
+                                                                                                            class="_default-cover_y5cqm_68 _big_y5cqm_77">
+                                                                                                            <div
+                                                                                                                class="_cover-editor_y5cqm_40">
+                                                                                                                <span
+                                                                                                                    class="_cover-editor-text_y5cqm_58">编辑</span><span
+                                                                                                                    class="_cover-editor-break_y5cqm_52"></span><span
+                                                                                                                    class="_cover-editor-text_y5cqm_58">替换</span>
+                                                                                                            </div><img
+                                                                                                                src="blob:https://cp.kuaishou.com/0962431e-cee7-43d6-88f8-e383b8cafe39"
+                                                                                                                alt="">
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_recommend-cover_y5cqm_130 _big_y5cqm_77">
+                                                                                                            <div
+                                                                                                                class="_recommend-cover-header_y5cqm_143">
+                                                                                                                智能推荐封面
+                                                                                                            </div>
+                                                                                                            <div
+                                                                                                                class="_recommend-cover-main_y5cqm_149">
+                                                                                                                <div
+                                                                                                                    class="_recommend-cover-item_y5cqm_157">
+                                                                                                                    <span
+                                                                                                                        style="width: 100%; height: 100%; display: inline-flex;"><span
+                                                                                                                            class="_masks-wrapper_y5cqm_167"><img
+                                                                                                                                src="https://v2-cp.ssscdn.com/ksc2/rniiR9FYUMvYKookyWpMWQvHDarKJqr2Q8cbMHSeHCtkvGOgVJE38cPNrFOGFUmgGz4R8DCf-3AkVCi3Vn8SrpTS2kCyn7m4zwmb7nZxi7wHkU4T8B9O0LzQt5pucvX892Pecsujj89ha-ENDV3MlQ?pkey=AAUYLwkPjFMzlIqUiXr_LRq6y0YB6xJlWrf7wwwNd-aZMmJwGDXuQriSusXh_8SN-x8ESWKXFJLGINIuT8yk9N0eHDyU7ed2JZgOWSWLKokDmJDh5cwZ8cP9en-rJZrM5ik"
+                                                                                                                                alt=""><span
+                                                                                                                                class="_masks_y5cqm_167"></span></span></span>
+                                                                                                                </div>
+                                                                                                                <div
+                                                                                                                    class="_recommend-cover-item_y5cqm_157">
+                                                                                                                    <span
+                                                                                                                        style="width: 100%; height: 100%; display: inline-flex;"><span
+                                                                                                                            class="_masks-wrapper_y5cqm_167"><img
+                                                                                                                                src="https://v1-cp.ssrcdn.com/ksc2/NaiSo7X5eS_vVcDNwfvdzxDcfxLPFdOShzW04v-jxP-4rFg9JrzlxDCfTXcaMdEfJef0zlQM-u_jKwHUL9mFGAvwVfA-Ke5Ij9WPLkvog2S-D6H29S5UrAsiMT1kRVdObvpkGCiTRKSPq4Rks8pp9A?pkey=AAXRgg-v7eW8AvPiLNQGj5G7wq4TRANOmKYOrGX60O5_OOwzIxYRphceHT3oakinzWU7JyhhZbNX7WYt3ptvYMMGuRumPc2Md5uZBVl3FzufptwhB68ihGKul34PkuThN5w"
+                                                                                                                                alt=""><span
+                                                                                                                                class="_masks_y5cqm_167"></span></span></span>
+                                                                                                                </div>
+                                                                                                                <div
+                                                                                                                    class="_recommend-cover-item_y5cqm_157">
+                                                                                                                    <span
+                                                                                                                        style="width: 100%; height: 100%; display: inline-flex;"><span
+                                                                                                                            class="_masks-wrapper_y5cqm_167"><img
+                                                                                                                                src="https://v1-cp.ssrcdn.com/ksc2/LHFFKUJoNdj8wrmFGI8HoBNYdxrhf8zdRPBRtQENWwTuGm1RlrYO4qlAFduD_DM9O8uGCxTEucJUaNozcDHGPCTnyZiEgpgabHe0fCvqkkCQArQnoE-u4xN97WBVoIfAWqGJTs1HOD1x2eCi0HYVSQ?pkey=AAVN3SiRs5NWEKiHT8G7eua8W9_XDq2AH4A83ucq5XFzQ7pP1f1zzyIPvaeOBbTmojkpDYJYZHULb9H9ndaEhhZER_Ta0iWPTpSWNSXieXrml-Y9Y-4COHc3V9DCUsA3s-0"
+                                                                                                                                alt=""><span
+                                                                                                                                class="_masks_y5cqm_167"></span></span>
+                                                                                                                        <div
+                                                                                                                            style="position: absolute; top: 0px; left: 0px; width: 100%;">
+                                                                                                                            <div>
+                                                                                                                                <div class="ant-tooltip ant-tooltip-placement-top  ant-tooltip-hidden"
+                                                                                                                                    style="left: -268px; top: -909px; transform-origin: 50% 298.281px; pointer-events: none;">
+                                                                                                                                    <div
+                                                                                                                                        class="ant-tooltip-content">
+                                                                                                                                        <div
+                                                                                                                                            class="ant-tooltip-arrow">
+                                                                                                                                            <span
+                                                                                                                                                class="ant-tooltip-arrow-content"
+                                                                                                                                                style="--antd-arrow-background-color: #fff;"></span>
+                                                                                                                                        </div>
+                                                                                                                                        <div class="ant-tooltip-inner"
+                                                                                                                                            role="tooltip"
+                                                                                                                                            style="font-size: 12px; border-radius: 2px; padding: 4px; background: rgb(255, 255, 255);">
+                                                                                                                                            <img class="_recommend-preview_y5cqm_241"
+                                                                                                                                                src="https://v1-cp.ssrcdn.com/ksc2/LHFFKUJoNdj8wrmFGI8HoBNYdxrhf8zdRPBRtQENWwTuGm1RlrYO4qlAFduD_DM9O8uGCxTEucJUaNozcDHGPCTnyZiEgpgabHe0fCvqkkCQArQnoE-u4xN97WBVoIfAWqGJTs1HOD1x2eCi0HYVSQ?pkey=AAVN3SiRs5NWEKiHT8G7eua8W9_XDq2AH4A83ucq5XFzQ7pP1f1zzyIPvaeOBbTmojkpDYJYZHULb9H9ndaEhhZER_Ta0iWPTpSWNSXieXrml-Y9Y-4COHc3V9DCUsA3s-0"
+                                                                                                                                                alt=""
+                                                                                                                                                style="border-radius: 2px;">
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                    </span>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div
+                                                                                                    class="_high-cover-editor-footer_y5cqm_190">
+                                                                                                    <div
+                                                                                                        class="_high-cover-editor-footer-right_y5cqm_196">
+                                                                                                        <span
+                                                                                                            class="_label_y5cqm_204">PK封面</span><button
+                                                                                                            type="button"
+                                                                                                            role="switch"
+                                                                                                            aria-checked="false"
+                                                                                                            class="ant-switch ant-switch-small">
+                                                                                                            <div
+                                                                                                                class="ant-switch-handle">
+                                                                                                            </div><span
+                                                                                                                class="ant-switch-inner"></span>
+                                                                                                        </button></div>
+                                                                                                </div>
+                                                                                            </div>
                                                                                         </div>
                                                                                         <div
-                                                                                            class="_upload-text_hlszi_68">
-                                                                                            <p
-                                                                                                class="_upload-tip_hlszi_68">
-                                                                                                拖拽视频到此或点击上传</p><button
-                                                                                                class="_upload-btn_hlszi_77">上传视频</button>
+                                                                                            class="ant-spin-nested-loading">
+                                                                                            <div
+                                                                                                class="ant-spin-container">
+                                                                                                <div class="_edit-form-item_oei9t_7 _author-turning-item_oei9t_12"
+                                                                                                    style="margin-bottom: 24px;">
+                                                                                                    <label
+                                                                                                        class="_label_oei9t_19"
+                                                                                                        style="line-height: 36px;">作者服务<img
+                                                                                                            src="data:image/svg+xml,%3csvg%20width='14'%20height='14'%20viewBox='0%200%2014%2014'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_2343_81350)'%3e%3cmask%20id='mask0_2343_81350'%20style='mask-type:alpha'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='14'%20height='14'%3e%3cpath%20d='M0%200H14V14H0V0Z'%20fill='white'/%3e%3c/mask%3e%3cg%20mask='url(%23mask0_2343_81350)'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M11.6654%207.00065C11.6654%209.57798%209.57603%2011.6673%206.9987%2011.6673C4.42137%2011.6673%202.33203%209.57798%202.33203%207.00065C2.33203%204.42332%204.42137%202.33398%206.9987%202.33398C9.57603%202.33398%2011.6654%204.42332%2011.6654%207.00065ZM6.9987%2012.834C10.2204%2012.834%2012.832%2010.2223%2012.832%207.00065C12.832%203.77899%2010.2204%201.16732%206.9987%201.16732C3.77704%201.16732%201.16537%203.77899%201.16537%207.00065C1.16537%2010.2223%203.77704%2012.834%206.9987%2012.834Z'%20fill='%23C6C6C6'/%3e%3cpath%20d='M6.99515%204.0166C7.88614%204.0166%208.68862%204.76343%208.68862%205.65095C8.68862%206.3154%208.43881%206.70825%207.79489%207.28824L7.64525%207.4204L7.54331%207.50814L7.54349%208.06494H6.44682V7.25729C6.44682%207.10012%206.51426%206.9505%206.63203%206.84642L6.91715%206.6002L7.03564%206.49599L7.14056%206.40015C7.15696%206.38481%207.17281%206.36979%207.18814%206.35505L7.27396%206.26991C7.28725%206.25624%207.30005%206.24282%207.31237%206.22962L7.3806%206.15296C7.53729%205.96725%207.59195%205.82303%207.59195%205.65095C7.59195%205.38741%207.29738%205.11327%206.99515%205.11327C6.68051%205.11327%206.34052%205.38829%206.31155%205.6197L6.30956%205.65095V5.80972H5.21289V5.65095C5.21289%204.76269%206.09811%204.0166%206.99515%204.0166Z'%20fill='%23C6C6C6'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M6.9974%209.8151C7.31956%209.8151%207.58073%209.55393%207.58073%209.23177C7.58073%208.90961%207.31956%208.64844%206.9974%208.64844C6.67523%208.64844%206.41406%208.90961%206.41406%209.23177C6.41406%209.55393%206.67523%209.8151%206.9974%209.8151Z'%20fill='%23C6C6C6'/%3e%3c/g%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_2343_81350'%3e%3crect%20width='14'%20height='14'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e"
+                                                                                                            alt=""
+                                                                                                            width="14"
+                                                                                                            style="margin-left: 3px; margin-bottom: 3px; cursor: pointer;"></label>
+                                                                                                    <div class="ant-select ant-select-single ant-select-allow-clear ant-select-show-arrow"
+                                                                                                        style="width: 168px; margin-right: 12px;">
+                                                                                                        <div
+                                                                                                            class="ant-select-selector">
+                                                                                                            <span
+                                                                                                                class="ant-select-selection-search"><input
+                                                                                                                    type="search"
+                                                                                                                    autocomplete="off"
+                                                                                                                    class="ant-select-selection-search-input"
+                                                                                                                    role="combobox"
+                                                                                                                    aria-haspopup="listbox"
+                                                                                                                    aria-owns="rc_select_9_list"
+                                                                                                                    aria-autocomplete="list"
+                                                                                                                    aria-controls="rc_select_9_list"
+                                                                                                                    aria-activedescendant="rc_select_9_list_0"
+                                                                                                                    readonly=""
+                                                                                                                    unselectable="on"
+                                                                                                                    value=""
+                                                                                                                    id="rc_select_9"
+                                                                                                                    style="opacity: 0;"></span><span
+                                                                                                                class="ant-select-selection-placeholder">选择服务类型</span>
+                                                                                                        </div><span
+                                                                                                            class="ant-select-arrow"
+                                                                                                            unselectable="on"
+                                                                                                            aria-hidden="true"
+                                                                                                            style="user-select: none;"><span
+                                                                                                                role="img"
+                                                                                                                aria-label="down"
+                                                                                                                class="anticon anticon-down ant-select-suffix"><svg
+                                                                                                                    viewBox="64 64 896 896"
+                                                                                                                    focusable="false"
+                                                                                                                    data-icon="down"
+                                                                                                                    width="1em"
+                                                                                                                    height="1em"
+                                                                                                                    fill="currentColor"
+                                                                                                                    aria-hidden="true">
+                                                                                                                    <path
+                                                                                                                        d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z">
+                                                                                                                    </path>
+                                                                                                                </svg></span></span>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        style="flex: 1 1 0%;">
+                                                                                                        <div class="ant-select ant-select-single ant-select-allow-clear ant-select-show-arrow ant-select-disabled ant-select-show-search"
+                                                                                                            style="width: 100%;">
+                                                                                                            <div
+                                                                                                                class="ant-select-selector">
+                                                                                                                <span
+                                                                                                                    class="ant-select-selection-search"><input
+                                                                                                                        type="search"
+                                                                                                                        disabled=""
+                                                                                                                        autocomplete="off"
+                                                                                                                        class="ant-select-selection-search-input"
+                                                                                                                        role="combobox"
+                                                                                                                        aria-expanded="false"
+                                                                                                                        aria-haspopup="listbox"
+                                                                                                                        aria-owns="rc_select_10_list"
+                                                                                                                        aria-autocomplete="list"
+                                                                                                                        aria-controls="rc_select_10_list"
+                                                                                                                        aria-activedescendant="rc_select_10_list_0"
+                                                                                                                        value=""
+                                                                                                                        id="rc_select_10"></span><span
+                                                                                                                    class="ant-select-selection-placeholder">关联成功可获得更多收益</span>
+                                                                                                            </div><span
+                                                                                                                class="ant-select-arrow"
+                                                                                                                unselectable="on"
+                                                                                                                aria-hidden="true"
+                                                                                                                style="user-select: none;"><span
+                                                                                                                    role="img"
+                                                                                                                    aria-label="down"
+                                                                                                                    class="anticon anticon-down"><svg
+                                                                                                                        viewBox="64 64 896 896"
+                                                                                                                        focusable="false"
+                                                                                                                        data-icon="down"
+                                                                                                                        width="1em"
+                                                                                                                        height="1em"
+                                                                                                                        fill="currentColor"
+                                                                                                                        aria-hidden="true">
+                                                                                                                        <path
+                                                                                                                            d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z">
+                                                                                                                        </path>
+                                                                                                                    </svg></span></span>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="_edit-form-item_oei9t_7"
+                                                                                            style="margin-bottom: 24px;">
+                                                                                            <label
+                                                                                                class="_label_oei9t_19"
+                                                                                                style="height: 36px; line-height: 36px;">作者声明<img
+                                                                                                    src="data:image/svg+xml,%3csvg%20width='14'%20height='14'%20viewBox='0%200%2014%2014'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_2343_81350)'%3e%3cmask%20id='mask0_2343_81350'%20style='mask-type:alpha'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='14'%20height='14'%3e%3cpath%20d='M0%200H14V14H0V0Z'%20fill='white'/%3e%3c/mask%3e%3cg%20mask='url(%23mask0_2343_81350)'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M11.6654%207.00065C11.6654%209.57798%209.57603%2011.6673%206.9987%2011.6673C4.42137%2011.6673%202.33203%209.57798%202.33203%207.00065C2.33203%204.42332%204.42137%202.33398%206.9987%202.33398C9.57603%202.33398%2011.6654%204.42332%2011.6654%207.00065ZM6.9987%2012.834C10.2204%2012.834%2012.832%2010.2223%2012.832%207.00065C12.832%203.77899%2010.2204%201.16732%206.9987%201.16732C3.77704%201.16732%201.16537%203.77899%201.16537%207.00065C1.16537%2010.2223%203.77704%2012.834%206.9987%2012.834Z'%20fill='%23C6C6C6'/%3e%3cpath%20d='M6.99515%204.0166C7.88614%204.0166%208.68862%204.76343%208.68862%205.65095C8.68862%206.3154%208.43881%206.70825%207.79489%207.28824L7.64525%207.4204L7.54331%207.50814L7.54349%208.06494H6.44682V7.25729C6.44682%207.10012%206.51426%206.9505%206.63203%206.84642L6.91715%206.6002L7.03564%206.49599L7.14056%206.40015C7.15696%206.38481%207.17281%206.36979%207.18814%206.35505L7.27396%206.26991C7.28725%206.25624%207.30005%206.24282%207.31237%206.22962L7.3806%206.15296C7.53729%205.96725%207.59195%205.82303%207.59195%205.65095C7.59195%205.38741%207.29738%205.11327%206.99515%205.11327C6.68051%205.11327%206.34052%205.38829%206.31155%205.6197L6.30956%205.65095V5.80972H5.21289V5.65095C5.21289%204.76269%206.09811%204.0166%206.99515%204.0166Z'%20fill='%23C6C6C6'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M6.9974%209.8151C7.31956%209.8151%207.58073%209.55393%207.58073%209.23177C7.58073%208.90961%207.31956%208.64844%206.9974%208.64844C6.67523%208.64844%206.41406%208.90961%206.41406%209.23177C6.41406%209.55393%206.67523%209.8151%206.9974%209.8151Z'%20fill='%23C6C6C6'/%3e%3c/g%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_2343_81350'%3e%3crect%20width='14'%20height='14'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e"
+                                                                                                    alt="" width="14"
+                                                                                                    style="margin-left: 3px; margin-bottom: 3px; cursor: pointer;"></label>
+                                                                                            <div class="ant-select ant-select-single ant-select-allow-clear ant-select-show-arrow"
+                                                                                                style="width: 100%;">
+                                                                                                <div
+                                                                                                    class="ant-select-selector">
+                                                                                                    <span
+                                                                                                        class="ant-select-selection-search"><input
+                                                                                                            type="search"
+                                                                                                            autocomplete="off"
+                                                                                                            class="ant-select-selection-search-input"
+                                                                                                            role="combobox"
+                                                                                                            aria-haspopup="listbox"
+                                                                                                            aria-owns="rc_select_6_list"
+                                                                                                            aria-autocomplete="list"
+                                                                                                            aria-controls="rc_select_6_list"
+                                                                                                            aria-activedescendant="rc_select_6_list_0"
+                                                                                                            readonly=""
+                                                                                                            unselectable="on"
+                                                                                                            value=""
+                                                                                                            style="opacity: 0;"
+                                                                                                            id="rc_select_6"></span><span
+                                                                                                        class="ant-select-selection-placeholder">为作品添加补充说明</span>
+                                                                                                </div><span
+                                                                                                    class="ant-select-arrow"
+                                                                                                    unselectable="on"
+                                                                                                    aria-hidden="true"
+                                                                                                    style="user-select: none;"><span
+                                                                                                        role="img"
+                                                                                                        aria-label="down"
+                                                                                                        class="anticon anticon-down ant-select-suffix"><svg
+                                                                                                            viewBox="64 64 896 896"
+                                                                                                            focusable="false"
+                                                                                                            data-icon="down"
+                                                                                                            width="1em"
+                                                                                                            height="1em"
+                                                                                                            fill="currentColor"
+                                                                                                            aria-hidden="true">
+                                                                                                            <path
+                                                                                                                d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z">
+                                                                                                            </path>
+                                                                                                        </svg></span></span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="_edit-form-item_oei9t_7">
+                                                                                            <label
+                                                                                                class="_label_oei9t_19"
+                                                                                                style="height: 36px; line-height: 36px;">加入合集</label>
+                                                                                            <div class="ant-select ant-select-single ant-select-allow-clear ant-select-show-arrow"
+                                                                                                style="width: 100%;">
+                                                                                                <div
+                                                                                                    class="ant-select-selector">
+                                                                                                    <span
+                                                                                                        class="ant-select-selection-search"><input
+                                                                                                            type="search"
+                                                                                                            autocomplete="off"
+                                                                                                            class="ant-select-selection-search-input"
+                                                                                                            role="combobox"
+                                                                                                            aria-haspopup="listbox"
+                                                                                                            aria-owns="rc_select_11_list"
+                                                                                                            aria-autocomplete="list"
+                                                                                                            aria-controls="rc_select_11_list"
+                                                                                                            aria-activedescendant="rc_select_11_list_2"
+                                                                                                            readonly=""
+                                                                                                            unselectable="on"
+                                                                                                            value=""
+                                                                                                            style="opacity: 0;"
+                                                                                                            id="rc_select_11"
+                                                                                                            aria-expanded="false"></span><span
+                                                                                                        class="ant-select-selection-placeholder">选择要加入到的合集</span>
+                                                                                                    <div
+                                                                                                        style="position: absolute; top: 0px; left: 0px; width: 100%;">
+                                                                                                        <div>
+                                                                                                            <div class="ant-select-dropdown ant-select-dropdown-placement-bottomLeft  ant-select-dropdown-hidden"
+                                                                                                                style="min-width: 539px; width: 539px; left: -655px; top: -409px;">
+                                                                                                                <div>
+                                                                                                                    <div role="listbox"
+                                                                                                                        id="rc_select_11_list"
+                                                                                                                        style="height: 0px; width: 0px; overflow: hidden;">
+                                                                                                                        <div role="option"
+                                                                                                                            id="rc_select_11_list_1"
+                                                                                                                            aria-selected="false">
+                                                                                                                            6783701
+                                                                                                                        </div>
+                                                                                                                        <div role="option"
+                                                                                                                            id="rc_select_11_list_2"
+                                                                                                                            aria-selected="false">
+                                                                                                                            6783699
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                    <div class="rc-virtual-list"
+                                                                                                                        style="position: relative;">
+                                                                                                                        <div class="rc-virtual-list-holder"
+                                                                                                                            style="max-height: 256px; overflow-y: hidden; overflow-anchor: none;">
+                                                                                                                            <div>
+                                                                                                                                <div class="rc-virtual-list-holder-inner"
+                                                                                                                                    style="display: flex; flex-direction: column;">
+                                                                                                                                    <div label="小动物"
+                                                                                                                                        aria-selected="false"
+                                                                                                                                        class="ant-select-item ant-select-item-option">
+                                                                                                                                        <div
+                                                                                                                                            class="ant-select-item-option-content">
+                                                                                                                                            <div
+                                                                                                                                                class="_options_ggsh0_1">
+                                                                                                                                                <span
+                                                                                                                                                    class="_options-title_ggsh0_6">小动物</span><span
+                                                                                                                                                    class="_options-number_ggsh0_9">包含4个视频</span>
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                        <span
+                                                                                                                                            class="ant-select-item-option-state"
+                                                                                                                                            unselectable="on"
+                                                                                                                                            aria-hidden="true"
+                                                                                                                                            style="user-select: none;"></span>
+                                                                                                                                    </div>
+                                                                                                                                    <div label="随手一拍"
+                                                                                                                                        aria-selected="false"
+                                                                                                                                        class="ant-select-item ant-select-item-option">
+                                                                                                                                        <div
+                                                                                                                                            class="ant-select-item-option-content">
+                                                                                                                                            <div
+                                                                                                                                                class="_options_ggsh0_1">
+                                                                                                                                                <span
+                                                                                                                                                    class="_options-title_ggsh0_6">随手一拍</span><span
+                                                                                                                                                    class="_options-number_ggsh0_9">包含7个视频</span>
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                        <span
+                                                                                                                                            class="ant-select-item-option-state"
+                                                                                                                                            unselectable="on"
+                                                                                                                                            aria-hidden="true"
+                                                                                                                                            style="user-select: none;"></span>
+                                                                                                                                    </div>
+                                                                                                                                    <div label="日语英语对照学"
+                                                                                                                                        aria-selected="false"
+                                                                                                                                        class="ant-select-item ant-select-item-option ant-select-item-option-active">
+                                                                                                                                        <div
+                                                                                                                                            class="ant-select-item-option-content">
+                                                                                                                                            <div
+                                                                                                                                                class="_options_ggsh0_1">
+                                                                                                                                                <span
+                                                                                                                                                    class="_options-title_ggsh0_6">日语英语对照学</span><span
+                                                                                                                                                    class="_options-number_ggsh0_9">包含2个视频</span>
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                        <span
+                                                                                                                                            class="ant-select-item-option-state"
+                                                                                                                                            unselectable="on"
+                                                                                                                                            aria-hidden="true"
+                                                                                                                                            style="user-select: none;"></span>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                        <div class="rc-virtual-list-scrollbar"
+                                                                                                                            style="width: 8px; top: 0px; bottom: 0px; right: 0px; position: absolute; display: none;">
+                                                                                                                            <div class="rc-virtual-list-scrollbar-thumb"
+                                                                                                                                style="width: 100%; height: 128px; top: 0px; left: 0px; position: absolute; background: rgba(0, 0, 0, 0.5); border-radius: 99px; cursor: pointer; user-select: none;">
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div><span
+                                                                                                    class="ant-select-arrow"
+                                                                                                    unselectable="on"
+                                                                                                    aria-hidden="true"
+                                                                                                    style="user-select: none;"><span
+                                                                                                        role="img"
+                                                                                                        aria-label="down"
+                                                                                                        class="anticon anticon-down ant-select-suffix"><svg
+                                                                                                            viewBox="64 64 896 896"
+                                                                                                            focusable="false"
+                                                                                                            data-icon="down"
+                                                                                                            width="1em"
+                                                                                                            height="1em"
+                                                                                                            fill="currentColor"
+                                                                                                            aria-hidden="true">
+                                                                                                            <path
+                                                                                                                d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z">
+                                                                                                            </path>
+                                                                                                        </svg></span></span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="_edit-form-item_oei9t_7">
+                                                                                            <label
+                                                                                                class="_label_oei9t_19"
+                                                                                                style="line-height: 36px;">添加地点</label>
+                                                                                            <div
+                                                                                                style="width: 100%; display: flex;">
+                                                                                                <div class="ant-select ant-cascader ant-select-single ant-select-allow-clear ant-select-show-arrow"
+                                                                                                    style="width: 168px; vertical-align: top; margin-right: 12px;">
+                                                                                                    <div
+                                                                                                        class="ant-select-selector">
+                                                                                                        <span
+                                                                                                            class="ant-select-selection-search"><input
+                                                                                                                type="search"
+                                                                                                                autocomplete="off"
+                                                                                                                class="ant-select-selection-search-input"
+                                                                                                                role="combobox"
+                                                                                                                aria-haspopup="listbox"
+                                                                                                                aria-owns="rc_select_7_list"
+                                                                                                                aria-autocomplete="list"
+                                                                                                                aria-controls="rc_select_7_list"
+                                                                                                                readonly=""
+                                                                                                                unselectable="on"
+                                                                                                                value=""
+                                                                                                                style="opacity: 0;"
+                                                                                                                id="rc_select_7"></span><span
+                                                                                                            class="ant-select-selection-placeholder">请选择所在地区</span>
+                                                                                                    </div><span
+                                                                                                        class="ant-select-arrow"
+                                                                                                        unselectable="on"
+                                                                                                        aria-hidden="true"
+                                                                                                        style="user-select: none;"><span
+                                                                                                            role="img"
+                                                                                                            aria-label="down"
+                                                                                                            class="anticon anticon-down ant-select-suffix"><svg
+                                                                                                                viewBox="64 64 896 896"
+                                                                                                                focusable="false"
+                                                                                                                data-icon="down"
+                                                                                                                width="1em"
+                                                                                                                height="1em"
+                                                                                                                fill="currentColor"
+                                                                                                                aria-hidden="true">
+                                                                                                                <path
+                                                                                                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z">
+                                                                                                                </path>
+                                                                                                            </svg></span></span>
+                                                                                                </div>
+                                                                                                <div class="ant-select ant-select-single ant-select-allow-clear ant-select-show-arrow ant-select-disabled ant-select-show-search"
+                                                                                                    style="flex: 1 1 0%;">
+                                                                                                    <div
+                                                                                                        class="ant-select-selector">
+                                                                                                        <span
+                                                                                                            class="ant-select-selection-search"><input
+                                                                                                                type="search"
+                                                                                                                disabled=""
+                                                                                                                autocomplete="off"
+                                                                                                                class="ant-select-selection-search-input"
+                                                                                                                role="combobox"
+                                                                                                                aria-expanded="false"
+                                                                                                                aria-haspopup="listbox"
+                                                                                                                aria-owns="rc_select_8_list"
+                                                                                                                aria-autocomplete="list"
+                                                                                                                aria-controls="rc_select_8_list"
+                                                                                                                aria-activedescendant="rc_select_8_list_0"
+                                                                                                                value=""
+                                                                                                                id="rc_select_8"></span><span
+                                                                                                            class="ant-select-selection-placeholder">请输入视频详细地址，让同城老铁看见你</span>
+                                                                                                    </div><span
+                                                                                                        class="ant-select-arrow"
+                                                                                                        unselectable="on"
+                                                                                                        aria-hidden="true"
+                                                                                                        style="user-select: none;"><span
+                                                                                                            role="img"
+                                                                                                            aria-label="down"
+                                                                                                            class="anticon anticon-down ant-select-suffix"><svg
+                                                                                                                viewBox="64 64 896 896"
+                                                                                                                focusable="false"
+                                                                                                                data-icon="down"
+                                                                                                                width="1em"
+                                                                                                                height="1em"
+                                                                                                                fill="currentColor"
+                                                                                                                aria-hidden="true">
+                                                                                                                <path
+                                                                                                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z">
+                                                                                                                </path>
+                                                                                                            </svg></span></span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div id="setting-tours">
+                                                                                            <div
+                                                                                                class="_publish-setting-label_ql0z6_65">
+                                                                                                发布设置</div>
+                                                                                            <div
+                                                                                                class="_edit-form-item_oei9t_7">
+                                                                                                <label
+                                                                                                    class="_label_oei9t_19">互动设置</label>
+                                                                                                <div
+                                                                                                    class="ant-checkbox-group">
+                                                                                                    <label
+                                                                                                        class="ant-checkbox-wrapper ant-checkbox-wrapper-checked"><span
+                                                                                                            class="ant-checkbox ant-checkbox-checked"><input
+                                                                                                                type="checkbox"
+                                                                                                                class="ant-checkbox-input"
+                                                                                                                value="allowSameFrame"
+                                                                                                                checked=""><span
+                                                                                                                class="ant-checkbox-inner"></span></span><span>允许别人跟我拍同框</span></label><label
+                                                                                                        class="ant-checkbox-wrapper ant-checkbox-wrapper-checked"><span
+                                                                                                            class="ant-checkbox ant-checkbox-checked"><input
+                                                                                                                type="checkbox"
+                                                                                                                class="ant-checkbox-input"
+                                                                                                                value="downloadType"
+                                                                                                                checked=""><span
+                                                                                                                class="ant-checkbox-inner"></span></span><span>允许下载此作品</span></label><label
+                                                                                                        class="ant-checkbox-wrapper ant-checkbox-wrapper-checked"><span
+                                                                                                            class="ant-checkbox ant-checkbox-checked"><input
+                                                                                                                type="checkbox"
+                                                                                                                class="ant-checkbox-input"
+                                                                                                                value="disableNearbyShow"
+                                                                                                                checked=""><span
+                                                                                                                class="ant-checkbox-inner"></span></span><span>作品展示在同城页</span></label>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="_edit-form-item_oei9t_7">
+                                                                                                <label
+                                                                                                    class="_label_oei9t_19">查看权限</label>
+                                                                                                <div
+                                                                                                    class="ant-radio-group ant-radio-group-outline">
+                                                                                                    <label
+                                                                                                        class="ant-radio-wrapper ant-radio-wrapper-checked"><span
+                                                                                                            class="ant-radio ant-radio-checked"><input
+                                                                                                                type="radio"
+                                                                                                                class="ant-radio-input"
+                                                                                                                value="1"
+                                                                                                                checked=""><span
+                                                                                                                class="ant-radio-inner"></span></span><span>所有人可见</span></label><label
+                                                                                                        class="ant-radio-wrapper"><span
+                                                                                                            class="ant-radio"><input
+                                                                                                                type="radio"
+                                                                                                                class="ant-radio-input"
+                                                                                                                value="4"><span
+                                                                                                                class="ant-radio-inner"></span></span><span>好友可见</span></label><label
+                                                                                                        class="ant-radio-wrapper"><span
+                                                                                                            class="ant-radio"><input
+                                                                                                                type="radio"
+                                                                                                                class="ant-radio-input"
+                                                                                                                value="2"><span
+                                                                                                                class="ant-radio-inner"></span></span><span>仅自己可见</span></label>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="_edit-form-item_oei9t_7 _publish-time_oei9t_401">
+                                                                                                <label
+                                                                                                    class="_label_oei9t_19">发布时间</label>
+                                                                                                <div
+                                                                                                    class="_publish-time-container_oei9t_408">
+                                                                                                    <div
+                                                                                                        class="ant-radio-group ant-radio-group-outline">
+                                                                                                        <label
+                                                                                                            class="ant-radio-wrapper ant-radio-wrapper-checked"><span
+                                                                                                                class="ant-radio ant-radio-checked"><input
+                                                                                                                    type="radio"
+                                                                                                                    class="ant-radio-input"
+                                                                                                                    value="1"
+                                                                                                                    checked=""><span
+                                                                                                                    class="ant-radio-inner"></span></span><span>立即发布</span></label><label
+                                                                                                            class="ant-radio-wrapper"><span
+                                                                                                                class="ant-radio"><input
+                                                                                                                    type="radio"
+                                                                                                                    class="ant-radio-input"
+                                                                                                                    value="2"><span
+                                                                                                                    class="ant-radio-inner"></span></span><span>定时发布<img
+                                                                                                                    src="data:image/svg+xml,%3csvg%20width='14'%20height='14'%20viewBox='0%200%2014%2014'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_2343_81350)'%3e%3cmask%20id='mask0_2343_81350'%20style='mask-type:alpha'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='14'%20height='14'%3e%3cpath%20d='M0%200H14V14H0V0Z'%20fill='white'/%3e%3c/mask%3e%3cg%20mask='url(%23mask0_2343_81350)'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M11.6654%207.00065C11.6654%209.57798%209.57603%2011.6673%206.9987%2011.6673C4.42137%2011.6673%202.33203%209.57798%202.33203%207.00065C2.33203%204.42332%204.42137%202.33398%206.9987%202.33398C9.57603%202.33398%2011.6654%204.42332%2011.6654%207.00065ZM6.9987%2012.834C10.2204%2012.834%2012.832%2010.2223%2012.832%207.00065C12.832%203.77899%2010.2204%201.16732%206.9987%201.16732C3.77704%201.16732%201.16537%203.77899%201.16537%207.00065C1.16537%2010.2223%203.77704%2012.834%206.9987%2012.834Z'%20fill='%23C6C6C6'/%3e%3cpath%20d='M6.99515%204.0166C7.88614%204.0166%208.68862%204.76343%208.68862%205.65095C8.68862%206.3154%208.43881%206.70825%207.79489%207.28824L7.64525%207.4204L7.54331%207.50814L7.54349%208.06494H6.44682V7.25729C6.44682%207.10012%206.51426%206.9505%206.63203%206.84642L6.91715%206.6002L7.03564%206.49599L7.14056%206.40015C7.15696%206.38481%207.17281%206.36979%207.18814%206.35505L7.27396%206.26991C7.28725%206.25624%207.30005%206.24282%207.31237%206.22962L7.3806%206.15296C7.53729%205.96725%207.59195%205.82303%207.59195%205.65095C7.59195%205.38741%207.29738%205.11327%206.99515%205.11327C6.68051%205.11327%206.34052%205.38829%206.31155%205.6197L6.30956%205.65095V5.80972H5.21289V5.65095C5.21289%204.76269%206.09811%204.0166%206.99515%204.0166Z'%20fill='%23C6C6C6'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M6.9974%209.8151C7.31956%209.8151%207.58073%209.55393%207.58073%209.23177C7.58073%208.90961%207.31956%208.64844%206.9974%208.64844C6.67523%208.64844%206.41406%208.90961%206.41406%209.23177C6.41406%209.55393%206.67523%209.8151%206.9974%209.8151Z'%20fill='%23C6C6C6'/%3e%3c/g%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_2343_81350'%3e%3crect%20width='14'%20height='14'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e"
+                                                                                                                    alt=""
+                                                                                                                    width="14"
+                                                                                                                    style="margin-left: 3px; margin-bottom: 3px; cursor: pointer;"></span></label>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="_edit-section-btns_ql0z6_118">
+                                                                                            <div class="_button_si04s_1 _button-primary_si04s_60"
+                                                                                                style="width: 96px; height: 36px;">
+                                                                                                <div>发布</div>
+                                                                                            </div>
+                                                                                            <div class="_button_si04s_1 _button-default_si04s_35"
+                                                                                                style="width: 96px; height: 36px;">
+                                                                                                <div>取消</div>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div
-                                                                                        class="_rule-container_hlszi_119">
-                                                                                        <div
-                                                                                            class="_rule-item_hlszi_129">
-                                                                                            <p
-                                                                                                class="_rule-title_hlszi_136">
-                                                                                                视频大小</p>
-                                                                                            <p
-                                                                                                class="_rule-description_hlszi_145">
-                                                                                                支持时长30分钟以内，最大8GB的视频文件
-                                                                                            </p>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            class="_rule-break_hlszi_164">
-                                                                                        </div>
-                                                                                        <div
-                                                                                            class="_rule-item_hlszi_129">
-                                                                                            <p
-                                                                                                class="_rule-title_hlszi_136">
-                                                                                                视频格式</p>
-                                                                                            <p
-                                                                                                class="_rule-description_hlszi_145">
-                                                                                                支持常见视频格式，推荐使用mp4上传<span
-                                                                                                    class="_video-format-tip_hlszi_156"></span>
-                                                                                            </p>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            class="_rule-break_hlszi_164">
-                                                                                        </div>
-                                                                                        <div
-                                                                                            class="_rule-item_hlszi_129">
-                                                                                            <p
-                                                                                                class="_rule-title_hlszi_136">
-                                                                                                视频分辨率</p>
-                                                                                            <p
-                                                                                                class="_rule-description_hlszi_145">
-                                                                                                最高支持8K，推荐上传1080p(1920*1080)<br>及以上分辨率的视频
-                                                                                            </p>
-                                                                                        </div>
+                                                                                    <div>
+                                                                                        <main id="preview-tours">
+                                                                                            <section
+                                                                                                class="_wrapper_1ahzu_1">
+                                                                                                <div
+                                                                                                    class="_preview_1ahzu_87">
+                                                                                                    <div
+                                                                                                        class="_preview-header_1ahzu_92">
+                                                                                                        <span
+                                                                                                            class="_tab_1ahzu_101">预览封面</span><span
+                                                                                                            class="_tab_1ahzu_101 _active_1ahzu_104">预览作品</span>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_preview-video_1ahzu_181">
+                                                                                                        <video
+                                                                                                            class="_video_1ahzu_191"
+                                                                                                            controlslist="nodownload"
+                                                                                                            src="blob:https://cp.kuaishou.com/05471729-3a87-4063-836e-a0f2d078fcb0"
+                                                                                                            loop=""></video>
+                                                                                                        <div
+                                                                                                            class="_preview-video-titlebar_1ahzu_202">
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_preview-video-operator_1ahzu_211">
+                                                                                                            <img class="_avatar_1ahzu_219"
+                                                                                                                draggable="false"
+                                                                                                                src="https://p1.a.yximgs.com/s1/i/def/head_u.png"
+                                                                                                                alt="avatar">
+                                                                                                            <div
+                                                                                                                class="_follow_1ahzu_227">
+                                                                                                            </div>
+                                                                                                            <div
+                                                                                                                class="_interaction_1ahzu_237">
+                                                                                                            </div>
+                                                                                                            <div
+                                                                                                                class="_music_1ahzu_243">
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_info_1ahzu_249">
+                                                                                                            <div
+                                                                                                                class="_info-userinfo_1ahzu_257">
+                                                                                                                <span
+                                                                                                                    class="_userName_1ahzu_263">@hellowork</span><span
+                                                                                                                    class="_time_1ahzu_272">
+                                                                                                                    ·
+                                                                                                                    02-23</span>
+                                                                                                            </div>
+                                                                                                            <div
+                                                                                                                class="_info-desc-wrapper_1ahzu_281">
+                                                                                                                <div
+                                                                                                                    class="_info-desc_1ahzu_281">
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_play_1ahzu_327">
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            class="_masks_1ahzu_340">
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="_preview-btns_1ahzu_113">
+                                                                                                        <div class="_button_si04s_1 _button-default_si04s_35"
+                                                                                                            style="width: 94px; height: 32px; margin-right: 8px;">
+                                                                                                            <div
+                                                                                                                class="_icon_si04s_14 _icon-refresh_si04s_19">
+                                                                                                            </div>
+                                                                                                            <div>重新上传
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </section>
+                                                                                            <section></section>
+                                                                                        </main>
                                                                                     </div>
                                                                                 </div>
-                                                                            </section>
-                                                                            <div class="_onvideo-bar_e9ki6_12">
-                                                                                <div class="_tips_e9ki6_24"><img
-                                                                                        draggable="false"
-                                                                                        src="data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3csvg%20width='40px'%20height='40px'%20viewBox='0%200%2040%2040'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3ctitle%3e-mockplus-%3c/title%3e%3cg%20id='页面-1'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='上传视频-新增360全景'%20transform='translate(-256.000000,%20-670.000000)'%3e%3cg%20id='tips'%20transform='translate(232.000000,%20650.000000)'%3e%3cg%20id='icon/云剪辑'%20transform='translate(24.000000,%2020.000000)'%3e%3ccircle%20id='椭圆形'%20fill='%23fe3666'%20fill-rule='nonzero'%20opacity='0.05'%20cx='20'%20cy='20'%20r='20'%3e%3c/circle%3e%3cpolyline%20id='路径-5'%20stroke='%23fe3666'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20points='30.4666667%2026.3891602%2015.9621582%2014.0857143%2011.5%2014.0857143%2011.5373535%2026.3891602%2015.6083984%2026.3891602%2030.4666667%2014.0857143'%3e%3c/polyline%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e"
-                                                                                        class="_icon-onvideo_e9ki6_27"
-                                                                                        alt="onvideo">
-                                                                                    <div class="_tips-wrapper_e9ki6_32">
-                                                                                        <p class="_tips-title_e9ki6_32">
-                                                                                            快手云剪</p>
-                                                                                        <p class="_tips-sub_e9ki6_39">
-                                                                                            5分钟搞定视频剪辑，多种AI工具提高制作效率</p>
-                                                                                    </div>
-                                                                                </div><button
-                                                                                    class="_onvideo-button_e9ki6_46">立即体验</button>
                                                                             </div>
                                                                         </main>
                                                                     </div>
@@ -34874,21 +35590,21 @@
                                                                 <div role="tabpanel" tabindex="-1" aria-hidden="true"
                                                                     class="ant-tabs-tabpane"
                                                                     style="visibility: hidden; height: 0px; overflow-y: hidden;"
-                                                                    id="rc-tabs-0-panel-2"
-                                                                    aria-labelledby="rc-tabs-0-tab-2"></div>
+                                                                    id="rc-tabs-2-panel-2"
+                                                                    aria-labelledby="rc-tabs-2-tab-2"></div>
                                                                 <div role="tabpanel" tabindex="-1" aria-hidden="true"
                                                                     class="ant-tabs-tabpane"
                                                                     style="visibility: hidden; height: 0px; overflow-y: hidden;"
-                                                                    id="rc-tabs-0-panel-3"
-                                                                    aria-labelledby="rc-tabs-0-tab-3"></div>
+                                                                    id="rc-tabs-2-panel-3"
+                                                                    aria-labelledby="rc-tabs-2-tab-3"></div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div><haploid-script
-                                                    hidden="">window.__CDN_DISPATCH__={"ks-fe-creator-platform":["tx2.a.yximgs.com","h3.static.yximgs.com"]}</haploid-script><haploid-script
+                                                    hidden="">window.__CDN_DISPATCH__={"ks-fe-creator-platform":["h1.static.yximgs.com","h3.static.yximgs.com"]}</haploid-script><haploid-script
                                                     hidden="">window.kfxEnv={"channelId":"","version":"21862087"}</haploid-script><haploid-script
                                                     hidden=""
-                                                    src="https://tx2.a.yximgs.com/kos/nlav11104/onvideo-cp/static/js/index-BHtIMW04.js"
+                                                    src="https://h1.static.yximgs.com/kos/nlav11104/onvideo-cp/static/js/index-BHtIMW04.js"
                                                     type="module" crossorigin="anonymous"></haploid-script>
                                             </haploid-body></haploid-html></div>
                                 </div>
@@ -34911,7 +35627,7 @@
                 </main>
             </div>
             <div data-v-c8122efe="" data-v-2d7f46bc="" class="rising">
-                <div data-v-c8122efe="" class="el-tooltip btn" aria-describedby="el-tooltip-4641" tabindex="0">
+                <div data-v-c8122efe="" class="el-tooltip btn" aria-describedby="el-tooltip-235" tabindex="0">
                     <div data-v-c8122efe="" class="dots"></div>
                     <p data-v-c8122efe="" class="msg">遇到</p>
                     <p data-v-c8122efe="" class="msg">问题</p>
@@ -34922,7 +35638,7 @@
             <div role="dialog" aria-modal="true" aria-label="dialog" class="el-dialog"
                 style="margin-top: 15vh; width: 600px;">
                 <div class="el-dialog__header">
-                    <div class="user"><img src="https://p4.a.yximgs.com/s1/i/def/head_u.png" alt=""
+                    <div class="user"><img src="https://p1.a.yximgs.com/s1/i/def/head_u.png" alt=""
                             class="user__head"><span class="user__name">hellowork</span></div><button type="button"
                         aria-label="Close" class="el-dialog__headerbtn"><i
                             class="el-dialog__close el-icon el-icon-close"></i></button>
@@ -34934,8 +35650,45 @@
                 </div>
             </div>
         </div>
+    </div><svg class="kid-root-svg" aria-hidden="true">
+        <symbol viewBox="0 0 1024 1024" id="svg-common_base_next_24">
+            <path fill="currentColor"
+                d="M497.77 899.456 437.42 839.126 764.544 512.02 437.419 184.896 497.77 124.586 885.205 512z"></path>
+        </symbol>
+        <symbol viewBox="0 0 1024 1024" id="svg-common_base_inforsma_24">
+            <path fill="none" stroke="currentColor" stroke-width="85.333"
+                d="M896 512A384 384 0 0 1 512 896 384 384 0 0 1 128 512 384 384 0 0 1 896 512zM512 440.896V739.563">
+            </path>
+            <path fill="currentColor"
+                d="M512 305.77H512.021A49.77 49.77 0 0 1 561.792 355.542V355.563A49.77 49.77 0 0 1 512.022 405.333H512A49.77 49.77 0 0 1 462.23 355.563V355.54A49.77 49.77 0 0 1 512 305.771z">
+            </path>
+        </symbol>
+        <symbol viewBox="0 0 1024 1024" id="svg-creatorservice_preference_release">
+            <path fill="currentColor" fill-rule="evenodd"
+                d="M184.917 328.384H346.07L386.56 214.614H637.525L677.973 328.383H839.147A21.333 21.333 0 0 1 860.48 349.717V776.384A21.333 21.333 0 0 1 839.147 797.717H184.917A21.333 21.333 0 0 1 163.584 776.384V349.717A21.333 21.333 0 0 1 184.917 328.384ZM371.477 150.614A42.667 42.667 0 0 0 331.264 178.986L300.907 264.384H184.917A85.333 85.333 0 0 0 99.584 349.717V776.384A85.333 85.333 0 0 0 184.917 861.717H839.147A85.333 85.333 0 0 0 924.48 776.384V349.717A85.333 85.333 0 0 0 839.147 264.384H723.157L692.78 178.987A42.667 42.667 0 0 0 652.587 150.613H371.477ZM618.667 534.613A106.667 106.667 0 1 1 405.333 534.613 106.667 106.667 0 0 1 618.667 534.613ZM682.667 534.613A170.667 170.667 0 1 1 341.333 534.613 170.667 170.667 0 0 1 682.667 534.613Z">
+            </path>
+        </symbol>
+        <symbol viewBox="0 0 1024 1024" id="svg-creatorservice_preference_live">
+            <path fill="currentColor" fill-rule="evenodd"
+                d="M682.624 234.667H170.624A21.333 21.333 0 0 0 149.291 256V768A21.333 21.333 0 0 0 170.624 789.333H682.624A21.333 21.333 0 0 0 703.957 768V256A21.333 21.333 0 0 0 682.624 234.667ZM170.624 170.667A85.333 85.333 0 0 0 85.291 256V768A85.333 85.333 0 0 0 170.624 853.333H682.624A85.333 85.333 0 0 0 767.957 768V650.667L880.384 713.877C906.454 728.533 938.645 709.696 938.645 679.787V340.65A39.104 39.104 0 0 0 882.048 305.664L767.958 362.752V256A85.333 85.333 0 0 0 682.623 170.667H170.624ZM768 434.304V577.259L874.667 637.248V380.928L768 434.304ZM270.23 301.141A54.4 54.4 0 1 0 270.23 409.92 54.4 54.4 0 0 0 270.23 301.141Z">
+            </path>
+        </symbol>
+    </svg>
+    <div id="microSupport">
+        <div>
+            <div class="ant-message">
+                <div></div>
+            </div>
+        </div>
     </div>
-    <div id="microSupport"></div>
+    <div role="tooltip" id="el-tooltip-235" aria-hidden="true" class="el-tooltip__popper is-light tooltip_rising"
+        style="transform-origin: right center; z-index: 3007; display: none;">
+        <div data-v-c8122efe="" class="tip">
+            <div data-v-c8122efe="" class="tip_item">疑问咨询</div>
+            <div data-v-c8122efe="" class="tip_item">体验反馈</div>
+        </div>
+        <div x-arrow="" class="popper__arrow" style="top: 49px;"></div>
+    </div>
 </body><plasmo-csui id="aitdk-csui"></plasmo-csui>
 <div class="xl-chrome-ext-bar_4DB361DE-01F7-4376-B494-639E489D19ED"
     id="xl_chrome_ext_4DB361DE-01F7-4376-B494-639E489D19ED" data-v-app="" style="display: block;">
