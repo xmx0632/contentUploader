@@ -22,23 +22,34 @@ async function checkLogin(page) {
 function getCollectionName(options) {
     // 命令行参数优先
     if (options.collectionName) {
+        console.log('使用命令行参数的合集名称:', options.collectionName);
         return options.collectionName;
     }
     // 其次是环境变量
-    if (process.env.REDNOTE_COLLECTION_NAME) {
-        return process.env.REDNOTE_COLLECTION_NAME;
+    const envCollectionName = process.env.REDNOTE_COLLECTION_NAME;
+    if (envCollectionName) {
+        console.log('使用环境变量的合集名称:', envCollectionName);
+        return envCollectionName;
     }
     // 没有配置时返回空值
+    console.log('未找到合集名称配置');
     return null;
 }
 
 // 上传视频到小红书
 async function uploadToRednote(browser, videoFiles, options) {
-    console.log('传入的参数:', {
+    // 打印环境变量和参数信息
+    console.log('当前配置信息:', {
         headless: options.headless,
         isHeadless: options.isHeadless,
-        videoFiles: videoFiles.length
+        videoFiles: videoFiles.length,
+        envCollectionName: process.env.REDNOTE_COLLECTION_NAME,
+        optionsCollectionName: options.collectionName
     });
+
+    // 获取合集名称
+    const collectionName = getCollectionName(options);
+    console.log('最终使用的合集名称:', collectionName);
     let page;
 
     // 启动浏览器
@@ -245,7 +256,7 @@ async function uploadToRednote(browser, videoFiles, options) {
             // 选择合集
             if (collectionName) {
                 try {
-                    console.log(`准备选择合集: ${options.collectionName}`);
+                    console.log(`准备选择合集: ${collectionName}`);
 
                     // 等待合集选择框出现
                     console.log('等待合集选择框出现...');
@@ -294,10 +305,10 @@ async function uploadToRednote(browser, videoFiles, options) {
 
                         console.log('未找到匹配的合集选项');
                         return false;
-                    }, options.collectionName);
+                    }, collectionName);
 
                     if (!selected) {
-                        console.log(`未找到名为 "${options.collectionName}" 的合集选项`);
+                        console.log(`未找到名为 "${collectionName}" 的合集选项`);
                     } else {
                         console.log('合集选择成功');
                         await delay(2000);
