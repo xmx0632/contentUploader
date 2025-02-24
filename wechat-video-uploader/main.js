@@ -50,9 +50,16 @@ async function main() {
     }
 
     // 设置 CSV 文件路径
-    if (options.csvPath) {
-        setCsvFilePath(path.resolve(options.csvPath));
-        console.log(`使用自定义CSV文件路径: ${options.csvPath}`);
+    // 1. 优先使用命令行参数
+    // 2. 如果没有命令行参数，使用环境变量
+    // 3. 如果都没有，使用默认路径
+    let csvPath = options.csvPath || process.env.CSV_PATH;
+    if (csvPath) {
+        csvPath = path.resolve(csvPath);
+        console.log(`使用自定义CSV文件路径: ${csvPath}`);
+        setCsvFilePath(csvPath);
+    } else {
+        console.log('使用默认CSV文件路径');
     }
 
     console.log(`准备上传到 ${options.platform} 平台...`);

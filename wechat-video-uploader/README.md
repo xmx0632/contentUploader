@@ -62,6 +62,10 @@ nrm use npm
 程序中的各个等待时间可以通过 `.env` 文件配置，所有时间单位为毫秒：
 
 ```ini
+
+# 单词描述缓存文件路径
+CSV_PATH=/path/to/custom/content-msg.csv
+
 # 每次上传文件的最大数量
 MAX_UPLOAD_COUNT=5
 

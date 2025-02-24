@@ -26,4 +26,7 @@ build(deps): 添加CSV相关依赖
 - 添加csv-writer@1.6.0用于写入CSV文件
 - 更新pkg.assets以包含新依赖
 
-
+feat(config): 支持从.env文件读取CSV路径
+- 添加CSV_PATH环境变量支持
+- 实现三级配置优先级：命令行 > 环境变量 > 默认路径
+- 添加配置路径来源的日志输出
