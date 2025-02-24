@@ -12,9 +12,11 @@ const { uploadToDouyin } = require('./upload_douyin');
 
 // 加载 AI 描述生成工具
 let generateMultiWordDescription;
+let setCsvFilePath;
 try {
     const aiUtil = require('./ai_util.js');
     generateMultiWordDescription = aiUtil.generateMultiWordDescription;
+    setCsvFilePath = aiUtil.setCsvFilePath;
     console.log('Loaded ai_util.js');
 } catch (error) {
     console.error('Error loading ai_util.js:', error);
@@ -45,6 +47,12 @@ async function main() {
     // 验证视频目录
     if (!options.videoDir) {
         throw new Error('请指定视频目录！使用 --dir 参数');
+    }
+
+    // 设置 CSV 文件路径
+    if (options.csvPath) {
+        setCsvFilePath(path.resolve(options.csvPath));
+        console.log(`使用自定义CSV文件路径: ${options.csvPath}`);
     }
 
     console.log(`准备上传到 ${options.platform} 平台...`);

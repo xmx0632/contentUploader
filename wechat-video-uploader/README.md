@@ -10,6 +10,7 @@
 4. 自动生成英语和日语对照单词卡片
 5. 支持限制每次上传的文件数量（默认最多5个）
 6. 上传成功后自动归档到日期子目录（格式：YYYYMMDD）
+7. 支持单词描述本地缓存，避免重复调用 API
 
 
 ### 步骤
@@ -188,6 +189,38 @@ cp /path/to/.env .
    - 登录信息保存在 `cookies.json` 文件中
    - 如果登录失效，删除 `cookies.json` 文件后重新登录
 
+### 命令行参数
+
+程序支持以下命令行参数：
+
+1. `--platform`：指定上传平台（必选）
+   - 示例：`--platform weixin`
+
+2. `--dir`：指定视频文件目录（必选）
+   - 示例：`--dir /path/to/videos`
+
+3. `--headless`：使用无头模式（可选）
+   - 示例：`--headless`
+
+4. `--collection`：指定视频合集名称（可选）
+   - 示例：`--collection mycollection`
+
+5. `--csv`：指定单词描述缓存文件路径（可选）
+   - 默认路径：`./content-msg.csv`
+   - 示例：`--csv /path/to/custom/content-msg.csv`
+
+示例命令：
+```bash
+# 基本使用
+./wechat-video-uploader --platform weixin --dir /path/to/videos
+
+# 使用自定义CSV文件路径
+./wechat-video-uploader --platform weixin --dir /path/to/videos --csv /path/to/custom/content-msg.csv
+
+# 使用所有参数
+./wechat-video-uploader --platform weixin --dir /path/to/videos --csv /path/to/cache.csv --headless --collection mycollection
+```
+
 ### 视频文件命名规范
 
 为了最佳的单词卡片生成效果，请按以下规范命名视频文件：
@@ -198,5 +231,15 @@ cp /path/to/.env .
 示例：
 - `ranunculus.mp4`
 - `ranunculus-relay.mp4`
+
+### 单词描述缓存
+
+程序会自动缓存生成的单词描述，以避免重复调用 API。缓存机制如下：
+
+1. 默认情况下，缓存文件位于程序所在目录的 `content-msg.csv`
+2. 可以通过 `--csv` 参数指定自定义缓存文件路径
+3. 缓存文件会自动创建和维护
+4. 如果单词已在缓存中，将直接使用缓存的描述
+5. 如果单词不在缓存中，将调用 API 生成描述并保存到缓存
 
 

@@ -108,7 +108,8 @@ function parseCommandLineArgs() {
         videoDir: null,
         isHeadless: false,
         collectionName: null,
-        platform: null
+        platform: null,
+        csvPath: null
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -131,6 +132,12 @@ function parseCommandLineArgs() {
             case '--platform':
                 if (args[i + 1]) {
                     options.platform = args[i + 1].toLowerCase();
+                    i++;
+                }
+                break;
+            case '--csv':
+                if (args[i + 1]) {
+                    options.csvPath = args[i + 1].replace(/\\/g, '/');
                     i++;
                 }
                 break;

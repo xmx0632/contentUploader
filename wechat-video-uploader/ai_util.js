@@ -1,5 +1,29 @@
 const axios = require('axios');
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+const csv = require('csv-parser');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+// 默认的CSV文件路径
+let csvFilePath = path.join(__dirname, 'content-msg.csv');
+
+/**
+ * 设置CSV文件路径
+ * @param {string} filePath - CSV文件的完整路径
+ */
+function setCsvFilePath(filePath) {
+    csvFilePath = filePath;
+    // 确保目录存在
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    // 如果文件不存在，创建文件并写入表头
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, 'word,description\n');
+    }
+}
 
 // Configuration
 const API_WAIT_TIME = 15;  // API wait time in seconds
@@ -74,6 +98,51 @@ async function callAIAPI(prompt) {
  * @param {string} words - 要翻译的单词，使用短横线(-)分隔
  * @returns {Promise<string>} - 合并后的卡片内容
  */
+/**
+ * 从CSV文件中读取单词描述缓存
+ * @returns {Promise<Map<string, string>>} 单词到描述的映射
+ */
+async function loadWordCache() {
+    const cache = new Map();
+
+    if (!fs.existsSync(csvFilePath)) {
+        return cache;
+    }
+
+    return new Promise((resolve, reject) => {
+        fs.createReadStream(csvFilePath)
+            .pipe(csv())
+            .on('data', (row) => {
+                if (row.word && row.description) {
+                    cache.set(row.word.toLowerCase(), row.description);
+                }
+            })
+            .on('end', () => resolve(cache))
+            .on('error', reject);
+    });
+}
+
+/**
+ * 将新的单词描述保存到CSV文件
+ * @param {string} word - 单词
+ * @param {string} description - 描述信息
+ */
+async function saveWordToCache(word, description) {
+    const csvWriter = createCsvWriter({
+        path: csvFilePath,
+        header: [
+            {id: 'word', title: 'word'},
+            {id: 'description', title: 'description'}
+        ],
+        append: true
+    });
+
+    await csvWriter.writeRecords([{
+        word: word.toLowerCase(),
+        description: description
+    }]);
+}
+
 async function generateMultiWordDescription(words) {
     try {
         // 分割单词
@@ -83,8 +152,19 @@ async function generateMultiWordDescription(words) {
             throw new Error('没有提供有效的单词');
         }
 
+        // 加载缓存
+        const cache = await loadWordCache();
+
         // 并行处理所有单词
         const results = await Promise.all(wordList.map(async word => {
+            const lowerWord = word.toLowerCase();
+            // 检查缓存
+            if (cache.has(lowerWord)) {
+                console.log(`Using cached description for word: ${word}`);
+                return cache.get(lowerWord);
+            }
+
+            // 如果缓存中没有，调用API生成描述
             const prompt = `
             你是一位中国人，而且是一个经验丰富的日语老师，负责教授美国同学日语。
             根据输入的英语单词，给出英语单词的音标和日本单词音标和日语翻译，给出中文意思。
@@ -97,7 +177,12 @@ async function generateMultiWordDescription(words) {
             🀄️:  中文
             `;
 
-            return await callAIAPI(prompt);
+            const description = await callAIAPI(prompt);
+            
+            // 保存到缓存
+            await saveWordToCache(word, description);
+            
+            return description;
         }));
 
         // 合并结果，添加分隔线和底部标签
@@ -113,7 +198,8 @@ async function generateMultiWordDescription(words) {
 }
 
 module.exports = {
-    generateMultiWordDescription
+    generateMultiWordDescription,
+    setCsvFilePath
 };
 
 // 测试代码

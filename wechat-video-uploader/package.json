@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "axios": "^1.7.9",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
     "dotenv": "^16.4.7",
     "puppeteer": "^22.15.0"
   },
@@ -26,7 +28,9 @@
       "temp/**/*",
       "node_modules/puppeteer-core/**/*",
       "node_modules/dotenv/**/*",
-      "node_modules/axios/**/*"
+      "node_modules/axios/**/*",
+      "node_modules/csv-parser/**/*",
+      "node_modules/csv-writer/**/*"
     ],
     "targets": [
       "node18-macos-arm64",
