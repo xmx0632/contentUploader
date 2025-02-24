@@ -30,3 +30,7 @@ feat(config): 支持从.env文件读取CSV路径
 - 添加CSV_PATH环境变量支持
 - 实现三级配置优先级：命令行 > 环境变量 > 默认路径
 - 添加配置路径来源的日志输出
+
+fix(main): 修复缺少path模块导入的问题
+- 在main.js中添加path模块的导入
+- 修复使用path.resolve时的报错

@@ -1,3 +1,4 @@
+const path = require('path');
 const {
     loadEnvFile,
     getMP4Files,
