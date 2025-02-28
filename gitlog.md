@@ -34,3 +34,9 @@ feat(config): 支持从.env文件读取CSV路径
 fix(main): 修复缺少path模块导入的问题
 - 在main.js中添加path模块的导入
 - 修复使用path.resolve时的报错
+
+fix(kuaishou): 优化快手封面选择器识别方式
+- 修改upload_kuaishou.js中的封面选择逻辑，使用动态识别方式
+- 添加自动识别以_recommend-cover-item_开头的选择器功能
+- 增加选择器识别失败时的备用方案
+- 创建kuaishou-update.md文档记录更新内容
