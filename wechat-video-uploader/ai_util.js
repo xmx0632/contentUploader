@@ -7,6 +7,7 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 // 默认的CSV文件路径
 let csvFilePath = path.join(__dirname, 'content-msg.csv');
+// content-msg-en2zh.csv
 
 /**
  * 设置CSV文件路径
@@ -164,30 +165,60 @@ async function generateMultiWordDescription(words) {
                 return cache.get(lowerWord);
             }
 
-            // 如果缓存中没有，调用API生成描述
-            const prompt = `
-            你是一位中国人，而且是一个经验丰富的日语老师，负责教授美国同学日语。
-            根据输入的英语单词，给出英语单词的音标和日本单词音标和日语翻译，给出中文意思。
-            不要额外增加其他单词的内容。
-            返回格式：
+            return '';
 
-            ✨ ${word}
-            🍑: /英文音标/  
-            🌸: 日语平假名
-            🀄️:  中文
-            `;
+            // // 如果缓存中没有，调用API生成描述
+            // const prompt = `
+            // 你是精通中文、日语、英语的老师。
+            // 根据输入的英语单词，给出英语单词的音标和日本单词音标和日语翻译，给出中文意思。
+            // 不要额外增加其他单词的内容。
+            // 返回格式：
 
-            const description = await callAIAPI(prompt);
+            // ✨ ${word}
+            // 🍑: /英文音标/  
+            // 🌸: 日语平假名
+            // 🀄️:  中文
+            // `;
+
+            // const description = await callAIAPI(prompt);
             
-            // 保存到缓存
-            await saveWordToCache(word, description);
+            // // 保存到缓存
+            // await saveWordToCache(word, description);
             
-            return description;
+            // return description;
         }));
 
         // 合并结果，添加分隔线和底部标签
         const combinedContent = results.join('\r\n\r\n');
-        const tags = `#英语 #日语 ${wordList.map(w => `#${w}`).join(' ')}`;
+        
+        // 从CSV文件路径中提取语言信息
+        let lang1 = '英语';
+        let lang2 = '日语';
+        
+        // 检查文件名是否符合 content-msg-[语言1]2[语言2].csv 格式
+        const csvFileName = path.basename(csvFilePath);
+        const langMatch = csvFileName.match(/content-msg-([a-z]+)2([a-z]+)\.csv/);
+        
+        if (langMatch && langMatch.length === 3) {
+            // 根据文件名中的语言代码设置语言标签
+            const langMap = {
+                'en': '英语',
+                'zh': '中文',
+                'jp': '日语',
+                'fr': '法语',
+                'de': '德语',
+                'es': '西班牙语',
+                'it': '意大利语',
+                'ru': '俄语',
+                'ko': '韩语'
+                // 可以根据需要添加更多语言映射
+            };
+            
+            lang1 = langMap[langMatch[1]] || langMatch[1];
+            lang2 = langMap[langMatch[2]] || langMatch[2];
+        }
+        
+        const tags = `#${lang1} #${lang2} ${wordList.map(w => `#${w}`).join(' ')}`;
 
         return combinedContent + '\r\n\r\n' + tags;
 
@@ -205,21 +236,62 @@ module.exports = {
 // 测试代码
 async function test() {
     try {
-
         console.log('\n' + '='.repeat(50));
 
-        console.log('\n=== 测试多个单词 ===');
-        const multiWords = 'apple-banana-cat-stone';
-        console.log(`\n正在处理单词组: ${multiWords}`);
-        const multiResult = await generateMultiWordDescription(multiWords);
-        console.log('\n结果:');
-        console.log(multiResult);
-
-
+        // 测试不同的CSV文件名称
+        const testCases = [
+            'content-msg.csv',            // 默认文件名
+            'content-msg-en2zh.csv',      // 英语到中文
+            'content-msg-jp2en.csv',      // 日语到英语
+            'content-msg-fr2de.csv',      // 法语到德语
+            'content-msg-abc2xyz.csv'     // 未知语言代码
+        ];
+        
+        // 测试标签生成函数
+        function testTagGeneration(csvFileName, wordList) {
+            // 从CSV文件路径中提取语言信息
+            let lang1 = '英语';
+            let lang2 = '日语';
+            
+            // 检查文件名是否符合 content-msg-[语言1]2[语言2].csv 格式
+            const langMatch = csvFileName.match(/content-msg-([a-z]+)2([a-z]+)\.csv/);
+            
+            if (langMatch && langMatch.length === 3) {
+                // 根据文件名中的语言代码设置语言标签
+                const langMap = {
+                    'en': '英语',
+                    'zh': '中文',
+                    'jp': '日语',
+                    'fr': '法语',
+                    'de': '德语',
+                    'es': '西班牙语',
+                    'it': '意大利语',
+                    'ru': '俄语',
+                    'ko': '韩语'
+                };
+                
+                lang1 = langMap[langMatch[1]] || langMatch[1];
+                lang2 = langMap[langMatch[2]] || langMatch[2];
+            }
+            
+            return `#${lang1} #${lang2} ${wordList.map(w => `#${w}`).join(' ')}`;
+        }
+        
+        const wordList = ['apple', 'banana'];
+        
+        for (const testCase of testCases) {
+            console.log('\n' + '='.repeat(50));
+            console.log(`\n=== 测试文件名: ${testCase} ===`);
+            
+            // 生成标签
+            const tags = testTagGeneration(testCase, wordList);
+            console.log('\n生成的标签:');
+            console.log(tags);
+        }
     } catch (error) {
         console.error('\n错误:', error.message);
     }
 }
 
 // 运行测试
-// test();
+test();

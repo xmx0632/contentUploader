@@ -40,3 +40,9 @@ fix(kuaishou): 优化快手封面选择器识别方式
 - 添加自动识别以_recommend-cover-item_开头的选择器功能
 - 增加选择器识别失败时的备用方案
 - 创建kuaishou-update.md文档记录更新内容
+
+feat(tags): 从 CSV 文件名中提取语言标签
+- 修改 ai_util.js 中的 generateMultiWordDescription 函数
+- 添加从文件名中提取语言信息的功能
+- 支持 content-msg-[语言1]2[语言2].csv 格式的文件名
+- 根据提取的语言信息生成相应的标签
