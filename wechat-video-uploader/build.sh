@@ -11,11 +11,21 @@ mkdir -p dist
 
 echo "=== 开始构建所有平台的可执行文件 ==="
 
-# 使用 pkg . --public 来打包所有平台
-echo "\n=== 使用 pkg . --public 打包所有平台 ==="
-pkg . --public
+# 使用 pkg 来打包指定平台
+echo "\n=== 打包 Linux x64 版本 ==="
+pkg . --target node18-linux-x64 --output dist/wechat-video-uploader-linux --public
+
+echo "\n=== 打包 Windows x64 版本 ==="
+pkg . --target node18-win-x64 --output dist/wechat-video-uploader-win.exe --public
+
+echo "\n=== 打包 macOS x64 版本 ==="
+pkg . --target node18-macos-x64 --output dist/wechat-video-uploader-macos --public
+
+echo "\n=== 打包 macOS ARM64 版本 ==="
+pkg . --target node18-macos-arm64 --output dist/wechat-video-uploader-macos-arm64 --public
 
 # 设置执行权限
+echo "\n=== 设置执行权限 ==="
 chmod +x dist/wechat-video-uploader-linux
 chmod +x dist/wechat-video-uploader-macos
 chmod +x dist/wechat-video-uploader-macos-arm64
