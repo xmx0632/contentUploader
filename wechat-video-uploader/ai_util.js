@@ -144,6 +144,12 @@ async function saveWordToCache(word, description) {
     }]);
 }
 
+/**
+ * 生成多个单词的翻译卡片
+ * 简化版本，减少外部依赖，更容易序列化
+ * @param {string} words - 要翻译的单词，使用短横线(-)分隔
+ * @returns {Promise<string>} - 合并后的卡片内容
+ */
 async function generateMultiWordDescription(words) {
     try {
         // 分割单词
@@ -154,68 +160,69 @@ async function generateMultiWordDescription(words) {
         }
 
         // 加载缓存
-        const cache = await loadWordCache();
+        let cache = new Map();
+        try {
+            if (fs.existsSync(csvFilePath)) {
+                const data = fs.readFileSync(csvFilePath, 'utf8');
+                const lines = data.split('\n').slice(1); // 跳过标题行
+                
+                for (const line of lines) {
+                    const [word, description] = line.split(',');
+                    if (word && description) {
+                        cache.set(word.toLowerCase(), description);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('加载缓存出错:', e.message);
+            // 出错时继续使用空缓存
+        }
 
-        // 并行处理所有单词
-        const results = await Promise.all(wordList.map(async word => {
+        // 处理所有单词
+        const results = [];
+        for (const word of wordList) {
             const lowerWord = word.toLowerCase();
             // 检查缓存
             if (cache.has(lowerWord)) {
                 console.log(`Using cached description for word: ${word}`);
-                return cache.get(lowerWord);
+                results.push(cache.get(lowerWord));
+            } else {
+                results.push('');
             }
-
-            return '';
-
-            // // 如果缓存中没有，调用API生成描述
-            // const prompt = `
-            // 你是精通中文、日语、英语的老师。
-            // 根据输入的英语单词，给出英语单词的音标和日本单词音标和日语翻译，给出中文意思。
-            // 不要额外增加其他单词的内容。
-            // 返回格式：
-
-            // ✨ ${word}
-            // 🍑: /英文音标/  
-            // 🌸: 日语平假名
-            // 🀄️:  中文
-            // `;
-
-            // const description = await callAIAPI(prompt);
-            
-            // // 保存到缓存
-            // await saveWordToCache(word, description);
-            
-            // return description;
-        }));
+        }
 
         // 合并结果，添加分隔线和底部标签
         const combinedContent = results.join('\r\n\r\n');
         
-        // 从CSV文件路径中提取语言信息
+        // 从 CSV 文件路径中提取语言信息
         let lang1 = '英语';
         let lang2 = '日语';
         
         // 检查文件名是否符合 content-msg-[语言1]2[语言2].csv 格式
-        const csvFileName = path.basename(csvFilePath);
-        const langMatch = csvFileName.match(/content-msg-([a-z]+)2([a-z]+)\.csv/);
-        
-        if (langMatch && langMatch.length === 3) {
-            // 根据文件名中的语言代码设置语言标签
-            const langMap = {
-                'en': '英语',
-                'zh': '中文',
-                'jp': '日语',
-                'fr': '法语',
-                'de': '德语',
-                'es': '西班牙语',
-                'it': '意大利语',
-                'ru': '俄语',
-                'ko': '韩语'
-                // 可以根据需要添加更多语言映射
-            };
+        try {
+            const csvFileName = path.basename(csvFilePath);
+            const langMatch = csvFileName.match(/content-msg-([a-z]+)2([a-z]+)\.csv/);
             
-            lang1 = langMap[langMatch[1]] || langMatch[1];
-            lang2 = langMap[langMatch[2]] || langMatch[2];
+            if (langMatch && langMatch.length === 3) {
+                // 根据文件名中的语言代码设置语言标签
+                const langMap = {
+                    'en': '英语',
+                    'zh': '中文',
+                    'jp': '日语',
+                    'fr': '法语',
+                    'de': '德语',
+                    'es': '西班牙语',
+                    'it': '意大利语',
+                    'ru': '俄语',
+                    'ko': '韩语'
+                };
+                
+                lang1 = langMap[langMatch[1]] || langMatch[1];
+                lang2 = langMap[langMatch[2]] || langMatch[2];
+            }
+        } catch (e) {
+            console.error('解析文件名出错:', e.message);
+            // 出错时使用默认语言
         }
         
         const tags = `#${lang1} #${lang2} ${wordList.map(w => `#${w}`).join(' ')}`;
