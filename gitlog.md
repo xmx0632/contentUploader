@@ -42,6 +42,10 @@ fix(build): 修复构建脚本与实际生成文件名不匹配的问题
 - 修改build.sh脚本中的输出文件名，使其与GitHub Actions日志中显示的文件名一致
 - 更新工作流程文件中的文件名引用，确保所有平台的构建产物都能被正确复制
 - 解决只有macOS ARM64版本被上传到GitHub的问题
+
+fix(ci): 修复GitHub Actions工作流程中的发布任务不执行问题
+- 将release任务的条件从 `if: always()` 改为 `if: success()`，确保只有在build任务成功时才执行发布
+- 简化工作流程，移除了不必要的脚本修改步骤
 - 更新主要功能列表
 
 build(deps): 添加CSV相关依赖
