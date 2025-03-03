@@ -46,3 +46,15 @@ feat(tags): 从 CSV 文件名中提取语言标签
 - 添加从文件名中提取语言信息的功能
 - 支持 content-msg-[语言1]2[语言2].csv 格式的文件名
 - 根据提取的语言信息生成相应的标签
+
+fix(build): 修复 GitHub Action 构建程序中的序列化问题
+- 修改 main.js 中的函数传递方式，避免直接传递函数对象
+- 更新 upload_weixin.js 中的描述生成逻辑，使用本地导入方式
+- 更新 build.sh 脚本，确保构建过程正确
+- 版本号升级到 0.0.7.7
+
+fix(build): 对其他上传模块进行序列化问题修复
+- 修改 upload_rednote.js、upload_kuaishou.js 和 upload_douyin.js 文件
+- 与 upload_weixin.js 采用相同的解决方案，使用本地导入方式代替直接传递函数
+- 确保所有上传模块在打包后能正常运行
+- 版本号升级到 0.0.7.8

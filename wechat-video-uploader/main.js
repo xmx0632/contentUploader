@@ -84,14 +84,14 @@ async function main() {
 
         const uploadFunction = platformUploadMap[options.platform];
         
-        // 添加 generateMultiWordDescription 到 options
-        const uploadOptions = {
-            ...options,
-            generateMultiWordDescription
-        };
-        
         // 执行上传
         console.log('开始上传视频...');
+        // 不直接传递函数，而是传递函数的字符串标识，在各平台上传模块中再根据需要调用
+        const uploadOptions = {
+            ...options,
+            hasAIDescriptionGenerator: typeof generateMultiWordDescription === 'function'
+        };
+        
         await uploadFunction(browser, videoFiles, uploadOptions);
         console.log('所有视频上传完成！');
 

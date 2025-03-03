@@ -129,8 +129,10 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                     .map(word => word.trim().toLowerCase())
                     .filter(word => word);
 
-                if (words.length > 0) {
-                    description = await options.generateMultiWordDescription(words.join('-'));
+                if (words.length > 0 && options.hasAIDescriptionGenerator) {
+                    // 使用本地导入的 AI 工具生成描述
+                    const { generateMultiWordDescription } = require('./ai_util.js');
+                    description = await generateMultiWordDescription(words.join('-'));
                     console.log('生成的描述：', description);
                 }
             } catch (error) {
