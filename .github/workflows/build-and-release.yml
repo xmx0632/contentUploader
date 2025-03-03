@@ -21,32 +21,19 @@ on:
 
 jobs:
   build:
-    name: 在 ${{ matrix.os }} 上构建 (${{ matrix.arch }})
-    runs-on: ${{ matrix.os }}
+    name: 在 macOS ARM 环境中一次性构建所有平台
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            asset_name: wechat-video-uploader-linux-x64
-            asset_path: wechat-video-uploader/dist/wechat-video-uploader-linux
-          - os: windows-latest
-            platform: windows
-            arch: x64
-            asset_name: wechat-video-uploader-windows-x64.exe
-            asset_path: wechat-video-uploader/dist/wechat-video-uploader-win.exe
-          - os: macos-latest
-            platform: macos
-            arch: x64
-            asset_name: wechat-video-uploader-macos-x64
-            asset_path: wechat-video-uploader/dist/wechat-video-uploader-macos
-          - os: macos-latest
-            platform: macos
-            arch: arm64
-            asset_name: wechat-video-uploader-macos-arm64
-            asset_path: wechat-video-uploader/dist/wechat-video-uploader-macos-arm64
+          - platform: all
+            asset_names: [
+              "wechat-video-uploader-linux-x64",
+              "wechat-video-uploader-windows-x64.exe",
+              "wechat-video-uploader-macos-x64",
+              "wechat-video-uploader-macos-arm64"
+            ]
 
     steps:
     - name: 检出代码
@@ -63,69 +50,71 @@ jobs:
       working-directory: wechat-video-uploader
       run: |
         npm install
+        # 全局安装 pkg 命令
+        npm install -g pkg
         # 确保依赖安装成功
         npm ls --depth=0 || true
 
     # 使用 npx 调用 pkg，不需要全局安装
 
-    - name: 清理临时文件
+    - name: 清理临时文件并准备构建环境
       working-directory: wechat-video-uploader
       shell: bash
       run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          # Windows 平台使用兼容命令
-          powershell -Command "if (Test-Path temp/cookies.json) { Remove-Item -Force temp/cookies.json }"
-          powershell -Command "if (!(Test-Path dist)) { New-Item -ItemType Directory -Force -Path dist }"
-        else
-          # Linux/macOS 平台使用 bash 命令
-          rm -rf temp/cookies.json || true
-          mkdir -p dist
-        fi
-
-    - name: 构建应用 (Linux)
-      if: matrix.platform == 'linux'
-      working-directory: wechat-video-uploader
-      run: |
+        # 清理临时文件
+        rm -rf temp/cookies.json || true
+        mkdir -p dist
+        
         # 确保依赖已安装
         npm install --no-package-lock
-        # 使用 pkg 构建
-        npx pkg . --target node18-linux-x64 --output dist/wechat-video-uploader-linux
+        
+        # 确保构建脚本可执行
+        chmod +x build.sh
+
+    - name: 修改构建脚本以支持所有平台
+      working-directory: wechat-video-uploader
+      shell: bash
+      run: |
+        cat > build.sh << 'EOF'
+        #!/bin/bash
+        
+        # 确保 temp 目录存在
+        mkdir -p temp
+        
+        # 清理 cookies 文件
+        rm -rf temp/cookies*.json
+        
+        # 确保 dist 目录存在
+        mkdir -p dist
+        
+        echo "=== 开始构建所有平台的可执行文件 ==="
+        
+        # 使用 pkg . --public 来打包所有平台
+        echo "\n=== 使用 pkg . --public 打包所有平台 ==="
+        pkg . --public
+        
+        # 设置执行权限
         chmod +x dist/wechat-video-uploader-linux
-
-    - name: 构建应用 (Windows)
-      if: matrix.platform == 'windows'
-      working-directory: wechat-video-uploader
-      run: |
-        # 确保依赖已安装
-        npm install --no-package-lock
-        # 使用 pkg 构建
-        npx pkg . --target node18-win-x64 --output dist/wechat-video-uploader-win.exe
-
-    - name: 构建应用 (macOS x64)
-      if: matrix.platform == 'macos' && matrix.arch == 'x64'
-      working-directory: wechat-video-uploader
-      run: |
-        # 确保依赖已安装
-        npm install --no-package-lock
-        # 使用 pkg 构建
-        npx pkg . --target node18-macos-x64 --output dist/wechat-video-uploader-macos
         chmod +x dist/wechat-video-uploader-macos
-
-    - name: 构建应用 (macOS ARM64)
-      if: matrix.platform == 'macos' && matrix.arch == 'arm64'
-      working-directory: wechat-video-uploader
-      run: |
-        # 确保依赖已安装
-        npm install --no-package-lock
-        # 使用 pkg 构建
-        npx pkg . --target node18-macos-arm64 --output dist/wechat-video-uploader-macos-arm64
         chmod +x dist/wechat-video-uploader-macos-arm64
+        
+        echo "\n=== 构建完成，可执行文件位于 dist 目录 ==="
+        ls -la dist/
+        EOF
+        
+        chmod +x build.sh
+
+    - name: 使用构建脚本构建所有平台
+      working-directory: wechat-video-uploader
+      shell: bash
+      run: |
+        ./build.sh
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.asset_name }}
-        path: ${{ matrix.asset_path }}
+        name: all-platform-builds
+        path: wechat-video-uploader/dist/
         if-no-files-found: error
 
   release:
@@ -165,11 +154,11 @@ jobs:
       - name: 准备发布文件
         run: |
           mkdir -p ./release-files
-          # 复制可能存在的构建产物
-          [ -f ./artifacts/wechat-video-uploader-linux-x64/wechat-video-uploader-linux ] && cp ./artifacts/wechat-video-uploader-linux-x64/wechat-video-uploader-linux ./release-files/wechat-video-uploader-linux-x64
-          [ -f ./artifacts/wechat-video-uploader-windows-x64.exe/wechat-video-uploader-win.exe ] && cp ./artifacts/wechat-video-uploader-windows-x64.exe/wechat-video-uploader-win.exe ./release-files/wechat-video-uploader-windows-x64.exe
-          [ -f ./artifacts/wechat-video-uploader-macos-x64/wechat-video-uploader-macos ] && cp ./artifacts/wechat-video-uploader-macos-x64/wechat-video-uploader-macos ./release-files/wechat-video-uploader-macos-x64
-          [ -f ./artifacts/wechat-video-uploader-macos-arm64/wechat-video-uploader-macos-arm64 ] && cp ./artifacts/wechat-video-uploader-macos-arm64/wechat-video-uploader-macos-arm64 ./release-files/wechat-video-uploader-macos-arm64
+          # 复制所有构建产物
+          [ -f ./artifacts/all-platform-builds/wechat-video-uploader-linux ] && cp ./artifacts/all-platform-builds/wechat-video-uploader-linux ./release-files/wechat-video-uploader-linux-x64
+          [ -f ./artifacts/all-platform-builds/wechat-video-uploader-win.exe ] && cp ./artifacts/all-platform-builds/wechat-video-uploader-win.exe ./release-files/wechat-video-uploader-windows-x64.exe
+          [ -f ./artifacts/all-platform-builds/wechat-video-uploader-macos ] && cp ./artifacts/all-platform-builds/wechat-video-uploader-macos ./release-files/wechat-video-uploader-macos-x64
+          [ -f ./artifacts/all-platform-builds/wechat-video-uploader-macos-arm64 ] && cp ./artifacts/all-platform-builds/wechat-video-uploader-macos-arm64 ./release-files/wechat-video-uploader-macos-arm64
           
           # 查看准备好的发布文件
           ls -la ./release-files

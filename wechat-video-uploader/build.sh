@@ -6,8 +6,19 @@ mkdir -p temp
 # 清理 cookies 文件
 rm -rf temp/cookies*.json
 
-# 构建可执行文件
+# 确保 dist 目录存在
+mkdir -p dist
+
+echo "=== 开始构建所有平台的可执行文件 ==="
+
+# 使用 pkg . --public 来打包所有平台
+echo "\n=== 使用 pkg . --public 打包所有平台 ==="
 pkg . --public
 
-# 显示构建完成信息
-echo "构建完成，可执行文件位于 dist 目录"
+# 设置执行权限
+chmod +x dist/wechat-video-uploader-linux
+chmod +x dist/wechat-video-uploader-macos
+chmod +x dist/wechat-video-uploader-macos-arm64
+
+echo "\n=== 构建完成，可执行文件位于 dist 目录 ==="
+ls -la dist/
