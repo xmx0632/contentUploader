@@ -166,24 +166,24 @@ jobs:
           echo "=== 准备发布文件 ==="
           
           # 复制 Linux 构建产物
-          if [ -f ./artifacts/all-platform-builds/wechat-video-uploader-linux ]; then
-            cp ./artifacts/all-platform-builds/wechat-video-uploader-linux ./release-files/wechat-video-uploader-linux-x64
+          if [ -f ./artifacts/all-platform-builds/wechat-video-uploader-linux-x64 ]; then
+            cp ./artifacts/all-platform-builds/wechat-video-uploader-linux-x64 ./release-files/wechat-video-uploader-linux-x64
             echo "✅ 已复制 Linux x64 构建产物"
           else
             echo "❌ 未找到 Linux x64 构建产物"
           fi
           
           # 复制 Windows 构建产物
-          if [ -f ./artifacts/all-platform-builds/wechat-video-uploader-win.exe ]; then
-            cp ./artifacts/all-platform-builds/wechat-video-uploader-win.exe ./release-files/wechat-video-uploader-windows-x64.exe
+          if [ -f ./artifacts/all-platform-builds/wechat-video-uploader-win-x64.exe ]; then
+            cp ./artifacts/all-platform-builds/wechat-video-uploader-win-x64.exe ./release-files/wechat-video-uploader-windows-x64.exe
             echo "✅ 已复制 Windows x64 构建产物"
           else
             echo "❌ 未找到 Windows x64 构建产物"
           fi
           
           # 复制 macOS x64 构建产物
-          if [ -f ./artifacts/all-platform-builds/wechat-video-uploader-macos ]; then
-            cp ./artifacts/all-platform-builds/wechat-video-uploader-macos ./release-files/wechat-video-uploader-macos-x64
+          if [ -f ./artifacts/all-platform-builds/wechat-video-uploader-macos-x64 ]; then
+            cp ./artifacts/all-platform-builds/wechat-video-uploader-macos-x64 ./release-files/wechat-video-uploader-macos-x64
             echo "✅ 已复制 macOS x64 构建产物"
           else
             echo "❌ 未找到 macOS x64 构建产物"
