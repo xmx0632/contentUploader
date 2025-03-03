@@ -29,7 +29,12 @@
     "assets": [
       ".env.example",
       "content-msg.csv",
-      "temp/**/*"
+      "temp/**/*",
+      "node_modules/puppeteer-core/**/*",
+      "node_modules/dotenv/**/*",
+      "node_modules/axios/**/*",
+      "node_modules/csv-parser/**/*",
+      "node_modules/csv-writer/**/*"
     ],
     "targets": [
       "node18-macos-arm64",
