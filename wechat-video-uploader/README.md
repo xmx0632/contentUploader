@@ -149,6 +149,40 @@ pkg . --targets node18-macos-arm64,node18-macos-x64,node18-win-x64,node18-linux-
 - macOS Intel: `wechat-video-uploader-macos-x64`
 - macOS Apple Silicon: `wechat-video-uploader-macos-arm64`
 
+#### 使用 GitHub Actions 自动构建
+
+本项目已配置 GitHub Actions 工作流，可以自动构建多平台可执行程序并发布 Release。
+
+触发方式：
+1. 推送标签：当推送以 `v` 开头的标签（如 `v1.0.0`）时，自动触发构建和发布
+2. 手动触发：在 GitHub 仓库的 Actions 页面手动触发工作流，需要指定版本号
+
+构建产物：
+- Windows (x64): `wechat-video-uploader-windows-x64.exe`
+- Linux (x64): `wechat-video-uploader-linux-x64`
+- macOS Intel (x64): `wechat-video-uploader-macos-x64`
+- macOS Apple Silicon (ARM64): `wechat-video-uploader-macos-arm64`
+
+使用方法：
+
+1. 使用 `release.sh` 脚本发布新版本（推荐）：
+```bash
+# 发布正式版本
+./release.sh 1.0.0
+
+# 发布预发布版本
+./release.sh 1.0.0-beta 1
+```
+
+2. 手动创建并推送标签：
+```bash
+# 创建并推送标签
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+3. 在 GitHub 界面手动触发工作流，指定版本号和是否为预发布版本。
+
 #### 运行打包后的程序
 
 1. 创建一个新目录用于运行程序
