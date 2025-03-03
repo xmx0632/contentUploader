@@ -1,6 +1,6 @@
 {
   "name": "wechat-video-uploader",
-  "version": "0.0.8.2",
+  "version": "0.0.8.3",
   "description": "Automated video uploader for WeChat channels",
   "main": "main.js",
   "bin": {
