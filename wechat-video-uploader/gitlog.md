@@ -23,3 +23,9 @@
   - 使用 `npx pkg` 替代全局安装的 pkg，提高兼容性
   - 在每个构建步骤中添加 `npm install --no-package-lock`，确保依赖安装成功
   - 更新 package.json 中的 pkg 配置，正确指定脚本和资源文件
+
+- fix(ci): 修复 Windows 平台构建错误
+  - 使用 PowerShell 命令替代 bash 命令，解决 Windows 上不支持 `rm` 命令的问题
+  - 根据运行环境动态选择命令，提高跨平台兼容性
+  - 使用 `Test-Path` 和 `Remove-Item` 处理文件删除
+  - 使用 `New-Item` 创建目录，替代 `mkdir -p`

@@ -70,9 +70,17 @@ jobs:
 
     - name: 清理临时文件
       working-directory: wechat-video-uploader
+      shell: bash
       run: |
-        rm -rf temp/cookies.json || true
-        mkdir -p dist
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          # Windows 平台使用兼容命令
+          powershell -Command "if (Test-Path temp/cookies.json) { Remove-Item -Force temp/cookies.json }"
+          powershell -Command "if (!(Test-Path dist)) { New-Item -ItemType Directory -Force -Path dist }"
+        else
+          # Linux/macOS 平台使用 bash 命令
+          rm -rf temp/cookies.json || true
+          mkdir -p dist
+        fi
 
     - name: 构建应用 (Linux)
       if: matrix.platform == 'linux'
