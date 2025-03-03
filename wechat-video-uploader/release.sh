@@ -18,6 +18,9 @@ if [ ! -z "$2" ]; then
   PRERELEASE=1
 fi
 
+# 切换到项目根目录
+cd "$(dirname "$0")"
+
 # 确保工作目录干净
 if [ -n "$(git status --porcelain)" ]; then
   echo "错误: 工作目录不干净，请先提交或暂存所有更改"

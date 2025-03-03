@@ -153,6 +153,8 @@ pkg . --targets node18-macos-arm64,node18-macos-x64,node18-win-x64,node18-linux-
 
 本项目已配置 GitHub Actions 工作流，可以自动构建多平台可执行程序并发布 Release。
 
+**注意：** GitHub Actions 配置文件位于仓库根目录的 `.github/workflows/build-and-release.yml`，而非当前目录下。
+
 触发方式：
 1. 推送标签：当推送以 `v` 开头的标签（如 `v1.0.0`）时，自动触发构建和发布
 2. 手动触发：在 GitHub 仓库的 Actions 页面手动触发工作流，需要指定版本号

@@ -1,0 +1,186 @@
+name: 构建与发布
+
+on:
+  # 当推送标签时自动触发
+  push:
+    tags:
+      - 'v*' # 当推送以v开头的标签时触发，例如v1.0.0
+  
+  # 允许从GitHub界面手动触发
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号 (例如: 1.0.0)'
+        required: true
+        default: '0.0.0'
+      prerelease:
+        description: '是否为预发布版本'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: 在 ${{ matrix.os }} 上构建 (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            asset_name: wechat-video-uploader-linux-x64
+            asset_path: wechat-video-uploader/dist/wechat-video-uploader-linux
+          - os: windows-latest
+            platform: windows
+            arch: x64
+            asset_name: wechat-video-uploader-windows-x64.exe
+            asset_path: wechat-video-uploader/dist/wechat-video-uploader-win.exe
+          - os: macos-latest
+            platform: macos
+            arch: x64
+            asset_name: wechat-video-uploader-macos-x64
+            asset_path: wechat-video-uploader/dist/wechat-video-uploader-macos
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+            asset_name: wechat-video-uploader-macos-arm64
+            asset_path: wechat-video-uploader/dist/wechat-video-uploader-macos-arm64
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'wechat-video-uploader/package-lock.json'
+
+    - name: 安装依赖
+      working-directory: wechat-video-uploader
+      run: npm ci
+
+    - name: 安装 pkg 全局工具
+      run: npm install -g pkg
+
+    - name: 清理临时文件
+      working-directory: wechat-video-uploader
+      run: |
+        rm -rf temp/cookies.json || true
+        mkdir -p dist
+
+    - name: 构建应用 (Linux)
+      if: matrix.platform == 'linux'
+      working-directory: wechat-video-uploader
+      run: |
+        pkg . --target node18-linux-x64 --output dist/wechat-video-uploader-linux
+        chmod +x dist/wechat-video-uploader-linux
+
+    - name: 构建应用 (Windows)
+      if: matrix.platform == 'windows'
+      working-directory: wechat-video-uploader
+      run: |
+        pkg . --target node18-win-x64 --output dist/wechat-video-uploader-win.exe
+
+    - name: 构建应用 (macOS x64)
+      if: matrix.platform == 'macos' && matrix.arch == 'x64'
+      working-directory: wechat-video-uploader
+      run: |
+        pkg . --target node18-macos-x64 --output dist/wechat-video-uploader-macos
+        chmod +x dist/wechat-video-uploader-macos
+
+    - name: 构建应用 (macOS ARM64)
+      if: matrix.platform == 'macos' && matrix.arch == 'arm64'
+      working-directory: wechat-video-uploader
+      run: |
+        pkg . --target node18-macos-arm64 --output dist/wechat-video-uploader-macos-arm64
+        chmod +x dist/wechat-video-uploader-macos-arm64
+
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.asset_name }}
+        path: ${{ matrix.asset_path }}
+        if-no-files-found: error
+
+  release:
+    name: 创建发布
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        
+      - name: 获取版本号
+        id: get_version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            # 从标签中提取版本号
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            # 使用手动触发时提供的版本号
+            VERSION="v${{ github.event.inputs.version }}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "使用版本: $VERSION"
+        
+      - name: 下载所有构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          
+      - name: 查看下载的构建产物
+        run: |
+          ls -la ./artifacts
+          find ./artifacts -type f
+          
+      - name: 准备发布文件
+        run: |
+          mkdir -p ./release-files
+          # 复制可能存在的构建产物
+          [ -f ./artifacts/wechat-video-uploader-linux-x64/wechat-video-uploader-linux ] && cp ./artifacts/wechat-video-uploader-linux-x64/wechat-video-uploader-linux ./release-files/wechat-video-uploader-linux-x64
+          [ -f ./artifacts/wechat-video-uploader-windows-x64.exe/wechat-video-uploader-win.exe ] && cp ./artifacts/wechat-video-uploader-windows-x64.exe/wechat-video-uploader-win.exe ./release-files/wechat-video-uploader-windows-x64.exe
+          [ -f ./artifacts/wechat-video-uploader-macos-x64/wechat-video-uploader-macos ] && cp ./artifacts/wechat-video-uploader-macos-x64/wechat-video-uploader-macos ./release-files/wechat-video-uploader-macos-x64
+          [ -f ./artifacts/wechat-video-uploader-macos-arm64/wechat-video-uploader-macos-arm64 ] && cp ./artifacts/wechat-video-uploader-macos-arm64/wechat-video-uploader-macos-arm64 ./release-files/wechat-video-uploader-macos-arm64
+          
+          # 查看准备好的发布文件
+          ls -la ./release-files
+          
+      - name: 如果手动触发则创建标签
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ steps.get_version.outputs.VERSION }} -m "发布 ${{ steps.get_version.outputs.VERSION }}"
+          git push origin ${{ steps.get_version.outputs.VERSION }}
+      
+      - name: 创建发布
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: 发布 ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          files: ./release-files/*
+          body: |
+            # 视频自动上传工具 ${{ steps.get_version.outputs.VERSION }}
+            
+            自动化视频上传工具，支持微信视频号、小红书、抖音、快手等平台。
+            
+            ## 下载
+            
+            - [Windows](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/wechat-video-uploader-windows-x64.exe)
+            - [macOS (Intel/x64)](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/wechat-video-uploader-macos-x64)
+            - [macOS (Apple Silicon/ARM64)](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/wechat-video-uploader-macos-arm64)
+            - [Linux](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/wechat-video-uploader-linux-x64)
+            
+            ## 使用方法
+            
+            请参考 [README.md](https://github.com/${{ github.repository }}/blob/main/wechat-video-uploader/README.md) 了解详细使用方法。
