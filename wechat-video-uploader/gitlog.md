@@ -17,3 +17,9 @@
   - 修改构建产物路径，适应新的目录结构
   - 更新 `release.sh` 脚本，添加目录切换逻辑
   - 更新 `README.md`，添加关于 GitHub Actions 位置变更的说明
+
+- fix(ci): 修复 GitHub Actions 构建错误
+  - 将 `npm ci` 替换为 `npm install`，解决依赖不同步问题
+  - 使用 `npx pkg` 替代全局安装的 pkg，提高兼容性
+  - 在每个构建步骤中添加 `npm install --no-package-lock`，确保依赖安装成功
+  - 更新 package.json 中的 pkg 配置，正确指定脚本和资源文件

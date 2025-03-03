@@ -17,20 +17,19 @@
     "puppeteer": "^22.15.0"
   },
   "pkg": {
-    "scripts": "main.js",
-    "assets": [
+    "scripts": [
+      "main.js",
       "ai_util.js",
       "upload_common.js",
       "upload_weixin.js",
       "upload_rednote.js",
       "upload_kuaishou.js",
+      "upload_douyin.js"
+    ],
+    "assets": [
       ".env.example",
-      "temp/**/*",
-      "node_modules/puppeteer-core/**/*",
-      "node_modules/dotenv/**/*",
-      "node_modules/axios/**/*",
-      "node_modules/csv-parser/**/*",
-      "node_modules/csv-writer/**/*"
+      "content-msg.csv",
+      "temp/**/*"
     ],
     "targets": [
       "node18-macos-arm64",

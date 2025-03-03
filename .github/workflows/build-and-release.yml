@@ -61,10 +61,12 @@ jobs:
 
     - name: 安装依赖
       working-directory: wechat-video-uploader
-      run: npm ci
+      run: |
+        npm install
+        # 确保依赖安装成功
+        npm ls --depth=0 || true
 
-    - name: 安装 pkg 全局工具
-      run: npm install -g pkg
+    # 使用 npx 调用 pkg，不需要全局安装
 
     - name: 清理临时文件
       working-directory: wechat-video-uploader
@@ -76,27 +78,39 @@ jobs:
       if: matrix.platform == 'linux'
       working-directory: wechat-video-uploader
       run: |
-        pkg . --target node18-linux-x64 --output dist/wechat-video-uploader-linux
+        # 确保依赖已安装
+        npm install --no-package-lock
+        # 使用 pkg 构建
+        npx pkg . --target node18-linux-x64 --output dist/wechat-video-uploader-linux
         chmod +x dist/wechat-video-uploader-linux
 
     - name: 构建应用 (Windows)
       if: matrix.platform == 'windows'
       working-directory: wechat-video-uploader
       run: |
-        pkg . --target node18-win-x64 --output dist/wechat-video-uploader-win.exe
+        # 确保依赖已安装
+        npm install --no-package-lock
+        # 使用 pkg 构建
+        npx pkg . --target node18-win-x64 --output dist/wechat-video-uploader-win.exe
 
     - name: 构建应用 (macOS x64)
       if: matrix.platform == 'macos' && matrix.arch == 'x64'
       working-directory: wechat-video-uploader
       run: |
-        pkg . --target node18-macos-x64 --output dist/wechat-video-uploader-macos
+        # 确保依赖已安装
+        npm install --no-package-lock
+        # 使用 pkg 构建
+        npx pkg . --target node18-macos-x64 --output dist/wechat-video-uploader-macos
         chmod +x dist/wechat-video-uploader-macos
 
     - name: 构建应用 (macOS ARM64)
       if: matrix.platform == 'macos' && matrix.arch == 'arm64'
       working-directory: wechat-video-uploader
       run: |
-        pkg . --target node18-macos-arm64 --output dist/wechat-video-uploader-macos-arm64
+        # 确保依赖已安装
+        npm install --no-package-lock
+        # 使用 pkg 构建
+        npx pkg . --target node18-macos-arm64 --output dist/wechat-video-uploader-macos-arm64
         chmod +x dist/wechat-video-uploader-macos-arm64
 
     - name: 上传构建产物
