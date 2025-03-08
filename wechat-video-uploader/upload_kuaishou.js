@@ -149,12 +149,37 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             // await page.type('input[name="title"]', videoTitle);
 
             // 填写描述
-            await page.waitForSelector('._description_oei9t_59', { timeout: 10000 });
-            await page.evaluate((text) => {
-                const editor = document.querySelector('._description_oei9t_59');
-                editor.textContent = text;
-                editor.dispatchEvent(new Event('input', { bubbles: true }));
-            }, description);
+            console.log('正在识别描述输入框选择器...');
+            // 动态识别以 _description_ 开头的选择器
+            const descriptionSelector = await page.$$eval('div', divs => {
+                // 查找所有包含 _description_ 的类名
+                const descriptionDiv = divs.find(div => {
+                    const className = div.className || '';
+                    return className.includes && className.includes('_description_');
+                });
+                
+                return descriptionDiv ? '.' + descriptionDiv.className : null;
+            });
+            
+            if (!descriptionSelector) {
+                console.log('警告：无法识别描述输入框选择器，将尝试使用默认选择器');
+                await page.waitForSelector('div[class*="_description_"]', { timeout: 10000 });
+            } else {
+                console.log(`成功识别描述输入框选择器: ${descriptionSelector}`);
+                await page.waitForSelector(descriptionSelector, { timeout: 10000 });
+            }
+
+            // 使用识别到的选择器或备用选择器填写描述
+            const actualDescriptionSelector = descriptionSelector || 'div[class*="_description_"]';
+            await page.evaluate((text, selector) => {
+                const editor = document.querySelector(selector);
+                if (editor) {
+                    editor.textContent = text;
+                    editor.dispatchEvent(new Event('input', { bubbles: true }));
+                } else {
+                    console.error('无法找到描述输入框元素');
+                }
+            }, description, actualDescriptionSelector);
 
             // 等待封面图片加载
             console.log('等待封面图片加载...');

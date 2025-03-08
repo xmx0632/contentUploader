@@ -1,5 +1,12 @@
 # Git Commit Log
 
+## 2025-03-08
+- fix(upload): 优化快手上传模块中描述输入框选择器的识别方式
+  - 将硬编码的 `_description_oei9t_59` 选择器改为动态识别模式
+  - 添加模糊匹配选择器 `div[class*="_description_"]` 作为备用方案
+  - 增强错误处理，当找不到元素时提供明确的错误信息
+  - 改进日志输出，提供更详细的选择器识别过程信息
+
 ## 2025-03-03
 - feat(ci): 添加 GitHub Actions 自动构建脚本，支持多平台可执行程序构建
   - 新增 `.github/workflows/build-and-release.yml` 文件，配置多平台构建流程
