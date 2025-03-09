@@ -87,10 +87,10 @@ async function uploadToWeixin(browser, videoFiles, options) {
             console.log('登录成功，保存 cookies...');
             await saveCookies(page, 'weixin');
 
-            // 关闭有界面浏览器，重新以 headless 模式启动
+            // 关闭有界面浏览器，重新以用户指定的模式启动
             await browser.close();
             browser = await puppeteer.launch({
-                headless: true,
+                headless: options.headless !== false, // 尊重用户传入的headless参数
                 defaultViewport: null
             });
             page = await browser.newPage();
