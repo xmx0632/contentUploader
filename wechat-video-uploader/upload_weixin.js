@@ -128,10 +128,40 @@ async function uploadToWeixin(browser, videoFiles, options) {
             console.log(`正在上传视频: ${videoFile}`);
 
             // 进入视频列表页面
-            await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
-                waitUntil: 'networkidle0',
-                timeout: 60000
-            });
+            console.log('尝试进入视频列表页面...');
+            let retryCount = 0;
+            const maxRetries = 3;
+            
+            while (retryCount < maxRetries) {
+                try {
+                    await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
+                        waitUntil: 'networkidle0',
+                        timeout: 120000 // 增加超时时间至120秒
+                    });
+                    console.log('成功进入视频列表页面');
+                    break; // 如果成功则跳出循环
+                } catch (navError) {
+                    retryCount++;
+                    console.warn(`导航到视频列表页面失败 (尝试 ${retryCount}/${maxRetries}): ${navError.message}`);
+                    
+                    if (retryCount >= maxRetries) {
+                        console.error('达到最大重试次数，无法进入视频列表页面');
+                        throw navError; // 重试失败，抛出错误
+                    }
+                    
+                    // 在重试前等待一段时间
+                    const retryDelay = 10000 * retryCount; // 每次重试增加等待时间
+                    console.log(`等待 ${retryDelay/1000} 秒后重试...`);
+                    await delay(retryDelay);
+                    
+                    // 尝试刷新页面
+                    try {
+                        await page.reload({ waitUntil: 'networkidle0', timeout: 60000 });
+                    } catch (reloadError) {
+                        console.warn(`页面刷新失败: ${reloadError.message}`);
+                    }
+                }
+            }
 
             // 等待页面加载
             console.log('等待页面加载...');
@@ -329,8 +359,10 @@ async function uploadToWeixin(browser, videoFiles, options) {
             const videoDir = path.dirname(videoFile);
             await archiveVideo(videoFile, videoDir);
 
-            // 等待一下再继续下一个
-            await delay(parseInt(process.env.DELAY_BETWEEN_VIDEOS || '2000'));
+            // 等待更长时间再继续下一个视频的上传
+            const delayBetweenVideos = parseInt(process.env.DELAY_BETWEEN_VIDEOS || '15000');
+            console.log(`等待 ${delayBetweenVideos/1000} 秒后继续下一个视频的上传...`);
+            await delay(delayBetweenVideos);
         }
 
         await browser.close();
