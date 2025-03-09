@@ -94,24 +94,32 @@ DELAY_BETWEEN_UPLOADS=5000
 
 #### 4. 运行脚本
 
-- **微信视频号**
+使用 main.js 作为统一入口来上传视频，可以灵活地选择平台和配置参数：
+
+```bash
+node main.js --platform <平台名称> --dir <视频目录路径> [--collection <合集名称>] [--headless]
+```
+
+示例：
+
+- **上传到微信视频号指定合集**
   ```bash
-  node upload_weichat.js [--dir /path/to/videos] [--headless]
+  node main.js --platform weixin --dir /Users/aivideo/dist/videos/weixin --csvPath /Users/xmx0632/aivideo/dist/content-msg-en2zh.csv --collection 日语英语对照学
   ```
 
-- **抖音**
+- **上传到抖音**
   ```bash
-  node upload_douyin.js [--dir /path/to/videos] [--headless]
+  node main.js --platform douyin --dir /path/to/videos
   ```
 
-- **快手**
+- **上传到快手（无头模式）**
   ```bash
-  node upload_kuaishou.js [--dir /path/to/videos] [--headless]
+  node main.js --platform kuaishou --dir /path/to/videos --headless
   ```
 
-- **小红书**
+- **上传到小红书**
   ```bash
-  node upload_rednote.js [--dir /path/to/videos] [--headless]
+  node main.js --platform rednote --dir /path/to/videos
   ```
 
 ---

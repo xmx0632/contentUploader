@@ -290,6 +290,297 @@ async function uploadToWeixin(browser, videoFiles, options) {
                 }
             }
 
+            // 勾选"声明原创"复选框
+            console.log('尝试勾选"声明原创"复选框...');
+            const declareOriginalResult = await page.evaluate(() => {
+                // 查找声明原创的复选框 - 使用多种方法尝试定位
+                let declareOriginalCheckbox = null;
+                
+                // 方法1：通过文本内容查找
+                const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+                declareOriginalCheckbox = checkboxes.find(checkbox => {
+                    // 查找附近的文本节点或标签，包含"声明原创"文本
+                    const parent = checkbox.parentElement;
+                    if (parent && parent.textContent.includes('声明原创')) {
+                        return true;
+                    }
+                    // 向上查找两层
+                    const grandParent = parent?.parentElement;
+                    if (grandParent && grandParent.textContent.includes('声明原创')) {
+                        return true;
+                    }
+                    return false;
+                });
+                
+                // 方法2：通过标签和属性查找
+                if (!declareOriginalCheckbox) {
+                    // 查找所有label元素，可能包含"声明原创"文本
+                    const labels = Array.from(document.querySelectorAll('label'));
+                    const originalLabel = labels.find(label => 
+                        label.textContent.includes('声明原创') || 
+                        label.textContent.includes('原创')
+                    );
+                    
+                    if (originalLabel) {
+                        // 如果label有for属性，通过id查找对应的复选框
+                        const forId = originalLabel.getAttribute('for');
+                        if (forId) {
+                            declareOriginalCheckbox = document.getElementById(forId);
+                        } else {
+                            // 如果label内部有复选框
+                            declareOriginalCheckbox = originalLabel.querySelector('input[type="checkbox"]');
+                        }
+                    }
+                }
+                
+                // 方法3：通过周围元素的关系查找
+                if (!declareOriginalCheckbox) {
+                    // 查找所有包含"原创"文本的元素
+                    const allElements = Array.from(document.querySelectorAll('*'));
+                    const originalElements = allElements.filter(el => 
+                        el.textContent.includes('原创') || 
+                        el.textContent.includes('声明原创')
+                    );
+                    
+                    // 对于每个找到的元素，查找其附近的复选框
+                    for (const el of originalElements) {
+                        // 查找父元素下的复选框
+                        const parentCheckbox = el.parentElement?.querySelector('input[type="checkbox"]');
+                        if (parentCheckbox) {
+                            declareOriginalCheckbox = parentCheckbox;
+                            break;
+                        }
+                        
+                        // 查找相邻元素中的复选框
+                        const siblings = Array.from(el.parentElement?.children || []);
+                        for (const sibling of siblings) {
+                            const siblingCheckbox = sibling.querySelector('input[type="checkbox"]');
+                            if (siblingCheckbox) {
+                                declareOriginalCheckbox = siblingCheckbox;
+                                break;
+                            }
+                        }
+                        
+                        if (declareOriginalCheckbox) break;
+                    }
+                }
+
+                // 如果找到了复选框
+                if (declareOriginalCheckbox && !declareOriginalCheckbox.checked) {
+                    // 勾选复选框
+                    declareOriginalCheckbox.click();
+                    return { success: true, message: '已勾选"声明原创"复选框' };
+                } else if (declareOriginalCheckbox && declareOriginalCheckbox.checked) {
+                    return { success: true, message: '"声明原创"复选框已经被勾选' };
+                }
+                
+                // 如果所有方法都失败，记录页面中所有复选框的信息以便调试
+                const allCheckboxInfo = checkboxes.map(cb => {
+                    const parent = cb.parentElement;
+                    return {
+                        checked: cb.checked,
+                        id: cb.id,
+                        name: cb.name,
+                        parentText: parent ? parent.textContent.substring(0, 50) : 'no parent'
+                    };
+                });
+                
+                console.log('页面中的所有复选框信息:', JSON.stringify(allCheckboxInfo));
+                return { success: false, message: '未找到"声明原创"复选框', checkboxInfo: allCheckboxInfo };
+            });
+
+            console.log('声明原创复选框操作结果:', declareOriginalResult.message);
+            
+            if (declareOriginalResult.success) {
+                // 等待原创权益对话框出现
+                console.log('等待原创权益对话框出现...');
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
+                
+                // 处理原创权益对话框
+                const handleOriginalDialogResult = await page.evaluate(() => {
+                    // 查找对话框中的复选框 - 使用多种方法尝试定位
+                    let agreeCheckbox = null;
+                    let dialogFound = false;
+                    
+                    // 首先确认对话框存在
+                    const dialogs = Array.from(document.querySelectorAll('.weui-desktop-dialog'));
+                    const originalDialog = dialogs.find(dialog => 
+                        dialog.textContent.includes('原创') || 
+                        dialog.textContent.includes('声明')
+                    );
+                    
+                    if (originalDialog) {
+                        dialogFound = true;
+                        console.log('找到原创权益对话框');
+                        
+                        // 方法1：使用特定class查找
+                        const dialogCheckboxes = originalDialog.querySelectorAll('input.ant-checkbox-input');
+                        if (dialogCheckboxes.length > 0) {
+                            agreeCheckbox = dialogCheckboxes[0];
+                            console.log('方法1找到复选框');
+                        }
+                        
+                        // 方法2：通过标准复选框类型查找
+                        if (!agreeCheckbox) {
+                            const standardCheckboxes = originalDialog.querySelectorAll('input[type="checkbox"]');
+                            if (standardCheckboxes.length > 0) {
+                                agreeCheckbox = standardCheckboxes[0];
+                                console.log('方法2找到复选框');
+                            }
+                        }
+                        
+                        // 方法3：通过文本内容查找
+                        if (!agreeCheckbox) {
+                            const allCheckboxes = Array.from(originalDialog.querySelectorAll('input[type="checkbox"]'));
+                            agreeCheckbox = allCheckboxes.find(checkbox => {
+                                // 查找附近的文本节点或标签
+                                const parent = checkbox.parentElement;
+                                const grandParent = parent?.parentElement;
+                                
+                                return (parent && (parent.textContent.includes('我已阅读') || 
+                                                parent.textContent.includes('原创声明') || 
+                                                parent.textContent.includes('同意'))) ||
+                                       (grandParent && (grandParent.textContent.includes('我已阅读') || 
+                                                      grandParent.textContent.includes('原创声明') || 
+                                                      grandParent.textContent.includes('同意')));
+                            });
+                            
+                            if (agreeCheckbox) {
+                                console.log('方法3找到复选框');
+                            }
+                        }
+                        
+                        // 方法4：使用模拟点击来勾选复选框的容器
+                        if (!agreeCheckbox) {
+                            // 查找可能包含复选框的容器
+                            const checkboxContainers = Array.from(originalDialog.querySelectorAll('.ant-checkbox, .weui-desktop-checkbox'));
+                            if (checkboxContainers.length > 0) {
+                                // 直接点击容器而不是复选框本身
+                                checkboxContainers[0].click();
+                                console.log('方法4点击了复选框容器');
+                                
+                                // 再次检查是否有复选框被勾选
+                                const allCheckboxes = Array.from(originalDialog.querySelectorAll('input[type="checkbox"]'));
+                                agreeCheckbox = allCheckboxes.find(checkbox => checkbox.checked);
+                                
+                                if (agreeCheckbox) {
+                                    return { success: true, message: '通过点击容器勾选了复选框' };
+                                }
+                            }
+                        }
+                    } else {
+                        // 如果没有找到对话框，尝试在整个页面中查找
+                        const allCheckboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+                        
+                        // 记录所有复选框的信息以便调试
+                        const checkboxInfo = allCheckboxes.map(cb => {
+                            const parent = cb.parentElement;
+                            return {
+                                checked: cb.checked,
+                                id: cb.id,
+                                name: cb.name,
+                                parentText: parent ? parent.textContent.substring(0, 50) : 'no parent'
+                            };
+                        });
+                        
+                        console.log('页面中的所有复选框信息:', JSON.stringify(checkboxInfo));
+                        return { success: false, message: '未找到原创权益对话框', checkboxInfo };
+                    }
+                    
+                    // 如果找到了复选框并且未勾选
+                    if (agreeCheckbox && !agreeCheckbox.checked) {
+                        try {
+                            // 尝试使用原生事件触发点击
+                            const clickEvent = new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            agreeCheckbox.dispatchEvent(clickEvent);
+                            
+                            // 尝试直接设置 checked 属性
+                            agreeCheckbox.checked = true;
+                            
+                            // 触发 change 事件
+                            const changeEvent = new Event('change', {
+                                bubbles: true
+                            });
+                            agreeCheckbox.dispatchEvent(changeEvent);
+                            
+                            console.log('已勾选同意复选框');
+                            return { success: true, message: '已勾选同意复选框，等待按钮状态更新' };
+                        } catch (error) {
+                            console.error('勾选复选框时出错:', error);
+                            return { success: false, message: '勾选复选框时出错: ' + error.message };
+                        }
+                    } else if (agreeCheckbox && agreeCheckbox.checked) {
+                        return { success: true, message: '同意复选框已经被勾选' };
+                    }
+                    
+                    // 如果找到了对话框但没有找到复选框
+                    if (dialogFound) {
+                        // 记录对话框的HTML结构以便调试
+                        const dialogHTML = originalDialog.outerHTML.substring(0, 1000); // 限制长度
+                        return { success: false, message: '找到对话框但未找到复选框', dialogHTML };
+                    }
+                    
+                    return { success: false, message: '未找到原创权益对话框中的同意复选框' };
+                });
+                
+                console.log('原创权益对话框处理结果:', handleOriginalDialogResult.message);
+                
+                // 等待按钮状态更新（从禁用变为可点击状态）
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '2000'));
+                
+                // 点击"声明原创"按钮
+                const clickDeclareButtonResult = await page.evaluate(() => {
+                    // 查找并点击"声明原创"按钮 - 使用更精确的选择器
+                    // 根据weixin_readme.md中的HTML结构，按钮可能从weui-desktop-btn_disabled变为可点击状态
+                    const declareButtons = Array.from(document.querySelectorAll('button.weui-desktop-btn.weui-desktop-btn_primary:not(.weui-desktop-btn_disabled)'));
+                    const declareButton = declareButtons.find(button => button.textContent.trim() === '声明原创');
+                    
+                    if (declareButton) {
+                        declareButton.click();
+                        return { success: true, message: '已点击"声明原创"按钮' };
+                    }
+                    
+                    // 如果没找到可点击的按钮，检查是否有禁用状态的按钮
+                    const disabledButtons = Array.from(document.querySelectorAll('button.weui-desktop-btn.weui-desktop-btn_primary.weui-desktop-btn_disabled'));
+                    const disabledDeclareButton = disabledButtons.find(button => button.textContent.trim() === '声明原创');
+                    
+                    if (disabledDeclareButton) {
+                        return { success: false, message: '"声明原创"按钮仍处于禁用状态' };
+                    }
+                    
+                    return { success: false, message: '未找到"声明原创"按钮' };
+                });
+                
+                console.log('点击声明原创按钮结果:', clickDeclareButtonResult.message);
+                
+                // 如果按钮仍处于禁用状态，等待更长时间后再次尝试
+                if (!clickDeclareButtonResult.success && clickDeclareButtonResult.message.includes('禁用状态')) {
+                    console.log('按钮仍处于禁用状态，等待更长时间后再次尝试...');
+                    await delay(parseInt(process.env.DELAY_AFTER_CLICK || '5000'));
+                    
+                    // 再次尝试点击按钮
+                    const retryClickResult = await page.evaluate(() => {
+                        const declareButtons = Array.from(document.querySelectorAll('button.weui-desktop-btn.weui-desktop-btn_primary:not(.weui-desktop-btn_disabled)'));
+                        const declareButton = declareButtons.find(button => button.textContent.trim() === '声明原创');
+                        
+                        if (declareButton) {
+                            declareButton.click();
+                            return { success: true, message: '已点击"声明原创"按钮（重试成功）' };
+                        }
+                        return { success: false, message: '重试点击"声明原创"按钮失败' };
+                    });
+                    
+                    console.log('重试点击声明原创按钮结果:', retryClickResult.message);
+                }
+                
+                // 等待对话框关闭和页面更新
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
+            }
+
             // 尝试点击发表按钮
             const publishResult = await page.evaluate(() => {
                 // 使用精确的选择器找到发表按钮
