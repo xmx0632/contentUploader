@@ -184,40 +184,40 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             // 等待封面图片加载
             console.log('等待封面图片加载...');
             
-            // 动态识别以 _recommend-cover-item_ 开头的选择器
-            console.log('正在识别封面选择器...');
-            const coverSelector = await page.$$eval('div', divs => {
-                // 查找所有包含 _recommend-cover-item_ 的类名
-                const coverDiv = divs.find(div => {
-                    const className = div.className || '';
-                    return className.includes && className.includes('_recommend-cover-item_');
-                });
+            // // 动态识别以 _recommend-cover-item_ 开头的选择器
+            // console.log('正在识别封面选择器...');
+            // const coverSelector = await page.$$eval('div', divs => {
+            //     // 查找所有包含 _recommend-cover-item_ 的类名
+            //     const coverDiv = divs.find(div => {
+            //         const className = div.className || '';
+            //         return className.includes && className.includes('_recommend-cover-item_');
+            //     });
                 
-                return coverDiv ? '.' + coverDiv.className : null;
-            });
+            //     return coverDiv ? '.' + coverDiv.className : null;
+            // });
             
-            if (!coverSelector) {
-                console.log('警告：无法识别封面选择器，将尝试使用默认选择器');
-                await page.waitForSelector('._recommend-cover-item_', { timeout: 30000 });
-            } else {
-                console.log(`成功识别封面选择器: ${coverSelector}`);
-                await page.waitForSelector(coverSelector, { timeout: 30000 });
-            }
+            // if (!coverSelector) {
+            //     console.log('警告：无法识别封面选择器，将尝试使用默认选择器');
+            //     await page.waitForSelector('._recommend-cover-item_', { timeout: 30000 });
+            // } else {
+            //     console.log(`成功识别封面选择器: ${coverSelector}`);
+            //     await page.waitForSelector(coverSelector, { timeout: 30000 });
+            // }
 
-            // 选择第三张封面图片
-            console.log('选择第三张封面图片...');
-            const actualSelector = coverSelector || '._recommend-cover-item_';
-            console.log(`使用选择器: ${actualSelector}`);
-            const coverItems = await page.$$(actualSelector);
-            console.log(`找到封面选项数量： ${coverItems.length}`);
-            if (coverItems.length >= 3) {
-                console.log('找到足够的封面选项，点击第三张');
-                await coverItems[2].click();
-                // 等待5秒让封面设置生效
-                await delay(5000);
-            } else {
-                console.log('警告：没有找到足够的封面选项');
-            }
+            // // 选择第三张封面图片
+            // console.log('选择第三张封面图片...');
+            // const actualSelector = coverSelector || '._recommend-cover-item_';
+            // console.log(`使用选择器: ${actualSelector}`);
+            // const coverItems = await page.$$(actualSelector);
+            // console.log(`找到封面选项数量： ${coverItems.length}`);
+            // if (coverItems.length >= 3) {
+            //     console.log('找到足够的封面选项，点击第三张');
+            //     await coverItems[2].click();
+            //     // 等待5秒让封面设置生效
+            //     await delay(5000);
+            // } else {
+            //     console.log('警告：没有找到足够的封面选项');
+            // }
 
             /**
              * 选择合集处理逻辑

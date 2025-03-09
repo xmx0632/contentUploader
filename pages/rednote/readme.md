@@ -150,3 +150,19 @@ https://creator.xiaohongshu.com/publish/publish
 ### 视频上传成功页面 publish-success.html
 
 等待5s，自动跳转到上传页面 https://creator.xiaohongshu.com/publish/publish?source=
+
+
+
+
+等待封面图片加载...
+正在识别封面选择器...
+成功识别封面选择器: ._recommend-cover-item_1j1n1_175 _loading_1j1n1_182
+上传过程中发生错误: TimeoutError: Waiting for selector `._recommend-cover-item_1j1n1_175 _loading_1j1n1_182` failed: Waiting failed: 30000ms exceeded
+    at new WaitTask (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/node_modules/puppeteer-core/lib/cjs/puppeteer/common/WaitTask.js:50:34)
+    at IsolatedWorld.waitForFunction (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/node_modules/puppeteer-core/lib/cjs/puppeteer/api/Realm.js:25:26)
+    at CSSQueryHandler.waitFor (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/node_modules/puppeteer-core/lib/cjs/puppeteer/common/QueryHandler.js:172:95)
+    at async CdpFrame.waitForSelector (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/node_modules/puppeteer-core/lib/cjs/puppeteer/api/Frame.js:522:21)
+    at async CdpPage.waitForSelector (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/node_modules/puppeteer-core/lib/cjs/puppeteer/api/Page.js:1305:20)
+    at async uploadToKuaishou (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/upload_kuaishou.js:204:17)
+    at async main (/snapshot/xmx0632/aivideo/contentUploader/wechat-video-uploader/main.js:95:9)
+上传过程中发生错误: Waiting for selector `._recommend-cover-item_1j1n1_175 _loading_1j1n1_182` failed: Waiting failed: 30000ms exceeded
