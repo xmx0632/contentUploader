@@ -45,7 +45,7 @@ async function uploadToWeixin(browser, videoFiles, options) {
     let page;
 
     // 使用用户指定的模式启动浏览器并尝试加载 cookies
-    const initialHeadless = options.headless !== false; // 尊重用户传入的headless参数
+    const initialHeadless = options.isHeadless === true; // 尊重用户传入的isHeadless参数
     console.log(`使用${initialHeadless ? '无头' : '有界面'}模式启动浏览器...`);
     browser = await puppeteer.launch({
         headless: initialHeadless,
@@ -92,7 +92,7 @@ async function uploadToWeixin(browser, videoFiles, options) {
             // 关闭有界面浏览器，重新以用户指定的模式启动
             await browser.close();
             browser = await puppeteer.launch({
-                headless: options.headless !== false, // 尊重用户传入的headless参数
+                headless: options.isHeadless === true, // 尊重用户传入的isHeadless参数
                 defaultViewport: null
             });
             page = await browser.newPage();
