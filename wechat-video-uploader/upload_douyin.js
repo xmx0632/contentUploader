@@ -1,7 +1,10 @@
-// const { delay, loadCookies, saveCookies } = require('./upload_common');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo } = require('./upload_common');
+
+// 定义导航配置常量
+const NAVIGATION_TIMEOUT = parseInt(process.env.NAVIGATION_TIMEOUT || '120000'); // 默认120秒
+const MAX_RETRY_COUNT = parseInt(process.env.MAX_RETRY_COUNT || '3'); // 默认重试3次
 
 // 获取合集名称
 function getCollectionName(options) {
@@ -19,9 +22,25 @@ function getCollectionName(options) {
 
 // 检查登录状态
 async function checkLogin(page) {
-    await page.goto('https://creator.douyin.com/creator-micro/content/upload', {
-        waitUntil: 'networkidle0'
-    });
+    // 添加重试逻辑
+    for (let attempt = 1; attempt <= MAX_RETRY_COUNT; attempt++) {
+        try {
+            console.log(`尝试导航到抖音创作者平台 (尝试 ${attempt}/${MAX_RETRY_COUNT})...`);
+            await page.goto('https://creator.douyin.com/creator-micro/content/upload', {
+                waitUntil: 'networkidle0',
+                timeout: NAVIGATION_TIMEOUT
+            });
+            break; // 成功导航，跳出循环
+        } catch (error) {
+            console.error(`导航失败 (尝试 ${attempt}/${MAX_RETRY_COUNT}):`, error.message);
+            if (attempt === MAX_RETRY_COUNT) {
+                throw new Error(`导航到抖音创作者平台失败，已重试 ${MAX_RETRY_COUNT} 次: ${error.message}`);
+            }
+            // 等待一段时间后重试
+            console.log(`等待 5 秒后重试...`);
+            await delay(5000);
+        }
+    }
 
     try {
         // 如果发现上传区域，则说明已登录
@@ -102,30 +121,97 @@ async function uploadToDouyin(browser, videoFiles, options) {
         for (const videoFile of videoFiles) {
             console.log(`正在上传视频到抖音: ${videoFile}`);
 
-            // 进入上传页面
-            await page.goto('https://creator.douyin.com/creator-micro/content/upload', {
-                waitUntil: 'networkidle0',
-                timeout: 60000
-            });
+            // 进入上传页面，添加重试逻辑
+            let navigationSuccess = false;
+            for (let attempt = 1; attempt <= MAX_RETRY_COUNT; attempt++) {
+                try {
+                    console.log(`尝试导航到抖音上传页面 (尝试 ${attempt}/${MAX_RETRY_COUNT})...`);
+                    await page.goto('https://creator.douyin.com/creator-micro/content/upload', {
+                        waitUntil: 'networkidle0',
+                        timeout: NAVIGATION_TIMEOUT
+                    });
+                    navigationSuccess = true;
+                    break; // 成功导航，跳出循环
+                } catch (error) {
+                    console.error(`导航到上传页面失败 (尝试 ${attempt}/${MAX_RETRY_COUNT}):`, error.message);
+                    if (attempt === MAX_RETRY_COUNT) {
+                        throw new Error(`导航到抖音上传页面失败，已重试 ${MAX_RETRY_COUNT} 次: ${error.message}`);
+                    }
+                    // 等待一段时间后重试
+                    console.log(`等待 10 秒后重试...`);
+                    await delay(10000);
+                }
+            }
+            
+            if (!navigationSuccess) {
+                throw new Error('无法导航到抖音上传页面，跳过当前视频');
+            }
 
             // 等待页面加载
             await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
 
-            // 等待上传按钮出现并上传
-            const uploadButton = await page.waitForSelector('input[type="file"]', {
-                visible: false,
-                timeout: 30000
-            });
+            // 等待上传按钮出现并上传，添加重试逻辑
+            let uploadButton;
+            for (let attempt = 1; attempt <= MAX_RETRY_COUNT; attempt++) {
+                try {
+                    console.log(`等待上传按钮出现 (尝试 ${attempt}/${MAX_RETRY_COUNT})...`);
+                    uploadButton = await page.waitForSelector('input[type="file"]', {
+                        visible: false,
+                        timeout: 30000
+                    });
+                    break; // 成功找到上传按钮，跳出循环
+                } catch (error) {
+                    console.error(`等待上传按钮失败 (尝试 ${attempt}/${MAX_RETRY_COUNT}):`, error.message);
+                    if (attempt === MAX_RETRY_COUNT) {
+                        throw new Error(`等待上传按钮失败，已重试 ${MAX_RETRY_COUNT} 次: ${error.message}`);
+                    }
+                    // 尝试刷新页面
+                    console.log('尝试刷新页面...');
+                    await page.reload({ waitUntil: 'networkidle0', timeout: NAVIGATION_TIMEOUT });
+                    await delay(5000);
+                }
+            }
 
             // 上传视频文件
             await uploadButton.uploadFile(videoFile);
             console.log('视频文件已上传，等待处理...');
 
-            // 等待跳转到发布页面
-            await page.waitForNavigation({
-                waitUntil: 'networkidle0',
-                timeout: 60000
-            });
+            // 等待跳转到发布页面，添加重试逻辑
+            let navigationToPublishSuccess = false;
+            for (let attempt = 1; attempt <= MAX_RETRY_COUNT; attempt++) {
+                try {
+                    console.log(`等待跳转到发布页面 (尝试 ${attempt}/${MAX_RETRY_COUNT})...`);
+                    await page.waitForNavigation({
+                        waitUntil: 'networkidle0',
+                        timeout: NAVIGATION_TIMEOUT
+                    });
+                    navigationToPublishSuccess = true;
+                    break; // 成功导航，跳出循环
+                } catch (error) {
+                    console.error(`跳转到发布页面失败 (尝试 ${attempt}/${MAX_RETRY_COUNT}):`, error.message);
+                    // 检查是否已经在发布页面
+                    const isOnPublishPage = await page.evaluate(() => {
+                        return window.location.href.includes('creator.douyin.com/creator-micro/content/publish');
+                    });
+                    
+                    if (isOnPublishPage) {
+                        console.log('检测到已经在发布页面，继续处理...');
+                        navigationToPublishSuccess = true;
+                        break;
+                    }
+                    
+                    if (attempt === MAX_RETRY_COUNT) {
+                        throw new Error(`等待跳转到发布页面失败，已重试 ${MAX_RETRY_COUNT} 次: ${error.message}`);
+                    }
+                    // 等待一段时间后重试
+                    console.log(`等待 10 秒后重试...`);
+                    await delay(10000);
+                }
+            }
+            
+            if (!navigationToPublishSuccess) {
+                throw new Error('无法跳转到发布页面，跳过当前视频');
+            }
 
             // 等待视频处理完成
             await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
@@ -336,6 +422,17 @@ async function uploadToDouyin(browser, videoFiles, options) {
         await browser.close();
     } catch (error) {
         console.error('上传过程中发生错误:', error);
+        // 尝试截图记录错误状态
+        try {
+            if (page) {
+                const screenshotPath = path.join(__dirname, `douyin_error_${Date.now()}.png`);
+                await page.screenshot({ path: screenshotPath, fullPage: true });
+                console.log(`错误截图已保存至: ${screenshotPath}`);
+            }
+        } catch (screenshotError) {
+            console.error('保存错误截图失败:', screenshotError);
+        }
+        
         if (browser) {
             await browser.close();
         }
