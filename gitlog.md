@@ -104,3 +104,15 @@ ci(build): 优化 GitHub Actions 构建流程
 - 在 GitHub Actions 中全局安装 pkg 命令
 - 简化构建产物上传和发布流程
 - 增强构建日志输出，方便调试
+
+fix(csv): 修复无法读取特定格式 CSV 文件的问题
+- 修改 ai_util.js 中的正则表达式，支持以 poem- 开头的 CSV 文件名
+- 在 upload_douyin.js 中增加对 csvPath 参数的处理，确保正确设置 CSV 文件路径
+- 增强日志输出，方便追踪 CSV 文件加载过程
+- 改进错误处理，当 CSV 行缺少 word 或 description 字段时会输出警告
+
+fix(csv): 统一所有上传模块的 CSV 文件处理
+- 在 upload_weixin.js、upload_rednote.js 和 upload_kuaishou.js 中添加 setCsvFilePath 函数的导入和使用
+- 为所有上传模块添加 options.csvPath 参数处理逻辑
+- 确保所有上传模块都能正确读取指定的 CSV 文件
+- 统一日志输出格式，便于调试和问题排查

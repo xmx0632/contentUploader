@@ -56,7 +56,8 @@ async function uploadToDouyin(browser, videoFiles, options) {
     console.log('传入的参数:', {
         headless: options.headless,
         isHeadless: options.isHeadless,
-        videoFiles: videoFiles.length
+        videoFiles: videoFiles.length,
+        csvPath: options.csvPath || '未指定'
     });
     let page;
 
@@ -230,7 +231,16 @@ async function uploadToDouyin(browser, videoFiles, options) {
 
                 if (words.length > 0 && options.hasAIDescriptionGenerator) {
                     // 使用本地导入的 AI 工具生成描述
-                    const { generateMultiWordDescription } = require('./ai_util.js');
+                    const { generateMultiWordDescription, setCsvFilePath } = require('./ai_util.js');
+                    
+                    // 如果指定了 CSV 文件路径，则设置它
+                    if (options.csvPath) {
+                        console.log(`设置 CSV 文件路径: ${options.csvPath}`);
+                        setCsvFilePath(options.csvPath);
+                    } else {
+                        console.log('未指定 CSV 文件路径，使用默认路径');
+                    }
+                    
                     description = await generateMultiWordDescription(words.join('-'));
                     console.log('生成的描述：', description);
                 }

@@ -31,19 +31,30 @@ async function loadWordCache() {
     const cache = new Map();
 
     if (!fs.existsSync(csvFilePath)) {
+        console.log(`CSV文件不存在: ${csvFilePath}`);
         return cache;
     }
 
+    console.log(`正在从CSV文件加载数据: ${csvFilePath}`);
     return new Promise((resolve, reject) => {
         fs.createReadStream(csvFilePath)
             .pipe(csv())
             .on('data', (row) => {
                 if (row.word && row.description) {
                     cache.set(row.word.toLowerCase(), row.description);
+                    console.log(`已加载单词: ${row.word}`);
+                } else {
+                    console.log(`警告: CSV行缺少word或description字段: ${JSON.stringify(row)}`);
                 }
             })
-            .on('end', () => resolve(cache))
-            .on('error', reject);
+            .on('end', () => {
+                console.log(`CSV文件加载完成，共加载 ${cache.size} 个单词`);
+                resolve(cache);
+            })
+            .on('error', (err) => {
+                console.error(`CSV文件加载错误: ${err.message}`);
+                reject(err);
+            });
     });
 }
 
@@ -75,41 +86,55 @@ async function saveWordToCache(word, description) {
  */
 async function generateMultiWordDescription(words) {
     try {
-        // 分割单词
-        const wordList = words.split('-').map(w => w.trim()).filter(w => w);
+        console.log(`生成描述，输入: ${words}，使用CSV文件: ${csvFilePath}`);
 
-        if (wordList.length === 0) {
-            throw new Error('没有提供有效的单词');
-        }
+        // 检查是否是 1-poem- 开头的文件
+        const isPoemFile = words.startsWith('1-poem-');
+
+        // 如果是 1-poem- 开头的文件，直接使用整个字符串作为 key
+        const searchKey = isPoemFile ? words : words.split('-').map(w => w.trim()).filter(w => w).join('-');
 
         // 加载缓存
         const cache = await loadWordCache();
+        console.log(`缓存加载完成，包含 ${cache.size} 个单词`);
 
-        // 并行处理所有单词
+        // 查找描述
+        if (cache.has(searchKey.toLowerCase())) {
+            console.log(`找到单词 "${searchKey}" 的缓存描述`);
+            const description = cache.get(searchKey.toLowerCase());
+            // 如果是诗词文件，添加额外的标签
+            if (isPoemFile) {
+                return description + '\r\n\r\n#古诗词 #粤语';
+            }
+            return description;
+        }
+
+        // 如果是 1-poem 文件但未找到描述，直接返回空
+        if (isPoemFile) {
+            console.log(`警告: 未找到诗词文件 "${searchKey}" 的描述`);
+            return '';
+        }
+
+        // 对于非 1-poem 文件，保持原有逻辑
+        const wordList = words.split('-').map(w => w.trim()).filter(w => w);
         const results = await Promise.all(wordList.map(async word => {
             const lowerWord = word.toLowerCase();
-            // 检查缓存
             if (cache.has(lowerWord)) {
-                console.log(`Using cached description for word: ${word}`);
                 return cache.get(lowerWord);
             }
-
             return '';
         }));
 
         // 合并结果，添加分隔线和底部标签
         const combinedContent = results.join('\r\n\r\n');
-        
+
         // 从CSV文件路径中提取语言信息
         let lang1 = '英语';
         let lang2 = '日语';
-        
-        // 检查文件名是否符合 content-msg-[语言1]2[语言2].csv 格式
         const csvFileName = path.basename(csvFilePath);
-        const langMatch = csvFileName.match(/content-msg-([a-z]+)2([a-z]+)\.csv/);
-        
+        const langMatch = csvFileName.match(/(?:poem-)?content-msg-([a-z]+)2([a-z]+)\.csv/);
+
         if (langMatch && langMatch.length === 3) {
-            // 根据文件名中的语言代码设置语言标签
             const langMap = {
                 'en': '英语',
                 'zh': '中文',
@@ -120,17 +145,14 @@ async function generateMultiWordDescription(words) {
                 'it': '意大利语',
                 'ru': '俄语',
                 'ko': '韩语'
-                // 可以根据需要添加更多语言映射
             };
-            
             lang1 = langMap[langMatch[1]] || langMatch[1];
             lang2 = langMap[langMatch[2]] || langMatch[2];
         }
-        
+
         const tags = `#${lang1} #${lang2} ${wordList.map(w => `#${w}`).join(' ')}`;
 
         return combinedContent + '\r\n\r\n' + tags;
-
     } catch (error) {
         console.error(`Error generating multiple word descriptions: ${error.message}`);
         return `错误: 无法生成单词卡片 - ${error.message}`;
