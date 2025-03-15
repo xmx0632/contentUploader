@@ -42,7 +42,7 @@ async function loadWordCache() {
             .on('data', (row) => {
                 if (row.word && row.description) {
                     cache.set(row.word.toLowerCase(), row.description);
-                    console.log(`已加载单词: ${row.word}`);
+                    // console.log(`已加载单词: ${row.word}`);
                 } else {
                     console.log(`警告: CSV行缺少word或description字段: ${JSON.stringify(row)}`);
                 }
