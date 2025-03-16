@@ -101,7 +101,40 @@ async function generateMultiWordDescription(words) {
         // 查找描述
         if (cache.has(searchKey.toLowerCase())) {
             console.log(`找到单词 "${searchKey}" 的缓存描述`);
-            const description = cache.get(searchKey.toLowerCase());
+            let description = cache.get(searchKey.toLowerCase());
+
+            // 检查描述是否已经包含tags
+            const hasTags = description.includes('#');
+
+            // 如果没有tags，添加适当的tags
+            if (!hasTags) {
+                // 从CSV文件路径中提取语言信息
+                let lang1 = '英语';
+                let lang2 = '日语';
+                const csvFileName = path.basename(csvFilePath);
+                const langMatch = csvFileName.match(/(?:poem-)?content-msg-([a-z]+)2([a-z]+)\.csv/);
+
+                if (langMatch && langMatch.length === 3) {
+                    const langMap = {
+                        'en': '英语',
+                        'zh': '中文',
+                        'jp': '日语',
+                        'fr': '法语',
+                        'de': '德语',
+                        'es': '西班牙语',
+                        'it': '意大利语',
+                        'ru': '俄语',
+                        'ko': '韩语'
+                    };
+                    lang1 = langMap[langMatch[1]] || langMatch[1];
+                    lang2 = langMap[langMatch[2]] || langMatch[2];
+                }
+
+                const wordList = searchKey.split('-').map(w => w.trim()).filter(w => w);
+                const tags = `#${lang1} #${lang2} ${wordList.map(w => `#${w}`).join(' ')}`;
+                description = description + '\r\n\r\n' + tags;
+            }
+
             // 如果是诗词文件，添加额外的标签
             if (isPoemFile) {
                 return description + '\r\n\r\n#古诗词 #粤语';
