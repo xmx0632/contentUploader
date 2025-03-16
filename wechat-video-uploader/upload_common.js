@@ -207,7 +207,7 @@ async function archiveVideo(videoFile, baseDir) {
             }
 
             // 写入已有文件记录和当前文件记录
-            fs.writeFileSync(csvPath, csvContent + recordLine);
+            fs.writeFileSync(csvPath, csvContent);
             console.log(`创建记录文件并写入已有记录: ${csvPath}`);
             console.log(`追加当前文件记录: ${recordLine.trim()}`);
         } else {
