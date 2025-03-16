@@ -176,6 +176,46 @@ async function archiveVideo(videoFile, baseDir) {
         console.log(`移动文件: ${videoFile} 到 ${targetPath}`);
         fs.renameSync(videoFile, targetPath);
         console.log(`完成: 文件已移动到: ${targetPath}`);
+
+        // 记录已上传的视频文件到CSV
+        const sourceDir = path.dirname(videoFile);
+        const csvPath = path.join(sourceDir, '0-released.csv');
+        const dateFormat = path.basename(dateDir);
+        const recordLine = `${dateFormat}/${videoFileName}.mp4\n`;
+
+        // 如果CSV文件不存在，则创建它并扫描已有的日期目录
+        if (!fs.existsSync(csvPath)) {
+            console.log(`CSV文件不存在，扫描已上传文件目录...`);
+            let csvContent = '';
+
+            // 扫描baseDir下所有符合日期格式的目录（格式为YYYYMMDD）
+            const dateDirs = fs.readdirSync(baseDir)
+                .filter(dir => /^\d{8}$/.test(dir))
+                .map(dir => path.join(baseDir, dir));
+
+            // 遍历每个日期目录，记录其中的MP4文件
+            for (const dir of dateDirs) {
+                if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+                    const dirName = path.basename(dir);
+                    const files = fs.readdirSync(dir)
+                        .filter(file => file.toLowerCase().endsWith('.mp4'));
+
+                    for (const file of files) {
+                        csvContent += `${dirName}/${file}\n`;
+                    }
+                }
+            }
+
+            // 写入已有文件记录和当前文件记录
+            fs.writeFileSync(csvPath, csvContent + recordLine);
+            console.log(`创建记录文件并写入已有记录: ${csvPath}`);
+            console.log(`追加当前文件记录: ${recordLine.trim()}`);
+        } else {
+            // 如果文件存在，则追加记录
+            fs.appendFileSync(csvPath, recordLine);
+            console.log(`更新记录文件: ${csvPath}`);
+        }
+
         return targetPath;
     } catch (error) {
         console.error('归档视频文件时出错:', error);
