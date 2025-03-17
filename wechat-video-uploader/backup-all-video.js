@@ -1,3 +1,6 @@
+// 把 "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh" 下的视频文件都复制一份到
+// 把 "// 把 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下
+
 // 自动生成归档指定模块下文件上传记录，并归档已上传的视频到指定目录
 // 需要把 "/Users/xmx0632/aivideo/dist/videos/[模块名]/[视频种类]" 目录下这种日期格式的子目录下的视频文件
 // 比如： "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh" 
@@ -39,20 +42,15 @@ function archiveVideo(sourcePath, targetPath, csvPath, recordLine) {
             fs.mkdirSync(targetDir, { recursive: true });
         }
 
-        // 复制文件
-        console.log(`复制文件: ${sourcePath} 到 ${targetPath}`);
         // 检查目标文件是否已存在
-        if (!fs.existsSync(targetPath)) {
-            fs.copyFileSync(sourcePath, targetPath);
-        } else {
+        if (fs.existsSync(targetPath)) {
             console.log(`目标文件已存在，跳过复制: ${targetPath}`);
+        } else {
+            // 复制文件
+            console.log(`复制文件: ${sourcePath} 到 ${targetPath}`);
+            fs.copyFileSync(sourcePath, targetPath);
+            console.log(`完成: 文件已复制到: ${targetPath}`);
         }
-        console.log(`完成: 文件已复制到: ${targetPath}`);
-
-        // 删除文件 sourcePath 释放重复空间
-        console.log(`删除文件: ${sourcePath}`);
-        fs.unlinkSync(sourcePath);
-
 
         // 更新CSV记录
         if (!fs.existsSync(csvPath)) {
@@ -85,14 +83,11 @@ function processModuleArchive(moduleName, videoType) {
     const moduleDir = path.join(VIDEOS_DIR, moduleName, videoType);
     const targetBaseDir = path.join(BASE_DIR, videoType);
     const csvPath = path.join(moduleDir, '0-released.csv');
-    // 添加CSV备份路径
-    const backupCsvPath = path.join(targetBaseDir, `${moduleName}-0-released.csv`);
 
     console.log(`处理模块: ${moduleName}, 视频类型: ${videoType}`);
     console.log(`模块目录: ${moduleDir}`);
     console.log(`目标基础目录: ${targetBaseDir}`);
     console.log(`CSV记录文件: ${csvPath}`);
-    console.log(`CSV备份文件: ${backupCsvPath}`);
 
     // 确保目标目录存在
     if (!fs.existsSync(targetBaseDir)) {
@@ -105,9 +100,11 @@ function processModuleArchive(moduleName, videoType) {
         console.log(`模块目录不存在: ${moduleDir}`);
         return;
     }
+    // 读取模块目录下的所有文件和目录
+    const dirEntries = fs.readdirSync(moduleDir, { withFileTypes: true });
 
-    // 读取模块目录下的所有子目录
-    const subDirs = fs.readdirSync(moduleDir, { withFileTypes: true })
+    // 获取日期格式的子目录
+    const subDirs = dirEntries
         .filter(dirent => dirent.isDirectory() && isDateFormat(dirent.name))
         .map(dirent => dirent.name);
 
@@ -142,16 +139,22 @@ function processModuleArchive(moduleName, videoType) {
             const targetPath = path.join(targetBaseDir, videoFile);
             const recordLine = `${dateDir}/${videoFile}\n`;
 
-            console.log(`归档视频文件: ${sourcePath}`);
+            console.log(`归档视频文件: ${sourcePath} 到 ${targetPath}`);
             archiveVideo(sourcePath, targetPath, csvPath, recordLine);
         }
     }
 
-    // 在处理完所有文件后，备份CSV文件
-    if (fs.existsSync(csvPath)) {
-        console.log(`备份CSV文件: ${csvPath} 到 ${backupCsvPath}`);
-        fs.copyFileSync(csvPath, backupCsvPath);
-        console.log(`CSV文件备份完成`);
+    // 获取与日期子目录同级的视频文件
+    const rootVideoFiles = dirEntries
+        .filter(dirent => dirent.isFile() && ['.mp4', '.mov'].includes(path.extname(dirent.name).toLowerCase()))
+        .map(dirent => dirent.name);
+    // 处理每个视频文件
+    for (const videoFile of rootVideoFiles) {
+        const sourcePath = path.join(moduleDir, videoFile);
+        const targetPath = path.join(targetBaseDir, videoFile);
+
+        console.log(`归档视频文件: ${sourcePath} 到 ${targetPath}`);
+        archiveVideo(sourcePath, targetPath, csvPath, ``);
     }
 }
 
