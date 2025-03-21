@@ -4,13 +4,15 @@
 
 #### 主要功能
 
-1. 自动上传视频文件到微信视频号
+1. 自动上传视频文件到微信视频号、抖音、快手、小红书和 YouTube
 2. 从视频文件名自动生成 AI 单词卡片描述
 3. 支持多个单词组合（使用短横线分隔，如 word1-word2）
 4. 自动生成英语和日语对照单词卡片
 5. 支持限制每次上传的文件数量（默认最多5个）
 6. 上传成功后自动归档到日期子目录（格式：YYYYMMDD）
 7. 支持单词描述本地缓存，避免重复调用 API
+8. 支持从 CSV 文件读取视频标题和描述
+9. 支持 YouTube Shorts 视频上传，自动添加 #Shorts 标签
 
 
 ### 步骤
@@ -62,7 +64,6 @@ nrm use npm
 程序中的各个等待时间可以通过 `.env` 文件配置，所有时间单位为毫秒：
 
 ```ini
-
 # 单词描述缓存文件路径
 CSV_PATH=/path/to/custom/content-msg.csv
 
@@ -86,6 +87,16 @@ DELAY_AFTER_PUBLISH=8000
 
 # 上传间隔时间
 DELAY_BETWEEN_UPLOADS=5000
+
+# YouTube相关配置
+# YouTube频道ID
+YOUTUBE_CHANNEL_ID=UC1234567890
+
+# YouTube播放列表ID
+YOUTUBE_PLAYLIST_ID=PL1234567890
+
+# YouTube视频隐私状态
+YOUTUBE_PRIVACY=unlisted
 ```
 
 如果某个配置项未设置，程序会使用默认值。在网络较慢或系统响应较慢的情况下，可以适当增加这些等待时间。
@@ -93,36 +104,99 @@ DELAY_BETWEEN_UPLOADS=5000
 
 ### 运行命令
 
-    ```bash
-    # 安装依赖
-    npm install dotenv axios puppeteer
+```bash
+# 安装依赖
+npm install dotenv axios puppeteer
 
-    # 测试生成单词卡片
-    node ai_util.js
+# 测试生成单词卡片
+node ai_util.js
 
-    # 上传视频 (使用默认设置)
-    node upload_weichat.js
+# 使用统一入口上传视频
+node main.js --platform <平台名称> --dir <视频目录路径> [--collection <合集名称>] [--headless]
 
-    # 指定视频目录
-    node upload_weichat.js --dir /path/to/videos
+# 上传到微信视频号
+node main.js --platform weixin --dir /path/to/videos
 
-    # 使用无界面模式
-    node upload_weichat.js --headless
+# 上传到抖音
+node main.js --platform douyin --dir /path/to/videos
 
-    # 同时指定目录和无界面模式
-    node upload_weichat.js --dir /path/to/videos --headless
-    ```
+# 上传到快手
+node main.js --platform kuaishou --dir /path/to/videos
+
+# 上传到小红书
+node main.js --platform rednote --dir /path/to/videos
+
+# 上传到 YouTube
+node main.js --platform youtube --dir /path/to/videos
+
+# 查看帮助信息
+node main.js --help
+```
 
 ### 命令行参数
 
-- `--dir <path>`: 指定视频文件夹路径
+- `--platform <平台>`: 指定上传平台，必选
+  - 支持的平台：`weixin`, `rednote`, `kuaishou`, `douyin`, `youtube`
+  - 示例：`--platform youtube`
+
+- `--dir <目录>`: 指定视频文件目录，必选
   - 默认值：`F:\dev\workspace\contentUploader\video`
   - 示例：`--dir /path/to/videos`
 
-- `--headless`: 启用无界面模式
+- `--headless`: 使用无界面模式运行浏览器
   - 默认：关闭
   - 使用：直接添加 `--headless` 参数
   - 说明：首次使用需要先用非 headless 模式登录，登录信息会被保存供后续 headless 模式使用
+
+- `--collection <名称>`: 指定微信视频号合集名称
+  - 示例：`--collection 日语英语对照学`
+
+- `--csv <文件路径>`: 指定自定义CSV文件路径
+  - 示例：`--csv /path/to/content-msg.csv`
+  - 说明：CSV文件格式为：文件名,标题,描述
+
+- `--channel-id <ID>`: 指定YouTube频道ID
+  - 示例：`--channel-id UC1234567890`
+
+- `--playlist <ID>`: 指定YouTube播放列表ID
+  - 示例：`--playlist PL1234567890`
+
+- `--privacy <状态>`: 指定YouTube视频隐私状态
+  - 支持的值：`public`, `unlisted`, `private`
+  - 默认值：`unlisted`
+  - 示例：`--privacy unlisted`
+
+- `--title <标题>`: 指定视频标题
+  - 示例：`--title "我的视频标题"`
+
+- `--description <描述>`: 指定视频描述
+  - 示例：`--description "这是视频描述"`
+
+- `--tags <标签>`: 指定视频标签，多个标签用逗号分隔
+  - 示例：`--tags "Shorts,测试,API"`
+
+- `--help`: 显示帮助信息
+
+## 目录结构
+
+```plaintext
+├── video/                      # 视频存放位置
+├── wechat-video-uploader/
+│   ├── .env.example           # 参数配置模板
+│   ├── main.js                # 主入口文件
+│   ├── upload_weixin.js       # 微信视频号上传脚本
+│   ├── upload_douyin.js       # 抖音上传脚本
+│   ├── upload_kuaishou.js     # 快手上传脚本
+│   ├── upload_rednote.js      # 小红书上传脚本
+│   ├── upload_youtube.js     # YouTube上传脚本
+│   ├── ai_util.js            # AI 描述生成工具
+│   ├── upload_common.js       # 通用上传功能
+│   ├── gitlog.md             # 代码变更记录
+│   └── package.json          # 项目依赖配置
+├── pages/                     # 平台页面结构参考
+├── README.md                 # 项目说明文档
+└── LICENSE                   # 开源许可证
+```
 
 ### 打包
 

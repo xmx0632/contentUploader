@@ -1,5 +1,25 @@
 # Git Commit Log
 
+## 2025-03-22
+- docs(readme): 更新README.md文档，添加YouTube上传功能相关说明
+  - 添加YouTube相关命令行参数说明
+  - 更新目录结构，添加upload_youtube.js文件
+  - 添加YouTube相关配置项说明
+  - 更新主要功能列表，增加YouTube相关功能
+
+- refactor(youtube): 优化函数命名，提高代码可读性
+  - 将uploadVideos函数名改为uploadYoutubeVideos，更清晰地表明该函数的用途
+  - 更新main.js中的相应引用
+  - 保持函数命名一致性，与其他平台上传函数命名风格一致
+
+- feat(youtube): 将YouTube API上传功能集成到main.js中
+  - 在main.js中添加uploadToYouTube函数，实现统一调用入口
+  - 从 CSV 文件中读取视频标题和描述信息
+  - 添加对 --help 参数的支持，显示详细的命令行参数说明
+  - 在upload_common.js中添加对YouTube相关参数的支持
+  - 优化视频上传选项的构建逻辑，支持多种参数来源
+  - 确保视频描述中包含 #Shorts 标签，使视频被识别为短视频
+
 ## 2025-03-10
 - fix(upload): 优化抖音上传模块，解决导航超时问题
   - 增加默认导航超时时间从60秒到120秒

@@ -109,7 +109,14 @@ function parseCommandLineArgs() {
         isHeadless: false,
         collectionName: null,
         platform: null,
-        csvPath: null
+        csvPath: null,
+        channelId: null, // 添加对YouTube频道ID的支持
+        help: false,     // 添加帮助参数
+        playlistId: null, // YouTube播放列表ID
+        privacy: null,    // 视频隐私状态
+        tags: null,       // 视频标签
+        title: null,      // 视频标题
+        description: null  // 视频描述
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -141,9 +148,53 @@ function parseCommandLineArgs() {
                     i++;
                 }
                 break;
+            case '--channel-id':
+                if (args[i + 1]) {
+                    options.channelId = args[i + 1];
+                    i++;
+                }
+                break;
+            case '--help':
+                options.help = true;
+                break;
+            case '--playlist':
+                if (args[i + 1]) {
+                    options.playlistId = args[i + 1];
+                    i++;
+                }
+                break;
+            case '--privacy':
+                if (args[i + 1]) {
+                    options.privacy = args[i + 1];
+                    i++;
+                }
+                break;
+            case '--tags':
+                if (args[i + 1]) {
+                    options.tags = args[i + 1];
+                    i++;
+                }
+                break;
+            case '--title':
+                if (args[i + 1]) {
+                    options.title = args[i + 1];
+                    i++;
+                }
+                break;
+            case '--description':
+                if (args[i + 1]) {
+                    options.description = args[i + 1];
+                    i++;
+                }
+                break;
         }
     }
 
+    // 如果是帮助命令，不需要检查目录
+    if (options.help) {
+        return options;
+    }
+    
     // 如果没有指定目录，则使用环境变量或默认值
     if (!options.videoDir) {
         options.videoDir = process.env.VIDEO_DIR || 'F:\\dev\\workspace\\contentUploader\\video';

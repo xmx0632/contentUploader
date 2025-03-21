@@ -10,6 +10,7 @@ const { uploadToWeixin } = require('./upload_weixin');
 const { uploadToRednote } = require('./upload_rednote');
 const { uploadToKuaishou } = require('./upload_kuaishou');
 const { uploadToDouyin } = require('./upload_douyin');
+const { uploadYoutubeVideos } = require('./upload_youtube');
 
 // 加载 AI 描述生成工具
 let generateMultiWordDescription;
@@ -25,7 +26,7 @@ try {
 }
 
 // 支持的平台列表
-const SUPPORTED_PLATFORMS = ['weixin', 'rednote', 'kuaishou', 'douyin'];
+const SUPPORTED_PLATFORMS = ['weixin', 'rednote', 'kuaishou', 'douyin', 'youtube'];
 
 async function main() {
     console.log('视频上传工具启动...');
@@ -35,6 +36,34 @@ async function main() {
 
     // 解析命令行参数
     const options = parseCommandLineArgs();
+    
+    // 如果有--help参数，显示帮助信息并退出
+    if (options.help) {
+        console.log(`
+视频上传工具使用说明：
+
+基本用法：
+  node main.js --platform <平台名称> --dir <视频目录>
+
+支持的平台：
+  ${SUPPORTED_PLATFORMS.join(', ')}
+
+参数说明：
+  --platform <平台>     指定上传平台，必选
+  --dir <目录>         指定视频文件目录，必选
+  --headless           使用无界面模式运行浏览器
+  --collection <名称>  指定微信视频号合集名称
+  --csv <文件路径>    指定自定义CSV文件路径
+  --channel-id <ID>    指定YouTube频道ID
+  --playlist <ID>      指定YouTube播放列表ID
+  --privacy <状态>     指定YouTube视频隐私状态(public/unlisted/private)
+  --title <标题>       指定视频标题
+  --description <描述>  指定视频描述
+  --tags <标签>        指定视频标签，多个标签用逗号分隔
+  --help               显示帮助信息
+`);
+        process.exit(0);
+    }
     
     // 验证平台参数
     if (!options.platform) {
@@ -79,7 +108,8 @@ async function main() {
             'weixin': uploadToWeixin,
             'rednote': uploadToRednote,
             'kuaishou': uploadToKuaishou,
-            'douyin': uploadToDouyin
+            'douyin': uploadToDouyin,
+            'youtube': uploadYoutubeVideos  // 直接使用upload_youtube.js中的uploadYoutubeVideos函数
         };
 
         const uploadFunction = platformUploadMap[options.platform];
