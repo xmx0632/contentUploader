@@ -1,6 +1,12 @@
 # Git Commit Log
 
 ## 2025-03-22
+- feat(security): 添加浏览器反防爬虫配置
+  - 在upload_common.js中添加通用的浏览器反防爬虫配置
+  - 添加浏览器指纹修改功能，模拟真实浏览器行为
+  - 更新所有平台的上传文件，使用通用配置
+  - 增强防止被平台检测为自动化脚本的能力
+
 - docs(readme): 更新README.md文档，添加YouTube上传功能相关说明
   - 添加YouTube相关命令行参数说明
   - 更新目录结构，添加upload_youtube.js文件

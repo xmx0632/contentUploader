@@ -8,6 +8,29 @@ const readline = require('readline');
 const isPackaged = process.pkg !== undefined;
 const appRoot = isPackaged ? path.dirname(process.execPath) : __dirname;
 
+// 浏览器反防爬虫配置
+const BROWSER_ARGS = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-infobars',
+    '--window-position=0,0',
+    '--ignore-certifcate-errors',
+    '--ignore-certifcate-errors-spki-list',
+    '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"',
+    '--start-maximized'
+];
+
+// 浏览器指纹配置
+const BROWSER_FINGERPRINT = {
+    webgl_vendor: 'Google Inc. (Apple)',
+    webgl_renderer: 'ANGLE (Apple, Apple M1 Pro, OpenGL 4.1)',
+    navigator_platform: 'MacIntel',
+    navigator_vendor: 'Google Inc.',
+    navigator_language: 'zh-CN',
+    screen_resolution: { width: 1920, height: 1080 },
+    color_depth: 24
+};
+
 // 加载环境变量
 function loadEnvFile() {
     try {
@@ -95,10 +118,49 @@ async function loadCookies(page, platform = '') {
 async function initBrowser(isHeadless = false) {
     const options = {
         headless: isHeadless ? true : false,
-        args: ['--start-maximized'],
+        args: BROWSER_ARGS,
         defaultViewport: null
     };
     return await puppeteer.launch(options);
+}
+
+// 设置浏览器指纹
+async function setupBrowserFingerprint(page) {
+    await page.evaluateOnNewDocument((fingerprint) => {
+        // 覆盖WebGL信息
+        const getParameterProxyHandler = {
+            apply: function(target, thisArg, args) {
+                const param = args[0];
+                if (param === 37445) { // UNMASKED_VENDOR_WEBGL
+                    return fingerprint.webgl_vendor;
+                } else if (param === 37446) { // UNMASKED_RENDERER_WEBGL
+                    return fingerprint.webgl_renderer;
+                }
+                return Reflect.apply(target, thisArg, args);
+            }
+        };
+        
+        // 修改navigator对象
+        Object.defineProperties(navigator, {
+            platform: { value: fingerprint.navigator_platform },
+            vendor: { value: fingerprint.navigator_vendor },
+            language: { value: fingerprint.navigator_language },
+            languages: { value: [fingerprint.navigator_language, 'en-US', 'en'] }
+        });
+        
+        // 修改screen对象
+        Object.defineProperties(screen, {
+            width: { value: fingerprint.screen_resolution.width },
+            height: { value: fingerprint.screen_resolution.height },
+            colorDepth: { value: fingerprint.color_depth }
+        });
+        
+        // 修改WebGL
+        if (window.WebGLRenderingContext) {
+            const getParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = new Proxy(getParameter, getParameterProxyHandler);
+        }
+    }, BROWSER_FINGERPRINT);
 }
 
 // 解析命令行参数
@@ -285,5 +347,8 @@ module.exports = {
     loadCookies,
     initBrowser,
     parseCommandLineArgs,
-    archiveVideo
+    archiveVideo,
+    BROWSER_ARGS,
+    BROWSER_FINGERPRINT,
+    setupBrowserFingerprint
 };

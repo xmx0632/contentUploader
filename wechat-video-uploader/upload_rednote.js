@@ -1,7 +1,6 @@
-// const { delay, loadCookies, saveCookies } = require('./upload_common');
 const path = require('path');
 const puppeteer = require('puppeteer');
-const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo } = require('./upload_common');
+const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARGS, BROWSER_FINGERPRINT, setupBrowserFingerprint } = require('./upload_common');
 
 // 检查登录状态
 async function checkLogin(page) {
@@ -55,11 +54,14 @@ async function uploadToRednote(browser, videoFiles, options) {
     // 启动浏览器
     browser = await puppeteer.launch({
         headless: false, // 先用有界面模式启动
-        args: ['--start-maximized'],
+        args: BROWSER_ARGS,
         defaultViewport: null
     });
     
     page = await browser.newPage();
+    
+    // 设置浏览器指纹
+    await setupBrowserFingerprint(page);
     
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'rednote');
@@ -94,9 +96,12 @@ async function uploadToRednote(browser, videoFiles, options) {
         await browser.close();
         browser = await puppeteer.launch({
             headless: true,
+            args: BROWSER_ARGS,
             defaultViewport: null
         });
         page = await browser.newPage();
+        // 设置浏览器指纹
+        await setupBrowserFingerprint(page);
         await loadCookies(page, 'rednote');
     }
 

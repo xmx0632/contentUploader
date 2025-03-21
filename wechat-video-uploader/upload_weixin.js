@@ -1,6 +1,6 @@
 const path = require('path');
 const puppeteer = require('puppeteer');
-const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo } = require('./upload_common');
+const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARGS, BROWSER_FINGERPRINT, setupBrowserFingerprint } = require('./upload_common');
 
 // 检查登录状态
 async function checkLogin(page) {
@@ -49,11 +49,14 @@ async function uploadToWeixin(browser, videoFiles, options) {
     console.log(`使用${initialHeadless ? '无头' : '有界面'}模式启动浏览器...`);
     browser = await puppeteer.launch({
         headless: initialHeadless,
-        args: ['--start-maximized'],
+        args: BROWSER_ARGS,
         defaultViewport: null
     });
 
     page = await browser.newPage();
+    
+    // 设置浏览器指纹
+    await setupBrowserFingerprint(page);
 
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'weixin');
@@ -71,7 +74,7 @@ async function uploadToWeixin(browser, videoFiles, options) {
         // 重新以有界面模式启动浏览器
         browser = await puppeteer.launch({
             headless: false,
-            args: ['--start-maximized'],
+            args: BROWSER_ARGS,
             defaultViewport: null
         });
 

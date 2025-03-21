@@ -1,10 +1,12 @@
 const path = require('path');
 const puppeteer = require('puppeteer');
-const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo } = require('./upload_common');
+const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARGS, BROWSER_FINGERPRINT, setupBrowserFingerprint } = require('./upload_common');
 
 // 定义导航配置常量
 const NAVIGATION_TIMEOUT = parseInt(process.env.NAVIGATION_TIMEOUT || '120000'); // 默认120秒
 const MAX_RETRY_COUNT = parseInt(process.env.MAX_RETRY_COUNT || '3'); // 默认重试3次
+
+
 
 // 获取合集名称
 function getCollectionName(options) {
@@ -64,11 +66,14 @@ async function uploadToDouyin(browser, videoFiles, options) {
     // 启动浏览器
     browser = await puppeteer.launch({
         headless: false, // 先用有界面模式启动
-        args: ['--start-maximized'],
+        args: BROWSER_ARGS,
         defaultViewport: null
     });
     
     page = await browser.newPage();
+    
+    // 设置浏览器指纹
+    await setupBrowserFingerprint(page);
     
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'douyin');
