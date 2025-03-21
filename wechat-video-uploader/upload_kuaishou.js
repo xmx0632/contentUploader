@@ -431,8 +431,9 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                     });
 
                     try {
-                        // 点击发布按钮
-                        await page.click(publishButtonSelector);
+                        // 点击发布按钮 - 使用Puppeteer的点击方法
+                        publishButton = await page.$(publishButtonSelector);
+                        await publishButton.click();
                         console.log('已点击发布按钮');
                     } catch (clickError) {
                         console.error('点击发布按钮失败:', clickError.message);
@@ -441,6 +442,9 @@ async function uploadToKuaishou(browser, videoFiles, options) {
 
                     // 等待提交完成
                     await page.waitForNavigation({ waitUntil: 'networkidle0' });
+
+                    //多等会
+                    await delay(3000);
                 }
             } catch (error) {
                 console.error('等待发布按钮出现失败:', error.message);
