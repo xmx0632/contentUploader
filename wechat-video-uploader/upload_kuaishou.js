@@ -99,8 +99,30 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             });
 
             // 选择视频文件
-            // 等待上传按钮出现
-            await page.waitForSelector('._upload-btn_hlszi_77', { timeout: 10000 });
+            console.log('正在识别上传按钮选择器...');
+            
+            // 动态识别上传按钮选择器
+            const uploadBtnSelector = await page.$$eval('button', buttons => {
+                // 查找所有包含 _upload-btn_ 的类名
+                const uploadBtn = buttons.find(btn => {
+                    const className = btn.className || '';
+                    return className.includes && className.includes('_upload-btn_');
+                });
+                
+                return uploadBtn ? '.' + uploadBtn.className : null;
+            });
+
+            if (!uploadBtnSelector) {
+                throw new Error('无法找到上传按钮，请检查页面是否加载完成');
+            }
+
+            console.log(`找到上传按钮选择器: ${uploadBtnSelector}`);
+
+            // 等待上传按钮出现并可见
+            await page.waitForSelector(uploadBtnSelector, { 
+                timeout: 10000,
+                visible: true
+            });
 
             // 等待文件输入框出现
             await page.waitForSelector('input[type="file"][accept*="video"]', { timeout: 10000 });
@@ -108,7 +130,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             // 选择视频文件
             const [fileChooser] = await Promise.all([
                 page.waitForFileChooser(),
-                page.click('._upload-btn_hlszi_77')
+                page.click(uploadBtnSelector)
             ]);
             await fileChooser.accept([videoFile]);
 
@@ -377,6 +399,8 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             // 提交视频
             console.log('点击发布按钮...');
             // 等待发布按钮出现
+
+            
             await page.waitForSelector('div._button_si04s_1._button-primary_si04s_60', { 
                 timeout: 10000,
                 visible: true
