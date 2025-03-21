@@ -99,6 +99,11 @@ fix(build): 完全重写 ai_util.js 模块以彻底解决序列化问题
 - 版本号升级到 0.0.8.0
 
 ci(build): 优化 GitHub Actions 构建流程
+
+fix(upload_kuaishou): 优化页面加载和元素识别时间
+- 增加页面加载等待时间从 5 秒到 8 秒
+- 增加选择器超时时间从 5 秒到 10 秒
+- 保持多级选择器机制，确保元素识别的可靠性
 - 修改为在单一 macOS 环境中一次性构建所有平台的可执行文件
 - 更新本地构建脚本 build.sh，使用 pkg . --public 命令打包所有平台
 - 在 GitHub Actions 中全局安装 pkg 命令
@@ -106,6 +111,39 @@ ci(build): 优化 GitHub Actions 构建流程
 - 增强构建日志输出，方便调试
 
 fix(csv): 修复无法读取特定格式 CSV 文件的问题
+
+style(css): 修复快手上传页面的 CSS 兼容性问题
+- 添加标准浏览器前缀
+- 修复 appearance、transform-style、backface-visibility、transition、line-clamp 等属性兼容性
+- 优化页面样式在不同浏览器下的一致性
+
+fix(upload): 修复快手上传按钮不可点击的问题
+- 使用 button 元素选择器替代 div 选择器
+- 添加动态类名识别机制
+- 优化按钮可见性检测
+
+fix(puppeteer): 修复 waitForXPath 不可用的问题
+- 使用 waitForSelector 替代 waitForXPath
+- 优化按钮文本内容检测
+- 使用父元素进行点击操作
+
+fix(kuaishou): 强化发布按钮点击逻辑
+- 实现三种不同的点击方法尝试
+- 使用 page.click 直接点击
+- 使用 evaluate 在浏览器上下文中执行点击
+- 使用文本内容查找并点击按钮
+- 增强错误处理和日志输出
+
+fix(kuaishou): 修复发布按钮选择器问题
+- 使用确切的选择器 ._button_3a3lq_1._button-primary_3a3lq_60
+- 移除全局变量存储选择器的方式
+- 增加按文本内容查找按钮的备用方法
+- 修复点击后等待时间
+
+fix(kuaishou): 简化发布按钮点击逻辑
+- 移除重复的点击操作
+- 仅保留一种点击方式，使用 page.click 直接点击
+- 增强错误处理和日志输出
 - 修改 ai_util.js 中的正则表达式，支持以 poem- 开头的 CSV 文件名
 - 在 upload_douyin.js 中增加对 csvPath 参数的处理，确保正确设置 CSV 文件路径
 - 增强日志输出，方便追踪 CSV 文件加载过程

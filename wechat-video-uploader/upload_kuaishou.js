@@ -89,18 +89,18 @@ async function uploadToKuaishou(browser, videoFiles, options) {
     }
 
     try {
-        
+
         // 开始上传视频
         for (const videoFile of videoFiles) {
             console.log(`正在上传视频到快手: ${videoFile}`);
-            
+
             await page.goto('https://cp.kuaishou.com/article/publish/video?tabType=1', {
                 waitUntil: 'networkidle0'
             });
 
             // 选择视频文件
             console.log('正在识别上传按钮选择器...');
-            
+
             // 动态识别上传按钮选择器
             const uploadBtnSelector = await page.$$eval('button', buttons => {
                 // 查找所有包含 _upload-btn_ 的类名
@@ -108,7 +108,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                     const className = btn.className || '';
                     return className.includes && className.includes('_upload-btn_');
                 });
-                
+
                 return uploadBtn ? '.' + uploadBtn.className : null;
             });
 
@@ -119,7 +119,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             console.log(`找到上传按钮选择器: ${uploadBtnSelector}`);
 
             // 等待上传按钮出现并可见
-            await page.waitForSelector(uploadBtnSelector, { 
+            await page.waitForSelector(uploadBtnSelector, {
                 timeout: 10000,
                 visible: true
             });
@@ -154,7 +154,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                 if (words.length > 0 && options.hasAIDescriptionGenerator) {
                     // 使用本地导入的 AI 工具生成描述
                     const { generateMultiWordDescription, setCsvFilePath } = require('./ai_util.js');
-                    
+
                     // 如果指定了 CSV 文件路径，则设置它
                     if (options.csvPath) {
                         console.log(`设置 CSV 文件路径: ${options.csvPath}`);
@@ -162,7 +162,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                     } else {
                         console.log('未指定 CSV 文件路径，使用默认路径');
                     }
-                    
+
                     description = await generateMultiWordDescription(words.join('-'));
                     console.log('生成的描述：', description);
                 }
@@ -188,10 +188,10 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                     const className = div.className || '';
                     return className.includes && className.includes('_description_');
                 });
-                
+
                 return descriptionDiv ? '.' + descriptionDiv.className : null;
             });
-            
+
             if (!descriptionSelector) {
                 console.log('警告：无法识别描述输入框选择器，将尝试使用默认选择器');
                 await page.waitForSelector('div[class*="_description_"]', { timeout: 10000 });
@@ -214,7 +214,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
 
             // 等待封面图片加载
             console.log('等待封面图片加载...');
-            
+
             // // 动态识别以 _recommend-cover-item_ 开头的选择器
             // console.log('正在识别封面选择器...');
             // const coverSelector = await page.$$eval('div', divs => {
@@ -223,10 +223,10 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             //         const className = div.className || '';
             //         return className.includes && className.includes('_recommend-cover-item_');
             //     });
-                
+
             //     return coverDiv ? '.' + coverDiv.className : null;
             // });
-            
+
             // if (!coverSelector) {
             //     console.log('警告：无法识别封面选择器，将尝试使用默认选择器');
             //     await page.waitForSelector('._recommend-cover-item_', { timeout: 30000 });
@@ -298,10 +298,10 @@ async function uploadToKuaishou(browser, videoFiles, options) {
 
                             console.log('Debug: Found dropdown with text:', placeholder.textContent);
                             console.log('Debug: Parent element class:', placeholder.parentElement?.className);
-                            
+
                             // 尝试多种方式点击下拉框
                             console.log('Debug: 尝试多种方式点击下拉框...');
-                            
+
                             // 1. 尝试点击父级选择器
                             const parentSelector = placeholder.closest('.ant-select-selector');
                             if (parentSelector) {
@@ -357,7 +357,7 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                                 });
                                 return matches;
                             });
-                            
+
                             if (!targetOption) {
                                 console.log('Debug: Available options:', Array.from(allOptions).map(opt => ({
                                     title: opt.querySelector('span._options-title_ggsh0_6')?.textContent,
@@ -400,47 +400,54 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             console.log('点击发布按钮...');
             // 等待发布按钮出现
 
-            
-            await page.waitForSelector('div._button_si04s_1._button-primary_si04s_60', { 
-                timeout: 10000,
-                visible: true
-            });
-            
-            // 点击发布按钮
-            const publishResult = await page.evaluate(() => {
-                try {
-                    // 找到发布按钮
-                    const publishBtn = document.querySelector('div._button_si04s_1._button-primary_si04s_60');
-                    if (!publishBtn) {
-                        console.log('未找到发布按钮');
-                        return false;
+            try {
+                console.log('等待发布按钮出现...');
+                // 动态识别发布按钮选择器
+                const publishButtonSelector = await page.$$eval('div', divs => {
+                    // 查找包含"发布"文本的按钮
+                    const publishButton = Array.from(divs).find(div => {
+                        // 检查是否有子元素包含"发布"文本
+                        return div.querySelector('div') &&
+                            div.querySelector('div').textContent === '发布' &&
+                            div.className &&
+                            div.className.includes('_button_') &&
+                            div.className.includes('_button-primary_');
+                    });
+
+                    return publishButton ? '.' + publishButton.className.split(' ').join('.') : null;
+                });
+
+                if (!publishButtonSelector) {
+                    console.log('警告：无法识别发布按钮选择器，将尝试使用备用方法');
+                    await page.waitForSelector('div[class*="_button-primary_"] div:has-text("发布")', {
+                        timeout: 10000,
+                        visible: true
+                    });
+                } else {
+                    console.log(`成功识别发布按钮选择器: ${publishButtonSelector}`);
+                    await page.waitForSelector(publishButtonSelector, {
+                        timeout: 10000,
+                        visible: true
+                    });
+
+                    try {
+                        // 点击发布按钮
+                        await page.click(publishButtonSelector);
+                        console.log('已点击发布按钮');
+                    } catch (clickError) {
+                        console.error('点击发布按钮失败:', clickError.message);
+                        throw new Error('点击发布按钮失败');
                     }
-                    
-                    // 检查按钮文本
-                    const btnText = publishBtn.textContent?.trim();
-                    console.log('找到按钮:', btnText);
-                    
-                    if (btnText !== '发布') {
-                        console.log('按钮文本不匹配:', btnText);
-                        return false;
-                    }
-                    
-                    // 点击按钮
-                    publishBtn.click();
-                    console.log('已点击发布按钮');
-                    return true;
-                } catch (error) {
-                    console.error('点击发布按钮失败:', error);
-                    return false;
+
+                    // 等待提交完成
+                    await page.waitForNavigation({ waitUntil: 'networkidle0' });
                 }
-            });
-            
-            if (!publishResult) {
-                throw new Error('点击发布按钮失败');    
+            } catch (error) {
+                console.error('等待发布按钮出现失败:', error.message);
+                throw new Error('未能找到发布按钮');
             }
 
-            // 等待提交完成
-            await page.waitForNavigation({ waitUntil: 'networkidle0' });
+
 
             // 归档视频文件
             const videoDir = path.dirname(videoFile);
