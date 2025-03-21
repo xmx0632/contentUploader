@@ -395,10 +395,47 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                     console.error('选择合集过程出错:', error.message);
                 }
             }
+            
+            // 检查是否有"作品信息"对话框，如果有则关闭
+            try {
+                // 等待一段时间，确保对话框有足够时间显示
+                await delay(2000);
 
-            // 提交视频
-            console.log('点击发布按钮...');
-            // 等待发布按钮出现
+                // 检查是否存在作品信息对话框
+                const infoDialogExists = await page.evaluate(() => {
+                    // 查找包含"作品信息"的元素
+                    const infoTitleElement = Array.from(document.querySelectorAll('div')).find(div =>
+                        div.className && div.className.includes('_tooltip-title_') &&
+                        div.textContent === '作品信息'
+                    );
+
+                    if (infoTitleElement) {
+                        // 找到关闭按钮并点击
+                        const closeButton = infoTitleElement.parentElement.querySelector('div[class*="_close_"]');
+                        if (closeButton) {
+                            closeButton.click();
+                            return true;
+                        }
+
+                        // 如果找不到关闭按钮，尝试找"下一步"按钮并点击
+                        const nextButton = infoTitleElement.parentElement.querySelector('div[class*="_button-primary_"]');
+                        if (nextButton) {
+                            nextButton.click();
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                if (infoDialogExists) {
+                    console.log('检测到作品信息对话框并已尝试关闭');
+                    // 等待对话框消失
+                    await delay(1000);
+                }
+            } catch (dialogError) {
+                console.log('检查作品信息对话框时出错:', dialogError.message);
+            }
+
 
             try {
                 console.log('等待发布按钮出现...');
@@ -440,11 +477,32 @@ async function uploadToKuaishou(browser, videoFiles, options) {
                         throw new Error('点击发布按钮失败');
                     }
 
-                    // 等待提交完成
-                    await page.waitForNavigation({ waitUntil: 'networkidle0' });
-
-                    //多等会
-                    await delay(3000);
+                    // 多等一会儿，确保发布请求已经发送
+                    await delay(5000);
+                    
+                    // 检查是否有发布成功的提示信息
+                    const successMessage = await page.evaluate(() => {
+                        // 查找可能包含成功信息的元素
+                        const successElements = Array.from(document.querySelectorAll('div')).filter(div => 
+                            div.textContent && (
+                                div.textContent.includes('发布成功') || 
+                                div.textContent.includes('提交成功')
+                            )
+                        );
+                        return successElements.length > 0;
+                    });
+                    
+                    if (successMessage) {
+                        console.log('检测到发布成功提示');
+                    } else {
+                        console.log('未检测到明确的发布成功提示，但将继续执行');
+                    }
+                    
+                    // 不等待导航完成，而是主动跳转到发布页面
+                    console.log('正在跳转回发布页面...');
+                    await page.goto('https://cp.kuaishou.com/article/publish/video?tabType=1', {
+                        waitUntil: 'networkidle0'
+                    });
                 }
             } catch (error) {
                 console.error('等待发布按钮出现失败:', error.message);
