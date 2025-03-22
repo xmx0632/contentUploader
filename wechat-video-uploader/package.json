@@ -16,7 +16,6 @@
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
     "dotenv": "^16.4.7",
-    "google-auth-library": "^9.15.1",
     "googleapis": "^133.0.0",
     "puppeteer": "^22.15.0"
   },
@@ -45,8 +44,7 @@
       "node_modules/axios/**/*",
       "node_modules/csv-parser/**/*",
       "node_modules/csv-writer/**/*",
-      "node_modules/googleapis/**/*",
-      "node_modules/google-auth-library/**/*"
+      "node_modules/googleapis/**/*"
     ],
     "targets": [
       "node18-macos-arm64",

@@ -1,6 +1,11 @@
 # Git Commit Log
 
 ## 2025-03-22
+- perf(deps): 优化依赖项，减小打包体积
+  - 移除google-auth-library的显式依赖，因为它已经是googleapis的依赖项
+  - 优化package.json中的assets部分，移除重复依赖
+  - 减小最终打包体积，提高运行效率
+
 - feat(security): 添加浏览器反防爬虫配置
   - 在upload_common.js中添加通用的浏览器反防爬虫配置
   - 添加浏览器指纹修改功能，模拟真实浏览器行为
