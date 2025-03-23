@@ -135,6 +135,7 @@ async function main() {
     } finally {
         console.log('正在关闭浏览器...');
         await browser.close();
+        process.exit(0);
     }
 }
 

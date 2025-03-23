@@ -521,11 +521,11 @@ async function uploadToKuaishou(browser, videoFiles, options) {
             const videoDir = path.dirname(videoFile);
             await archiveVideo(videoFile, videoDir);
         }
+        // 注意: 不在这里关闭浏览器，由 main.js 统一管理
     } catch (error) {
         console.error('上传过程中发生错误:', error);
+        // 不在这里关闭浏览器，由 main.js 统一管理
         throw error;
-    } finally {
-        await browser.close();
     }
 }
 

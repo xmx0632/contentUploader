@@ -396,7 +396,7 @@ if (module === require.main) {
  * @param {string} options.playlistId - 播放列表ID
  * @returns {Promise<void>}
  */
-async function uploadYoutubeVideos(videoFiles, options = {}) {
+async function uploadYoutubeVideos(browser, videoFiles, options = {}) {
   console.log('使用YouTube API上传视频...');
   
   // 读取CSV文件中的标题和描述信息
@@ -430,33 +430,51 @@ async function uploadYoutubeVideos(videoFiles, options = {}) {
     console.log(`未找到 CSV 文件或未指定路径，将使用默认标题和描述`);
   }
   
-  for (const videoFile of videoFiles) {
-    try {
-      console.log(`正在上传视频: ${videoFile}`);
-      const baseFileName = path.basename(videoFile);
-      const videoInfo = videoInfoMap[baseFileName] || {};
-      
-      // 构建YouTube上传选项
-      const youtubeOptions = {
-        title: videoInfo.title || options.title || path.basename(videoFile, path.extname(videoFile)),
-        description: videoInfo.description || options.description || '这是通过 YouTube API 上传的测试视频\n#Shorts',
-        tags: options.tags ? (typeof options.tags === 'string' ? options.tags.split(',') : options.tags) : ['Shorts', 'API', '测试'],
-        privacyStatus: options.privacy || 'unlisted',
-        playlistId: options.playlistId || process.env.YOUTUBE_PLAYLIST_ID
-      };
-      
-      // 确保描述中包含 #Shorts 标签
-      if (!youtubeOptions.description.includes('#Shorts')) {
-        youtubeOptions.description += '\n#Shorts';
+  try {
+    for (const videoFile of videoFiles) {
+      try {
+        console.log(`正在上传视频: ${videoFile}`);
+        const baseFileName = path.basename(videoFile);
+        const videoInfo = videoInfoMap[baseFileName] || {};
+        
+        // 构建YouTube上传选项
+        const youtubeOptions = {
+          title: videoInfo.title || options.title || path.basename(videoFile, path.extname(videoFile)),
+          description: videoInfo.description || options.description || '这是通过 YouTube API 上传的测试视频\n#Shorts',
+          tags: options.tags ? (typeof options.tags === 'string' ? options.tags.split(',') : options.tags) : ['Shorts', 'API', '测试'],
+          privacyStatus: options.privacy || 'unlisted',
+          playlistId: options.playlistId || process.env.YOUTUBE_PLAYLIST_ID
+        };
+        
+        // 确保描述中包含 #Shorts 标签
+        if (!youtubeOptions.description.includes('#Shorts')) {
+          youtubeOptions.description += '\n#Shorts';
+        }
+        
+        console.log('上传选项:', youtubeOptions);
+        
+        await runSample(videoFile, youtubeOptions);
+        console.log(`视频 ${videoFile} 上传成功!`);
+      } catch (error) {
+        console.error(`视频 ${videoFile} 上传失败:`, error.message);
       }
-      
-      console.log('上传选项:', youtubeOptions);
-      
-      await runSample(videoFile, youtubeOptions);
-      console.log(`视频 ${videoFile} 上传成功!`);
-    } catch (error) {
-      console.error(`视频 ${videoFile} 上传失败:`, error.message);
     }
+    
+    // 正常执行完成时关闭 readline 接口
+    if (rl) {
+      rl.close();
+      console.log('已关闭readline接口');
+    }
+  } catch (error) {
+    console.error('上传过程中发生错误:', error);
+    
+    // 发生错误时也关闭 readline 接口
+    if (rl) {
+      rl.close();
+      console.log('已关闭readline接口(错误处理)');
+    }
+    
+    throw error;
   }
 }
 

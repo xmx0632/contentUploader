@@ -363,13 +363,10 @@ async function uploadToRednote(browser, videoFiles, options) {
             // 等待一下再继续下一个
             await delay(parseInt(process.env.DELAY_BETWEEN_UPLOADS || '5000'));
         }
-
-        await browser.close();
+        // 注意: 不在这里关闭浏览器，由 main.js 统一管理
     } catch (error) {
         console.error('上传过程中发生错误:', error);
-        if (browser) {
-            await browser.close();
-        }
+        // 不在这里关闭浏览器，由 main.js 统一管理
         throw error;
     }
 }

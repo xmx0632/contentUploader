@@ -669,13 +669,10 @@ async function uploadToWeixin(browser, videoFiles, options) {
             console.log(`等待 ${delayBetweenVideos/1000} 秒后继续下一个视频的上传...`);
             await delay(delayBetweenVideos);
         }
-
-        await browser.close();
+        // 注意: 不在这里关闭浏览器，由 main.js 统一管理
     } catch (error) {
         console.error('上传过程中发生错误:', error);
-        if (browser) {
-            await browser.close();
-        }
+        // 不在这里关闭浏览器，由 main.js 统一管理
         throw error;
     }
 }
