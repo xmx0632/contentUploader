@@ -294,7 +294,17 @@ async function archiveVideo(videoFile, baseDir) {
         const sourceDir = path.dirname(videoFile);
         const csvPath = path.join(sourceDir, '0-released.csv');
         const dateFormat = path.basename(dateDir);
-        const recordLine = `${dateFormat}/${videoFileName}.mp4\n`;
+        
+        // 生成当前时间戳，格式：年月日时分秒
+        const timestamp = today.getFullYear().toString() +
+            (today.getMonth() + 1).toString().padStart(2, '0') +
+            today.getDate().toString().padStart(2, '0') +
+            today.getHours().toString().padStart(2, '0') +
+            today.getMinutes().toString().padStart(2, '0') +
+            today.getSeconds().toString().padStart(2, '0');
+        
+        // 新的记录行包含时间戳
+        const recordLine = `${dateFormat}/${videoFileName}.mp4,${timestamp}\n`;
 
         // 如果CSV文件不存在，则创建它并扫描已有的日期目录
         if (!fs.existsSync(csvPath)) {
@@ -314,7 +324,8 @@ async function archiveVideo(videoFile, baseDir) {
                         .filter(file => file.toLowerCase().endsWith('.mp4'));
 
                     for (const file of files) {
-                        csvContent += `${dirName}/${file}\n`;
+                        // 对于已有文件，添加一个默认的时间戳，保持兼容性
+                        csvContent += `${dirName}/${file},20250101010101\n`;
                     }
                 }
             }
@@ -324,7 +335,24 @@ async function archiveVideo(videoFile, baseDir) {
             console.log(`创建记录文件并写入已有记录: ${csvPath}`);
             console.log(`追加当前文件记录: ${recordLine.trim()}`);
         } else {
-            // 如果文件存在，则追加记录
+            // 如果文件存在，则需要检查文件格式并追加记录
+            const existingContent = fs.readFileSync(csvPath, 'utf8');
+            
+            // 检查是否已经包含时间戳列
+            const hasTimestampColumn = existingContent.split('\n').some(line => line.includes(','));
+            
+            if (!hasTimestampColumn && existingContent.trim() !== '') {
+                // 如果不包含时间戳列且文件不为空，需要更新文件格式
+                const updatedContent = existingContent.split('\n')
+                    .filter(line => line.trim() !== '')
+                    .map(line => `${line},20250101010101`)
+                    .join('\n') + '\n';
+                
+                fs.writeFileSync(csvPath, updatedContent);
+                console.log(`更新CSV文件格式，添加时间戳列并设置默认时间戳: ${csvPath}`);
+            }
+            
+            // 追加记录
             fs.appendFileSync(csvPath, recordLine);
             console.log(`更新记录文件: ${csvPath}`);
         }
