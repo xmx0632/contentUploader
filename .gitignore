@@ -135,3 +135,6 @@ video/*/*
 
 # windsurf rules
 .windsurfrules
+
+video_stats.xlsx
+video_trend.png
