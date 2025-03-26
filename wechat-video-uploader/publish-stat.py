@@ -61,6 +61,46 @@ def get_released_videos(csv_path):
         return [line.strip() for line in f if line.strip()]
 
 
+def parse_release_time(line):
+    """
+    从CSV行中解析发布时间
+    格式示例: 20250302/video.mp4,20250302121530
+    返回小时数(0-23)
+    """
+    parts = line.split(',')
+    if len(parts) >= 2 and parts[1].strip() and len(parts[1].strip()) == 14:
+        try:
+            time_str = parts[1].strip()
+            # 提取小时部分 (第9-10位)
+            hour = int(time_str[8:10])
+            return hour
+        except (ValueError, IndexError):
+            return None
+    return None
+
+
+def parse_release_datetime(line):
+    """
+    从CSV行中解析发布日期和时间
+    格式示例: 20250302/video.mp4,20250302121530
+    返回(日期, 小时)元组
+    """
+    parts = line.split(',')
+    if len(parts) >= 2 and parts[1].strip() and len(parts[1].strip()) == 14:
+        try:
+            time_str = parts[1].strip()
+            # 提取日期部分 (前8位)
+            date_str = time_str[:8]
+            # 提取小时部分 (第9-10位)
+            hour = int(time_str[8:10])
+            # 转换为日期对象
+            date_obj = datetime.strptime(date_str, "%Y%m%d").date()
+            return (date_obj, hour)
+        except (ValueError, IndexError):
+            return None
+    return None
+
+
 def analyze_platform(platform):
     """
     分析特定平台的视频发布数据
@@ -89,6 +129,24 @@ def analyze_platform(platform):
         release_dates = [d for d in release_dates if d is not None]
         date_counts = Counter(release_dates)
         
+        # 统计发布时间段分布
+        hour_counts = Counter()
+        # 统计日期+小时分布
+        date_hour_counts = Counter()
+        
+        with open(released_csv, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    hour = parse_release_time(line)
+                    if hour is not None:
+                        hour_counts[hour] += 1
+                    
+                    # 解析日期+小时
+                    datetime_info = parse_release_datetime(line)
+                    if datetime_info:
+                        date_obj, hour = datetime_info
+                        date_hour_counts[(date_obj, hour)] += 1
+        
         # 提取视频名称（不含日期目录和扩展名）
         video_names = []
         for video in released_videos:
@@ -109,6 +167,8 @@ def analyze_platform(platform):
             "未发布数": total_videos - released_count,
             "发布率": round(released_count / total_videos * 100, 2) if total_videos > 0 else 0,
             "日期分布": date_counts,
+            "时间段分布": hour_counts,
+            "日期时间分布": date_hour_counts,  # 添加日期+小时分布
             "视频列表": video_names
         }
     
@@ -162,6 +222,271 @@ def generate_daily_stats(all_data):
     daily_stats = [(date, daily_counts[date]) for date in sorted_dates]
     
     return daily_stats
+
+
+def generate_hourly_stats(all_data):
+    """
+    生成每小时发布统计
+    """
+    hourly_counts = defaultdict(int)
+    
+    for platform in all_data:
+        for lang_pair in all_data[platform]:
+            if "时间段分布" in all_data[platform][lang_pair]:
+                hour_counts = all_data[platform][lang_pair]["时间段分布"]
+                for hour, count in hour_counts.items():
+                    hourly_counts[hour] += count
+    
+    # 按小时排序
+    sorted_hours = sorted(hourly_counts.keys())
+    hourly_stats = [(hour, hourly_counts[hour]) for hour in sorted_hours]
+    
+    return hourly_stats
+
+
+def generate_date_hour_stats(all_data):
+    """
+    生成按日期+小时的发布统计
+    """
+    date_hour_counts = defaultdict(int)
+    
+    for platform in all_data:
+        for lang_pair in all_data[platform]:
+            if "日期时间分布" in all_data[platform][lang_pair]:
+                dh_counts = all_data[platform][lang_pair]["日期时间分布"]
+                for (date, hour), count in dh_counts.items():
+                    date_hour_counts[(date, hour)] += count
+    
+    # 按日期和小时排序
+    sorted_date_hours = sorted(date_hour_counts.keys())
+    date_hour_stats = [((date, hour), date_hour_counts[(date, hour)]) for date, hour in sorted_date_hours]
+    
+    return date_hour_stats
+
+
+def plot_hourly_trend(hourly_stats, output_file=None):
+    """
+    绘制小时发布趋势图
+    """
+    if not hourly_stats:
+        print("没有足够的数据来绘制小时趋势图")
+        return
+    
+    # 导入字体管理模块
+    import matplotlib.font_manager as fm
+    
+    # 设置支持中文显示的字体
+    try:
+        # 尝试使用系统中可能存在的中文字体
+        chinese_fonts = ['Arial Unicode MS', 'SimHei', 'STHeiti', 'Microsoft YaHei', 'PingFang SC', 'Heiti SC']
+        font_path = None
+        
+        for font in chinese_fonts:
+            try:
+                font_path = fm.findfont(fm.FontProperties(family=font))
+                if font_path and 'ttf' in font_path.lower() and not font_path.endswith('DejaVuSans.ttf'):
+                    break
+            except:
+                continue
+        
+        if font_path and not font_path.endswith('DejaVuSans.ttf'):
+            plt.rcParams['font.family'] = fm.FontProperties(fname=font_path).get_name()
+        else:
+            # 如果找不到中文字体，使用英文标签
+            print("警告: 未找到支持中文的字体，将使用英文标签")
+            plt.rcParams['font.family'] = 'sans-serif'
+    except Exception as e:
+        print(f"设置字体时出错: {e}")
+        plt.rcParams['font.family'] = 'sans-serif'
+    
+    # 将数据转换为小时和计数列表
+    hours = [f"{hour}:00" for hour, _ in hourly_stats]
+    counts = [count for _, count in hourly_stats]
+    
+    # 使用更小的图像尺寸
+    plt.figure(figsize=(10, 6), dpi=100)
+    plt.bar(range(len(hours)), counts, color='lightgreen', width=0.7)
+    
+    # 设置 x 轴刻度为小时文本
+    plt.xticks(range(len(hours)), hours, rotation=45, fontsize=8)
+    
+    # 添加数据标签，但只对较大的值显示数字
+    for i, count in enumerate(counts):
+        if count > 5:  # 只对大于5的值显示标签
+            plt.text(i, count + 1, str(count), ha='center', va='bottom', fontsize=8)
+    
+    # 设置图表样式 - 如果字体问题未解决，使用英文标签
+    if plt.rcParams['font.family'] == 'sans-serif':
+        plt.xlabel('Hour of Day', fontsize=12)
+        plt.ylabel('Number of Videos', fontsize=12)
+        plt.title('Hourly Video Release Distribution', fontsize=16)
+    else:
+        plt.xlabel('小时', fontsize=12)
+        plt.ylabel('发布视频数量', fontsize=12)
+        plt.title('视频发布时间段分布', fontsize=16)
+    
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
+    # 设置边距
+    plt.tight_layout()
+    
+    if output_file:
+        try:
+            # 确保输出目录存在
+            output_dir = os.path.dirname(output_file)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+            
+            # 使用更小的DPI和压缩级别保存图片
+            plt.savefig(output_file, format='png', dpi=100, bbox_inches='tight', 
+                       transparent=False, pad_inches=0.1, 
+                       facecolor='white', edgecolor='none')
+            print(f"时间段分布图已保存至: {output_file}")
+            
+            # 关闭图表以释放内存
+            plt.close()
+        except Exception as e:
+            print(f"保存时间段分布图时出错: {e}")
+            # 尝试保存到当前目录且使用不同文件名
+            alt_output = "hourly_chart.png"
+            try:
+                plt.savefig(alt_output, format='png', dpi=72, bbox_inches='tight',
+                          transparent=False, facecolor='white')
+                print(f"时间段分布图已保存至当前目录: {alt_output}")
+            except Exception as e2:
+                print(f"保存图片失败: {e2}")
+            finally:
+                plt.close()
+    else:
+        plt.show()
+        plt.close()
+
+
+def plot_date_hour_trend(date_hour_stats, output_file=None):
+    """
+    绘制日期+小时发布趋势热力图
+    """
+    if not date_hour_stats:
+        print("没有足够的数据来绘制日期+小时趋势图")
+        return
+    
+    # 导入字体管理模块
+    import matplotlib.font_manager as fm
+    import numpy as np
+    
+    # 设置支持中文显示的字体
+    try:
+        # 尝试使用系统中可能存在的中文字体
+        chinese_fonts = ['Arial Unicode MS', 'SimHei', 'STHeiti', 'Microsoft YaHei', 'PingFang SC', 'Heiti SC']
+        font_path = None
+        
+        for font in chinese_fonts:
+            try:
+                font_path = fm.findfont(fm.FontProperties(family=font))
+                if font_path and 'ttf' in font_path.lower() and not font_path.endswith('DejaVuSans.ttf'):
+                    break
+            except:
+                continue
+        
+        if font_path and not font_path.endswith('DejaVuSans.ttf'):
+            plt.rcParams['font.family'] = fm.FontProperties(fname=font_path).get_name()
+        else:
+            # 如果找不到中文字体，使用英文标签
+            print("警告: 未找到支持中文的字体，将使用英文标签")
+            plt.rcParams['font.family'] = 'sans-serif'
+    except Exception as e:
+        print(f"设置字体时出错: {e}")
+        plt.rcParams['font.family'] = 'sans-serif'
+    
+    # 提取所有唯一的日期和小时
+    dates = sorted(set(date for (date, _), _ in date_hour_stats))
+    hours = sorted(set(hour for (_, hour), _ in date_hour_stats))
+    
+    # 如果日期太多，只取最近30天
+    if len(dates) > 30:
+        dates = dates[-30:]
+    
+    # 创建热力图数据矩阵
+    data = np.zeros((len(hours), len(dates)))
+    
+    # 填充数据
+    date_to_idx = {date: i for i, date in enumerate(dates)}
+    hour_to_idx = {hour: i for i, hour in enumerate(hours)}
+    
+    for (date, hour), count in date_hour_stats:
+        if date in date_to_idx and hour in hour_to_idx:
+            data[hour_to_idx[hour], date_to_idx[date]] = count
+    
+    # 创建图表
+    plt.figure(figsize=(12, 8), dpi=100)
+    
+    # 绘制热力图
+    im = plt.imshow(data, cmap='YlGnBu')
+    
+    # 添加颜色条
+    cbar = plt.colorbar(im)
+    if plt.rcParams['font.family'] == 'sans-serif':
+        cbar.set_label('Number of Videos', fontsize=10)
+    else:
+        cbar.set_label('视频数量', fontsize=10)
+    
+    # 设置坐标轴
+    plt.yticks(range(len(hours)), [f"{h:02d}:00" for h in hours])
+    
+    # 格式化日期标签
+    date_labels = [date.strftime("%m-%d") for date in dates]
+    plt.xticks(range(len(dates)), date_labels, rotation=45, ha='right')
+    
+    # 设置标题和标签
+    if plt.rcParams['font.family'] == 'sans-serif':
+        plt.title('Video Publication by Date and Hour', fontsize=14)
+        plt.xlabel('Date', fontsize=12)
+        plt.ylabel('Hour', fontsize=12)
+    else:
+        plt.title('按日期和小时统计的视频发布量', fontsize=14)
+        plt.xlabel('日期', fontsize=12)
+        plt.ylabel('小时', fontsize=12)
+    
+    # 添加网格线
+    plt.grid(False)
+    
+    # 为每个单元格添加数值标签
+    for i in range(len(hours)):
+        for j in range(len(dates)):
+            if data[i, j] > 0:
+                plt.text(j, i, int(data[i, j]), ha='center', va='center', 
+                         color='white' if data[i, j] > 3 else 'black', fontsize=8)
+    
+    plt.tight_layout()
+    
+    if output_file:
+        try:
+            # 确保输出目录存在
+            output_dir = os.path.dirname(output_file)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+            
+            plt.savefig(output_file, format='png', dpi=100, bbox_inches='tight', 
+                       transparent=False, pad_inches=0.1, 
+                       facecolor='white', edgecolor='none')
+            print(f"日期+小时分布图已保存至: {output_file}")
+            
+            plt.close()
+        except Exception as e:
+            print(f"保存日期+小时分布图时出错: {e}")
+            # 尝试保存到当前目录且使用不同文件名
+            alt_output = "date_hour_chart.png"
+            try:
+                plt.savefig(alt_output, format='png', dpi=72, bbox_inches='tight',
+                          transparent=False, facecolor='white')
+                print(f"日期+小时分布图已保存至当前目录: {alt_output}")
+            except Exception as e2:
+                print(f"保存图片失败: {e2}")
+            finally:
+                plt.close()
+    else:
+        plt.show()
+        plt.close()
 
 
 def plot_release_trend(daily_stats, output_file=None):
@@ -277,6 +602,8 @@ def main():
     parser.add_argument('--plot', action='store_true', help='生成发布趋势图')
     parser.add_argument('--output', type=str, help='输出Excel文件路径')
     parser.add_argument('--plot-output', type=str, help='趋势图输出路径')
+    parser.add_argument('--hourly-plot-output', type=str, help='时间段分布图输出路径')
+    parser.add_argument('--date-hour-plot-output', type=str, help='日期+小时分布图输出路径')
     parser.add_argument('--platform', type=str, help='只显示指定平台的数据')
     args = parser.parse_args()
     
@@ -330,12 +657,19 @@ def main():
         # 生成每日统计
         daily_stats = generate_daily_stats(all_data)
         
-        if daily_stats:
+        # 生成每小时统计
+        hourly_stats = generate_hourly_stats(all_data)
+        
+        # 生成日期+小时统计 - 添加这一行
+        date_hour_stats = generate_date_hour_stats(all_data)
+        
+        # 显示时间段统计
+        if hourly_stats:
             print("\n" + "="*80)
-            print("最近发布日期统计".center(80))
+            print("视频发布时间段统计".center(80))
             print("="*80)
-            for date, count in sorted(daily_stats, reverse=True)[:10]:  # 显示最近10天
-                print(f"{date}: {count:,} 个视频")
+            for hour, count in sorted(hourly_stats):
+                print(f"{hour:02d}:00 - {hour:02d}:59: {count:,} 个视频")
             print("-"*80)
         
         # 保存到Excel
@@ -391,6 +725,12 @@ def main():
         # 绘制趋势图
         if args.plot:
             plot_release_trend(daily_stats, args.plot_output)
+            # 绘制时间段分布图
+            hourly_plot_output = args.hourly_plot_output or (args.plot_output and args.plot_output.replace('.png', '_hourly.png'))
+            plot_hourly_trend(hourly_stats, hourly_plot_output)
+            # 绘制日期+小时分布图
+            date_hour_plot_output = args.date_hour_plot_output or (args.plot_output and args.plot_output.replace('.png', '_date_hour.png'))
+            plot_date_hour_trend(date_hour_stats, date_hour_plot_output)
     else:
         print("未找到任何发布数据")
 
