@@ -21,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const { google } = require('googleapis');
+const { delay, archiveVideo } = require('./upload_common');
 
 // 创建命令行接口
 const rl = readline.createInterface({
@@ -472,6 +473,14 @@ async function uploadYoutubeVideos(browser, videoFiles, options = {}) {
 
         await uploadOneYoutubeVideo(videoFile, youtubeOptions);
         console.log(`视频 ${videoFile} 上传成功!`);
+
+        // 归档视频文件
+        const videoDir = path.dirname(videoFile);
+        await archiveVideo(videoFile, videoDir);
+
+        // 等待一下再继续下一个
+        await delay(parseInt(process.env.DELAY_BETWEEN_UPLOADS || '5000'));
+
       } catch (error) {
         console.error(`视频 ${videoFile} 上传失败:`, error.message);
       }
