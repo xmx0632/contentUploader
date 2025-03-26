@@ -3,10 +3,12 @@
 // 比如： "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh" 
 // 按照 #upload_common.js中 archiveVideo 函数的方式写入记录追加到归档文件 
 // "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh/0-released.csv" 中，如果文件不存在则新建文件再写入，
-// 然后把已上传的视频文件复制到 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下，fixed-zh-zh是视频种类目录。
+// 然后把已上传的视频文件复制到 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下，fixed-zh-zh是视频种类目录，
+// 复制完成后会删除源文件以释放空间。
 // 如果是  "/Users/xmx0632/aivideo/dist/videos/kuaishou/fixed-zh-zh",则写入记录追加到归档文件 
 // "/Users/xmx0632/aivideo/dist/videos/kuaishou/fixed-zh-zh/0-released.csv" 中，
 // 然后把已上传的视频文件复制到 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下
+// 处理完所有文件后，会将CSV记录文件备份到目标目录，文件名格式为"[模块名]-0-released.csv"
 
 const fs = require('fs');
 const path = require('path');

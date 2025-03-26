@@ -1,15 +1,7 @@
-// 把 "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh" 下的视频文件都复制一份到
-// 把 "// 把 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下
-
-// 自动生成归档指定模块下文件上传记录，并归档已上传的视频到指定目录
-// 需要把 "/Users/xmx0632/aivideo/dist/videos/[模块名]/[视频种类]" 目录下这种日期格式的子目录下的视频文件
-// 比如： "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh" 
-// 按照 #upload_common.js中 archiveVideo 函数的方式写入记录追加到归档文件 
-// "/Users/xmx0632/aivideo/dist/videos/douyin/fixed-zh-zh/0-released.csv" 中，如果文件不存在则新建文件再写入，
-// 然后把已上传的视频文件复制到 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下，fixed-zh-zh是视频种类目录。
-// 如果是  "/Users/xmx0632/aivideo/dist/videos/kuaishou/fixed-zh-zh",则写入记录追加到归档文件 
-// "/Users/xmx0632/aivideo/dist/videos/kuaishou/fixed-zh-zh/0-released.csv" 中，
-// 然后把已上传的视频文件复制到 "/Users/xmx0632/aivideo/dist/fixed-zh-zh" 目录下
+// 自动归档所有模块下的视频文件并生成上传记录
+// 将 "/Users/xmx0632/aivideo/dist/videos/[模块名]/[视频种类]" 目录下的视频文件（包括日期格式子目录中的视频）
+// 复制到 "/Users/xmx0632/aivideo/dist/[视频种类]" 目录下
+// 同时在源目录的 "0-released.csv" 文件中记录已归档的视频信息
 
 const fs = require('fs');
 const path = require('path');
