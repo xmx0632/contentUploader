@@ -5,6 +5,8 @@ const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARG
 // 定义导航配置常量
 const NAVIGATION_TIMEOUT = parseInt(process.env.NAVIGATION_TIMEOUT || '120000'); // 默认120秒
 const MAX_RETRY_COUNT = parseInt(process.env.MAX_RETRY_COUNT || '3'); // 默认重试3次
+const PROTOCOL_TIMEOUT = parseInt(process.env.PROTOCOL_TIMEOUT || '120000'); // 默认120秒，用于Puppeteer协议操作超时
+const EVALUATE_TIMEOUT = parseInt(process.env.EVALUATE_TIMEOUT || '60000'); // 默认60秒，用于页面evaluate操作超时
 
 
 
@@ -67,27 +69,28 @@ async function uploadToDouyin(browser, videoFiles, options) {
     browser = await puppeteer.launch({
         headless: false, // 先用有界面模式启动
         args: BROWSER_ARGS,
-        defaultViewport: null
+        defaultViewport: null,
+        protocolTimeout: PROTOCOL_TIMEOUT // 添加协议超时设置
     });
-    
+
     page = await browser.newPage();
-    
+
     // 设置浏览器指纹
     await setupBrowserFingerprint(page);
-    
+
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'douyin');
     console.log('尝试加载已保存的 cookies...');
-    
+
     // 检查登录状态
     const isLoggedIn = await checkLogin(page);
     console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
-    
+
     // 如果未登录，让用户手动登录
     if (!isLoggedIn) {
         console.log('需要登录抖音创作者平台，请在浏览器中完成登录...');
         await waitForEnter();
-        
+
         // 再次检查登录状态
         const loggedIn = await checkLogin(page);
         if (loggedIn) {
@@ -112,7 +115,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
         });
         page = await browser.newPage();
         await loadCookies(page, 'douyin');
-        
+
         // 在 headless 模式下再次检查登录状态
         const isStillLoggedIn = await checkLogin(page);
         if (!isStillLoggedIn) {
@@ -148,7 +151,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     await delay(10000);
                 }
             }
-            
+
             if (!navigationSuccess) {
                 throw new Error('无法导航到抖音上传页面，跳过当前视频');
             }
@@ -199,13 +202,13 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     const isOnPublishPage = await page.evaluate(() => {
                         return window.location.href.includes('creator.douyin.com/creator-micro/content/publish');
                     });
-                    
+
                     if (isOnPublishPage) {
                         console.log('检测到已经在发布页面，继续处理...');
                         navigationToPublishSuccess = true;
                         break;
                     }
-                    
+
                     if (attempt === MAX_RETRY_COUNT) {
                         throw new Error(`等待跳转到发布页面失败，已重试 ${MAX_RETRY_COUNT} 次: ${error.message}`);
                     }
@@ -214,7 +217,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     await delay(10000);
                 }
             }
-            
+
             if (!navigationToPublishSuccess) {
                 throw new Error('无法跳转到发布页面，跳过当前视频');
             }
@@ -237,7 +240,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
                 if (words.length > 0 && options.hasAIDescriptionGenerator) {
                     // 使用本地导入的 AI 工具生成描述
                     const { generateMultiWordDescription, setCsvFilePath } = require('./ai_util.js');
-                    
+
                     // 如果指定了 CSV 文件路径，则设置它
                     if (options.csvPath) {
                         console.log(`设置 CSV 文件路径: ${options.csvPath}`);
@@ -245,7 +248,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     } else {
                         console.log('未指定 CSV 文件路径，使用默认路径');
                     }
-                    
+
                     description = await generateMultiWordDescription(words.join('-'));
                     console.log('生成的描述：', description);
                 }
@@ -265,7 +268,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
             // 填写标题
             const titleSelector = 'input.semi-input.semi-input-default[placeholder="填写作品标题，为作品获得更多流量"]';
             await page.waitForSelector(titleSelector);
-            
+
             // 先点击标题输入框以获取焦点
             await page.click(titleSelector);
             // 清空现有内容
@@ -274,15 +277,15 @@ async function uploadToDouyin(browser, videoFiles, options) {
             await page.keyboard.up('Control');
             await page.keyboard.press('Backspace');
             // 模拟用户输入标题
-            await page.type(titleSelector, videoTitle, {delay: 100}); // 设置100ms的输入延迟，模拟真实输入
-            
+            await page.type(titleSelector, videoTitle, { delay: 100 }); // 设置100ms的输入延迟，模拟真实输入
+
             // 等待一小段时间确保标题输入完成
             await delay(1000);
 
             // 填写描述
             const editorSelector = '.editor-kit-container';
             await page.waitForSelector(editorSelector);
-            
+
             // 点击编辑器获取焦点
             await page.click(editorSelector);
             // 清空现有内容
@@ -291,13 +294,13 @@ async function uploadToDouyin(browser, videoFiles, options) {
             await page.keyboard.up('Control');
             await page.keyboard.press('Backspace');
             // 模拟用户输入描述
-            await page.keyboard.type(description, {delay: 50}); // 设置50ms的输入延迟，模拟真实输入
+            await page.keyboard.type(description, { delay: 50 }); // 设置50ms的输入延迟，模拟真实输入
             await delay(500); // 等待输入完成
             await page.keyboard.press('Enter'); // 模拟按下回车键
 
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
-            
+
             console.log('等待 15s 封面选项加载...');
             await delay('15000');
 
@@ -337,14 +340,14 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     const confirmButtonSelector = '.semi-modal-confirm .semi-modal-footer .semi-button.semi-button-primary';
                     console.log('等待确定按钮出现...');
                     await page.waitForSelector(confirmButtonSelector, { visible: true, timeout: 10000 });
-                    
+
                     // 检查按钮是否可点击
                     const buttonText = await page.$eval(confirmButtonSelector, button => {
                         const span = button.querySelector('.semi-button-content');
                         return span ? span.textContent : '';
                     });
                     console.log('找到按钮文本:', buttonText);
-                    
+
                     if (buttonText === '确定') {
                         console.log('点击确定按钮...');
                         await page.click(confirmButtonSelector);
@@ -393,7 +396,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
                     const collectionSelected = await page.evaluate((targetName) => {
                         // 查找所有合集选项
                         const options = Array.from(document.querySelectorAll('.semi-select-option.collection-option'));
-                        
+
                         for (const option of options) {
                             // 查找合集标题元素（使用通用属性）
                             const titleSpan = option.querySelector('span[class*="option-title"]');
@@ -447,7 +450,7 @@ async function uploadToDouyin(browser, videoFiles, options) {
         } catch (screenshotError) {
             console.error('保存错误截图失败:', screenshotError);
         }
-        
+
         if (browser) {
             await browser.close();
         }
