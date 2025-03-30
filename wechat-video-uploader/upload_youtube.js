@@ -21,7 +21,10 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const { google } = require('googleapis');
-const { delay, archiveVideo } = require('./upload_common');
+const { delay, archiveVideo, loadYoutubeCredentials } = require('./upload_common');
+// 应用根目录确定
+const isPackaged = process.pkg !== undefined;
+const appRoot = isPackaged ? path.dirname(process.execPath) : __dirname;
 
 // 创建命令行接口
 const rl = readline.createInterface({
@@ -38,28 +41,25 @@ const youtube = google.youtube('v3');
  */
 async function getAuthClient() {
   console.log('正在读取凭证文件...');
-  const credentialsPath = path.join(__dirname, 'temp', 'youtube-credentials.json');
-  const tokenPath = path.join(__dirname, 'temp', 'youtube-token.json');
-
   try {
-    // 读取凭证文件
-    const content = fs.readFileSync(credentialsPath, 'utf8');
-    const credentials = JSON.parse(content);
-    console.log('凭证文件读取成功');
+    const { credentials, token } = await loadYoutubeCredentials();
+
+    if (!credentials) {
+      throw new Error('未找到YouTube凭证文件');
+    }
 
     const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-    // 检查是否存在令牌文件
-    if (fs.existsSync(tokenPath)) {
+    // 如果存在令牌，设置令牌
+    if (token) {
       console.log('发现现有令牌，正在加载...');
-      const token = fs.readFileSync(tokenPath, 'utf8');
-      oAuth2Client.setCredentials(JSON.parse(token));
+      oAuth2Client.setCredentials(token);
       return oAuth2Client;
     }
 
     // 如果没有令牌，获取新的令牌
-    return getNewToken(oAuth2Client, tokenPath);
+    return getNewToken(oAuth2Client);
   } catch (error) {
     console.error('读取凭证文件失败:', error.message);
     throw error;
@@ -72,7 +72,7 @@ async function getAuthClient() {
  * @param {string} tokenPath 令牌文件路径
  * @returns {Promise<any>} OAuth2 客户端
  */
-async function getNewToken(oAuth2Client, tokenPath) {
+async function getNewToken(oAuth2Client) {
   // 设置授权范围 - 添加了更多权限以支持播放列表操作
   const SCOPES = [
     'https://www.googleapis.com/auth/youtube.upload',
@@ -104,9 +104,14 @@ async function getNewToken(oAuth2Client, tokenPath) {
     const { tokens } = await oAuth2Client.getToken(code);
     console.log('获取到令牌');
 
-    // 保存令牌
-    fs.writeFileSync(tokenPath, JSON.stringify(tokens));
-    console.log('令牌已保存到:', tokenPath);
+    // 保存令牌到temp目录
+    const tempDir = path.join(appRoot, 'temp');
+    if (!fs.existsSync(tempDir)) {
+      await fs.promises.mkdir(tempDir);
+    }
+    const cookieFileName = 'youtube-tokens.json';
+    await fs.promises.writeFile(path.join(tempDir, cookieFileName), JSON.stringify(tokens, null, 2));
+    console.log('令牌已保存');
 
     // 设置令牌
     oAuth2Client.setCredentials(tokens);
@@ -262,6 +267,22 @@ async function uploadOneYoutubeVideo(fileName, options = {}) {
     return res.data;
   } catch (error) {
     console.error('上传过程中出错:', error.message);
+
+    // 检查是否为授权错误
+    if (error.message === 'invalid_grant' ||
+      error.message.includes('auth') ||
+      error.message.includes('认证') ||
+      error.message.includes('授权') ||
+      error.message.includes('token') ||
+      error.message.includes('令牌')) {
+      console.error('检测到授权错误，请删除以下文件后重试:');
+      const { credentials } = await loadYoutubeCredentials();
+      if (!credentials) {
+        console.error('YouTube凭证文件不存在');
+      }
+      console.error(`- ${path.join(__dirname, 'temp', 'youtube-token.json')}`);
+    }
+
     throw error;
   }
 }
@@ -483,6 +504,21 @@ async function uploadYoutubeVideos(browser, videoFiles, options = {}) {
 
       } catch (error) {
         console.error(`视频 ${videoFile} 上传失败:`, error.message);
+
+        // 检查是否为授权错误，如果是则立即退出程序
+        if (error.message === 'invalid_grant' ||
+          error.message.includes('auth') ||
+          error.message.includes('认证') ||
+          error.message.includes('授权') ||
+          error.message.includes('token') ||
+          error.message.includes('令牌')) {
+          console.error('检测到授权错误，程序将立即退出');
+          console.error('请删除 temp/youtube-token.json 文件后重试');
+          if (rl) {
+            rl.close();
+          }
+          process.exit(1);
+        }
       }
     }
 

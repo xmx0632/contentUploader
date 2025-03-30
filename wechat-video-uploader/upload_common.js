@@ -129,7 +129,7 @@ async function setupBrowserFingerprint(page) {
     await page.evaluateOnNewDocument((fingerprint) => {
         // 覆盖WebGL信息
         const getParameterProxyHandler = {
-            apply: function(target, thisArg, args) {
+            apply: function (target, thisArg, args) {
                 const param = args[0];
                 if (param === 37445) { // UNMASKED_VENDOR_WEBGL
                     return fingerprint.webgl_vendor;
@@ -139,7 +139,7 @@ async function setupBrowserFingerprint(page) {
                 return Reflect.apply(target, thisArg, args);
             }
         };
-        
+
         // 修改navigator对象
         Object.defineProperties(navigator, {
             platform: { value: fingerprint.navigator_platform },
@@ -147,14 +147,14 @@ async function setupBrowserFingerprint(page) {
             language: { value: fingerprint.navigator_language },
             languages: { value: [fingerprint.navigator_language, 'en-US', 'en'] }
         });
-        
+
         // 修改screen对象
         Object.defineProperties(screen, {
             width: { value: fingerprint.screen_resolution.width },
             height: { value: fingerprint.screen_resolution.height },
             colorDepth: { value: fingerprint.color_depth }
         });
-        
+
         // 修改WebGL
         if (window.WebGLRenderingContext) {
             const getParameter = WebGLRenderingContext.prototype.getParameter;
@@ -256,7 +256,7 @@ function parseCommandLineArgs() {
     if (options.help) {
         return options;
     }
-    
+
     // 如果没有指定目录，则使用环境变量或默认值
     if (!options.videoDir) {
         options.videoDir = process.env.VIDEO_DIR || 'F:\\dev\\workspace\\contentUploader\\video';
@@ -294,7 +294,7 @@ async function archiveVideo(videoFile, baseDir) {
         const sourceDir = path.dirname(videoFile);
         const csvPath = path.join(sourceDir, '0-released.csv');
         const dateFormat = path.basename(dateDir);
-        
+
         // 生成当前时间戳，格式：年月日时分秒
         const timestamp = today.getFullYear().toString() +
             (today.getMonth() + 1).toString().padStart(2, '0') +
@@ -302,7 +302,7 @@ async function archiveVideo(videoFile, baseDir) {
             today.getHours().toString().padStart(2, '0') +
             today.getMinutes().toString().padStart(2, '0') +
             today.getSeconds().toString().padStart(2, '0');
-        
+
         // 新的记录行包含时间戳
         const recordLine = `${dateFormat}/${videoFileName}.mp4,${timestamp}\n`;
 
@@ -337,21 +337,21 @@ async function archiveVideo(videoFile, baseDir) {
         } else {
             // 如果文件存在，则需要检查文件格式并追加记录
             const existingContent = fs.readFileSync(csvPath, 'utf8');
-            
+
             // 检查是否已经包含时间戳列
             const hasTimestampColumn = existingContent.split('\n').some(line => line.includes(','));
-            
+
             if (!hasTimestampColumn && existingContent.trim() !== '') {
                 // 如果不包含时间戳列且文件不为空，需要更新文件格式
                 const updatedContent = existingContent.split('\n')
                     .filter(line => line.trim() !== '')
                     .map(line => `${line},20250101010101`)
                     .join('\n') + '\n';
-                
+
                 fs.writeFileSync(csvPath, updatedContent);
                 console.log(`更新CSV文件格式，添加时间戳列并设置默认时间戳: ${csvPath}`);
             }
-            
+
             // 追加记录
             fs.appendFileSync(csvPath, recordLine);
             console.log(`更新记录文件: ${csvPath}`);
@@ -361,6 +361,100 @@ async function archiveVideo(videoFile, baseDir) {
     } catch (error) {
         console.error('归档视频文件时出错:', error);
         throw error;
+    }
+}
+
+/**
+ * 加载YouTube凭证文件
+ * @returns {Promise<{credentials: Object, token: Object}|null>} 凭证和令牌对象，如果文件不存在则返回null
+ */
+async function loadYoutubeCredentials() {
+    try {
+        const tempDir = path.join(appRoot, 'temp');
+        if (!fs.existsSync(tempDir)) {
+            await fs.promises.mkdir(tempDir);
+        }
+
+        const credentialsPath = path.join(tempDir, 'youtube-credentials.json');
+        const tokenPath = path.join(tempDir, 'youtube-token.json');
+
+        let credentials = null;
+        let token = null;
+
+        // 尝试读取凭证文件
+        if (fs.existsSync(credentialsPath)) {
+            const credentialsString = await fs.promises.readFile(credentialsPath, 'utf8');
+            credentials = JSON.parse(credentialsString);
+            console.log('YouTube凭证文件加载成功');
+        } else {
+            console.log('YouTube凭证文件不存在:', credentialsPath);
+        }
+
+        // 尝试读取令牌文件
+        if (fs.existsSync(tokenPath)) {
+            const tokenString = await fs.promises.readFile(tokenPath, 'utf8');
+            token = JSON.parse(tokenString);
+            console.log('YouTube令牌文件加载成功');
+        } else {
+            console.log('YouTube令牌文件不存在:', tokenPath);
+        }
+
+        // 如果两个文件都不存在，返回null
+        if (!credentials && !token) {
+            return null;
+        }
+
+        return { credentials, token };
+    } catch (err) {
+        console.error('加载YouTube凭证文件时出错:', err);
+        return null;
+    }
+}
+
+/**
+ * 加载YouTube凭证文件
+ * @returns {Promise<{credentials: Object, token: Object}|null>} 凭证和令牌对象，如果文件不存在则返回null
+ */
+async function loadYoutubeCredentials() {
+    try {
+        const tempDir = path.join(appRoot, 'temp');
+        if (!fs.existsSync(tempDir)) {
+            await fs.promises.mkdir(tempDir);
+        }
+
+        const credentialsPath = path.join(tempDir, 'youtube-credentials.json');
+        const tokenPath = path.join(tempDir, 'youtube-tokens.json');
+
+        let credentials = null;
+        let token = null;
+
+        // 尝试读取凭证文件
+        if (fs.existsSync(credentialsPath)) {
+            const credentialsString = await fs.promises.readFile(credentialsPath, 'utf8');
+            credentials = JSON.parse(credentialsString);
+            console.log('YouTube凭证文件加载成功');
+        } else {
+            console.log('YouTube凭证文件不存在:', credentialsPath);
+        }
+
+        // 尝试读取令牌文件
+        if (fs.existsSync(tokenPath)) {
+            const tokenString = await fs.promises.readFile(tokenPath, 'utf8');
+            token = JSON.parse(tokenString);
+            console.log('YouTube令牌文件加载成功');
+        } else {
+            console.log('YouTube令牌文件不存在:', tokenPath);
+        }
+
+        // 如果两个文件都不存在，返回null
+        if (!credentials && !token) {
+            return null;
+        }
+
+        return { credentials, token };
+    } catch (err) {
+        console.error('加载YouTube凭证文件时出错:', err);
+        return null;
     }
 }
 
@@ -378,5 +472,6 @@ module.exports = {
     archiveVideo,
     BROWSER_ARGS,
     BROWSER_FINGERPRINT,
-    setupBrowserFingerprint
+    setupBrowserFingerprint,
+    loadYoutubeCredentials
 };
