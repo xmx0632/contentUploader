@@ -65,10 +65,10 @@ async function uploadToWeixin(browser, videoFiles, options) {
     console.log('6.尝试加载已保存的 cookies...', cookiesLoaded);
 
     // 检查登录状态
-    console.info('没问题，请回车')
-    await waitForEnter();
+    // console.info('没问题，请回车')
+    // await waitForEnter();
 
-    const isLoggedIn = true ;//await checkLogin(page);
+    const isLoggedIn = await checkLogin(page);
     console.log('7.登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
 
     // 如果未登录，切换到有界面模式
