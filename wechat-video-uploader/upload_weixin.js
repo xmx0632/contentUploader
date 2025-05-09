@@ -2,25 +2,49 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARGS, BROWSER_FINGERPRINT, setupBrowserFingerprint } = require('./upload_common');
 
-// 检查登录状态
-async function checkLogin(page) {
-    await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
-        waitUntil: 'networkidle0'
-    });
-
-    console.log('8.检查是否需要登录');
-    // 检查是否需要登录
-    const needLogin = await page.evaluate(() => {
-        // 如果发现"发表视频"按钮，则说明已登录
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return !buttons.some(button =>
-            button.textContent.trim() === '发表视频' &&
-            button.offsetParent !== null
-        );
-    });
-    console.log('9.needLogin=',needLogin);
-
-    return !needLogin;
+/**
+ * 检查微信视频号登录状态，带超时保护和详细日志
+ * @param {import('puppeteer').Page} page Puppeteer 页面对象
+ * @param {number} maxWait 最大等待时间（毫秒），默认 15000ms
+ * @returns {Promise<boolean>} 是否已登录
+ */
+async function checkLogin(page, maxWait = 60000) {
+    console.log('检查登录状态，最长等待', maxWait, '毫秒');
+    
+    const startTime = Date.now();
+    let isLoggedIn = false;
+    
+    while (Date.now() - startTime < maxWait) {
+        try {
+            // 检查是否需要登录
+            const needLogin = await page.evaluate(() => {
+                // 如果发现"发表视频"按钮，则说明已登录
+                const buttons = Array.from(document.querySelectorAll('button'));
+                return !buttons.some(button =>
+                    button.textContent.trim() === '发表视频' &&
+                    button.offsetParent !== null
+                );
+            });
+            
+            isLoggedIn = !needLogin;
+            console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
+            
+            if (isLoggedIn) {
+                break; // 如果已登录，退出循环
+            }
+        } catch (error) {
+            console.error('检查登录状态时出错:', error.message);
+        }
+        
+        // 等待 1 秒后再次检查
+        await delay(1000);
+    }
+    
+    if (!isLoggedIn && Date.now() - startTime >= maxWait) {
+        console.warn('检查登录状态超时，可能页面加载过慢或登录失败');
+    }
+    
+    return isLoggedIn;
 }
 
 // 获取合集名称
@@ -68,7 +92,14 @@ async function uploadToWeixin(browser, videoFiles, options) {
     // console.info('没问题，请回车')
     // await waitForEnter();
 
-    const isLoggedIn = await checkLogin(page);
+    // 先跳转到视频号页面，统一使用 domcontentloaded 和 120秒超时
+    console.log('跳转到视频号页面准备检查登录状态...');
+    await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
+        waitUntil: 'domcontentloaded',
+        timeout: 120000
+    });
+    
+    const isLoggedIn = await checkLogin(page, 60000);
     console.log('7.登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
 
     // 如果未登录，切换到有界面模式
@@ -84,14 +115,17 @@ async function uploadToWeixin(browser, videoFiles, options) {
         });
 
         page = await browser.newPage();
+        // 统一使用 domcontentloaded 和 120秒超时
+        console.log('跳转到视频号页面准备扫码登录...');
         await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
-            waitUntil: 'networkidle0'
+            waitUntil: 'domcontentloaded',
+            timeout: 120000
         });
         console.log('需要登录微信视频号，请在浏览器中完成登录...');
         await waitForEnter();
 
-        // 再次检查登录状态
-        const loggedIn = await checkLogin(page);
+        // 再次检查登录状态，最多等待60秒
+        const loggedIn = await checkLogin(page, 60000);
         if (loggedIn) {
             // 保存 cookies
             console.log('登录成功，保存 cookies...');
