@@ -8,6 +8,7 @@ async function checkLogin(page) {
         waitUntil: 'networkidle0'
     });
 
+    console.log('8.检查是否需要登录');
     // 检查是否需要登录
     const needLogin = await page.evaluate(() => {
         // 如果发现"发表视频"按钮，则说明已登录
@@ -17,6 +18,7 @@ async function checkLogin(page) {
             button.offsetParent !== null
         );
     });
+    console.log('9.needLogin=',needLogin);
 
     return !needLogin;
 }
@@ -60,11 +62,14 @@ async function uploadToWeixin(browser, videoFiles, options) {
 
     // 尝试加载 cookies
     const cookiesLoaded = await loadCookies(page, 'weixin');
-    console.log('尝试加载已保存的 cookies...');
+    console.log('6.尝试加载已保存的 cookies...', cookiesLoaded);
 
     // 检查登录状态
-    const isLoggedIn = await checkLogin(page);
-    console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
+    console.info('没问题，请回车')
+    await waitForEnter();
+
+    const isLoggedIn = true ;//await checkLogin(page);
+    console.log('7.登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
 
     // 如果未登录，切换到有界面模式
     if (!isLoggedIn) {
@@ -108,12 +113,21 @@ async function uploadToWeixin(browser, videoFiles, options) {
     }
 
     try {
-        await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
-            waitUntil: 'networkidle0'
-        });
-
+        // 统一页面跳转/刷新逻辑，避免 navigation timeout
+        const targetUrl = 'https://channels.weixin.qq.com/platform/post/list?tab=post';
+        console.log('1. 当前页面:', page.url(), '目标页面:', targetUrl, '时间:', new Date().toLocaleTimeString());
+        if (page.url().includes('/platform/post/list')) {
+            console.log('2. 已在目标页面，刷新...');
+            await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
+        } else {
+            console.log('2. 跳转到目标页面...');
+            await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+        }
+        console.log('3. 跳转/刷新完成，当前页面:', page.url(), '时间:', new Date().toLocaleTimeString());
+        console.log('4. options.isHeadless=', options.isHeadless);
         // 在 headless 模式下再次检查登录状态
         if (options.isHeadless) {
+            console.log('2.1 options.isHeadless=', options.isHeadless);
             const isStillLoggedIn = await checkLogin(page);
             if (!isStillLoggedIn) {
                 console.error('登录失效，请先使用非 headless 模式登录');
@@ -123,10 +137,14 @@ async function uploadToWeixin(browser, videoFiles, options) {
         }
 
         // 保存新的 cookies
+        console.log('3.saveCookies')
         await saveCookies(page, 'weixin');
+
+        console.log('4.options:',options);
 
         // 获取合集名称
         const collectionName = getCollectionName(options);
+        console.log('5.collectionName:',collectionName);
 
         // 开始上传视频
         for (const videoFile of videoFiles) {
@@ -139,10 +157,17 @@ async function uploadToWeixin(browser, videoFiles, options) {
             
             while (retryCount < maxRetries) {
                 try {
-                    await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
-                        waitUntil: 'networkidle0',
-                        timeout: 120000 // 增加超时时间至120秒
-                    });
+                    console.log(`进入页面: https://channels.weixin.qq.com/platform/post/list?tab=post`);
+
+                    // 统一页面跳转/刷新逻辑，避免 navigation timeout
+                    const targetUrl = 'https://channels.weixin.qq.com/platform/post/list?tab=post';
+                    if (page.url().includes('/platform/post/list')) {
+                        console.log('已在目标页面，刷新...');
+                        await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
+                    } else {
+                        console.log('跳转到目标页面...');
+                        await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+                    }
                     console.log('成功进入视频列表页面');
                     break; // 如果成功则跳出循环
                 } catch (navError) {
@@ -175,6 +200,7 @@ async function uploadToWeixin(browser, videoFiles, options) {
             // 点击发表视频按钮
             console.log('尝试点击发表视频按钮...');
             try {
+                // await page.goto('https://channels.weixin.qq.com/platform/post/create');
                 await page.click('button.weui-desktop-btn.weui-desktop-btn_primary:not(.weui-desktop-btn_mini)');
                 console.log('点击发表按钮成功');
             } catch (clickError) {
