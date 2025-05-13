@@ -139,3 +139,5 @@ video/*/*
 video_stats.xlsx
 video_trend.png
 video_trend_date_hour.png
+
+.DS_Store
