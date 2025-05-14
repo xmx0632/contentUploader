@@ -51,11 +51,17 @@ async function uploadToRednote(browser, videoFiles, options) {
     console.log('最终使用的合集名称:', collectionName);
     let page;
 
-    // 启动浏览器
+    // 读取协议超时时间，优先使用环境变量
+    const protocolTimeout = parseInt(process.env.PROTOCOL_TIMEOUT, 10) || 120000;
+    /**
+     * 启动 Puppeteer 浏览器，增加 protocolTimeout 参数，防止协议调用超时
+     * @see https://pptr.dev/api/puppeteer.launchoptions
+     */
     browser = await puppeteer.launch({
         headless: false, // 先用有界面模式启动
         args: BROWSER_ARGS,
-        defaultViewport: null
+        defaultViewport: null,
+        protocolTimeout: protocolTimeout
     });
     
     page = await browser.newPage();

@@ -21,7 +21,8 @@
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "mock-fs": "^5.2.0"
+    "mock-fs": "^5.2.0",
+    "pkg": "^5.8.0"
   },
   "pkg": {
     "scripts": [

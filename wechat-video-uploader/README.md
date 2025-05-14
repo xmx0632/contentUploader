@@ -78,6 +78,18 @@ DELAY_VIDEO_PROCESS=15000
 
 # 内容更新后的等待时间
 DELAY_CONTENT_UPDATE=5000
+```
+
+#### 协议超时设置（protocolTimeout）
+
+若上传过程中出现 `ProtocolError: Runtime.callFunctionOn timed out` 错误，可通过 `.env` 文件增加如下配置，提升 puppeteer 协议层的超时时间（单位：毫秒，推荐 120000 及以上）：
+
+```ini
+# Puppeteer 协议超时时间（单位：毫秒）
+PROTOCOL_TIMEOUT=120000
+```
+
+程序会自动读取该环境变量并设置 puppeteer 的 `protocolTimeout` 参数。
 
 # 点击操作后的等待时间
 DELAY_AFTER_CLICK=3000

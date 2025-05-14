@@ -73,10 +73,17 @@ async function uploadToWeixin(browser, videoFiles, options) {
     // 使用用户指定的模式启动浏览器并尝试加载 cookies
     const initialHeadless = options.isHeadless === true; // 尊重用户传入的isHeadless参数
     console.log(`使用${initialHeadless ? '无头' : '有界面'}模式启动浏览器...`);
+    // 读取协议超时时间，优先使用环境变量
+    const protocolTimeout = parseInt(process.env.PROTOCOL_TIMEOUT, 10) || 120000;
+    /**
+     * 启动 Puppeteer 浏览器，增加 protocolTimeout 参数，防止协议调用超时
+     * @see https://pptr.dev/api/puppeteer.launchoptions
+     */
     browser = await puppeteer.launch({
         headless: initialHeadless,
         args: BROWSER_ARGS,
-        defaultViewport: null
+        defaultViewport: null,
+        protocolTimeout: protocolTimeout
     });
 
     page = await browser.newPage();

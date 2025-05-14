@@ -115,11 +115,16 @@ async function loadCookies(page, platform = '') {
 }
 
 // 初始化浏览器
+// @param {boolean} isHeadless 是否无头模式
+// @returns {Promise<import('puppeteer').Browser>} Puppeteer 浏览器实例
 async function initBrowser(isHeadless = false) {
+    // 读取协议超时时间，优先使用环境变量
+    const protocolTimeout = parseInt(process.env.PROTOCOL_TIMEOUT, 10) || 120000;
     const options = {
         headless: isHeadless ? true : false,
         args: BROWSER_ARGS,
-        defaultViewport: null
+        defaultViewport: null,
+        protocolTimeout: protocolTimeout
     };
     return await puppeteer.launch(options);
 }
