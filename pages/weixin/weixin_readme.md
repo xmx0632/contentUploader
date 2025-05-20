@@ -1,3 +1,13 @@
+# 微信视频号上传操作文档
+
+## 最新更新
+- 2025-05-20: 移除了多余的上传控件选择器代码，直接使用Shadow DOM选择器定位上传控件，提高代码效率和可靠性
+
+0.如果还没有登录的时候，页面会跳转到 https://channels.weixin.qq.com/login.html
+需要等用户扫描二维码登录成功之后再开始上传文件，
+二维码：
+document.querySelector("#app > div > div.login-qrcode-wrap.qrcode-iframe-wrap.dark.dark > div > div.qrcode-wrap > img")
+
 1.视频描述
 	document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(2) > div.form-item-body > div > div.input-editor")
 
@@ -24,4 +34,5 @@
 6.然后点击“发表” 按钮：
 
     document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div.form-btns > div:nth-child(5) > span > div > button")
+
 

@@ -25,9 +25,40 @@ async function checkLogin(page, maxWait = 60000) {
   const startTime = Date.now();
   let isLoggedIn = false;
   let lastError = null;
+  let isLoginPage = false;
 
   while (Date.now() - startTime < maxWait) {
     try {
+      // 检查是否在登录页面
+      const currentUrl = page.url();
+      if (currentUrl.includes('login.html')) {
+        isLoginPage = true;
+        console.log('[checkLogin] 检测到登录页面，需要扫码登录');
+        
+        // 检查二维码是否存在
+        const qrCode = await page.$("#app > div > div.login-qrcode-wrap.qrcode-iframe-wrap.dark.dark > div > div.qrcode-wrap > img");
+        if (qrCode) {
+          console.log('[checkLogin] 找到登录二维码，请扫码登录');
+          
+          // 获取二维码图片地址
+          const qrCodeSrc = await page.evaluate(el => el.src, qrCode);
+          console.log(`[checkLogin] 二维码图片地址: ${qrCodeSrc}`);
+          
+          // 提示用户扫码登录
+          console.log('\n\n==================================================');
+          console.log('\u8bf7使用微信扫描浏览器中的二维码登录\n');
+          console.log('==================================================\n\n');
+          
+          // 等待用户扫码登录完成
+          await waitForEnter('\n扫码登录完成后请按回车键继续...');
+          
+          // 等待页面跳转
+          console.log('[checkLogin] 等待页面跳转...');
+          await delay(5000);
+          continue; // 继续检查登录状态
+        }
+      }
+      
       // 检查所有典型 selector，只要有一个存在即视为已登录
       for (const selector of loginSelectors) {
         const found = await page.$(selector);
@@ -139,46 +170,146 @@ async function uploadToWeixin(browser, videoFiles, options) {
         timeout: 120000
     });
     
-    const isLoggedIn = await checkLogin(page, 60000);
-    console.log('7.登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
-
-    // 如果未登录，切换到有界面模式
-    if (!isLoggedIn) {
-        console.log('Cookie无效或未找到，切换到有界面模式进行登录...');
+    // 如果被重定向到登录页面，则切换到有界面模式
+    const currentUrl = page.url();
+    if (currentUrl.includes('login.html')) {
+        console.log('检测到登录页面，切换到有界面模式进行扫码登录...');
+        
+        // 无论当前是什么模式，都关闭并重新以有界面模式启动
+        // 这样可以确保用户能看到二维码进行扫码登录
         await browser.close();
-
-        // 重新以有界面模式启动浏览器
+        console.log('关闭浏览器，重新以有界面模式启动...');
         browser = await puppeteer.launch({
             headless: false,
             args: BROWSER_ARGS,
-            defaultViewport: null
+            defaultViewport: null,
+            protocolTimeout: protocolTimeout
         });
-
         page = await browser.newPage();
-        // 统一使用 domcontentloaded 和 120秒超时
-        console.log('跳转到视频号页面准备扫码登录...');
+        await setupBrowserFingerprint(page);
+        
+        // 重新跳转到登录页面
+        console.log('跳转到微信视频号登录页面...');
+        await page.goto('https://channels.weixin.qq.com/login.html', {
+            waitUntil: 'domcontentloaded',
+            timeout: 120000
+        });
+        
+        console.log('请使用微信扫描浏览器中的二维码进行登录');
+    }
+    
+    // 检查登录状态，这个函数会处理扫码登录的情况
+    const isLoggedIn = await checkLogin(page, 120000); // 增加等待时间，给用户更多时间扫码
+    console.log('7.登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
+    
+    // 如果已经登录成功，并且用户要求无头模式，则关闭当前浏览器并重新以无头模式启动
+    // 这样可以确保在登录成功后始终切换回无头模式
+    if (isLoggedIn && options.isHeadless === true) {
+        // 保存 cookies
+        console.log('登录成功，保存 cookies...');
+        await saveCookies(page, 'weixin');
+        
+        // 关闭有界面浏览器，切换回无头模式
+        console.log('登录成功，关闭浏览器并切换回无头模式...');
+        await browser.close();
+        
+        // 重新以无头模式启动浏览器
+        browser = await puppeteer.launch({
+            headless: true,
+            args: BROWSER_ARGS,
+            defaultViewport: null,
+            protocolTimeout: protocolTimeout
+        });
+        page = await browser.newPage();
+        await setupBrowserFingerprint(page);
+        
+        // 加载保存的cookies
+        const cookiesLoaded = await loadCookies(page, 'weixin');
+        console.log('加载已保存的 cookies 结果:', cookiesLoaded ? '成功' : '失败');
+        
+        // 重新跳转到视频号页面
         await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
             waitUntil: 'domcontentloaded',
             timeout: 120000
         });
-        console.log('需要登录微信视频号，请在浏览器中完成登录...');
-        await waitForEnter();
+        
+        // 验证cookie是否有效
+        const cookieValid = await checkLogin(page, 30000); // 等待30秒检查登录状态
+        if (!cookieValid) {
+            console.error('使用无头模式加载cookie后登录状态失效，请重试');
+            await browser.close();
+            process.exit(1);
+        } else {
+            console.log('无头模式下cookie验证成功，继续执行...');
+        }
+    }
 
-        // 再次检查登录状态，最多等待60秒
-        const loggedIn = await checkLogin(page, 60000);
+    // 如果仍然未登录，尝试再次登录
+    if (!isLoggedIn) {
+        console.log('Cookie无效或扫码登录失败，尝试再次登录...');
+        
+        // 确保使用有界面模式
+        if (initialHeadless) {
+            await browser.close();
+            browser = await puppeteer.launch({
+                headless: false,
+                args: BROWSER_ARGS,
+                defaultViewport: null,
+                protocolTimeout: protocolTimeout
+            });
+            page = await browser.newPage();
+            await setupBrowserFingerprint(page);
+        }
+        
+        // 直接跳转到登录页面
+        console.log('跳转到微信视频号登录页面...');
+        await page.goto('https://channels.weixin.qq.com/login.html', {
+            waitUntil: 'domcontentloaded',
+            timeout: 120000
+        });
+        
+        console.log('需要登录微信视频号，请扫描浏览器中的二维码完成登录...');
+        
+        // 再次检查登录状态，给更多时间扫码
+        const loggedIn = await checkLogin(page, 180000); // 3分钟超时
         if (loggedIn) {
             // 保存 cookies
             console.log('登录成功，保存 cookies...');
             await saveCookies(page, 'weixin');
-
-            // 关闭有界面浏览器，重新以用户指定的模式启动
+            
+            // 登录成功后关闭浏览器，无论用户是否要求无头模式
+            console.log('关闭浏览器，并使用无头模式重新获取cookie...');
             await browser.close();
+            
+            // 重新以无头模式启动浏览器
             browser = await puppeteer.launch({
-                headless: options.isHeadless === true, // 尊重用户传入的isHeadless参数
-                defaultViewport: null
+                headless: true, // 始终使用无头模式
+                args: BROWSER_ARGS,
+                defaultViewport: null,
+                protocolTimeout: protocolTimeout
             });
             page = await browser.newPage();
-            await loadCookies(page, 'weixin');
+            await setupBrowserFingerprint(page);
+            
+            // 加载保存的cookies
+            const cookiesLoaded = await loadCookies(page, 'weixin');
+            console.log('加载已保存的 cookies 结果:', cookiesLoaded ? '成功' : '失败');
+            
+            // 重新跳转到视频号页面
+            await page.goto('https://channels.weixin.qq.com/platform/post/list?tab=post', {
+                waitUntil: 'domcontentloaded',
+                timeout: 120000
+            });
+            
+            // 验证cookie是否有效
+            const cookieValid = await checkLogin(page, 30000); // 等待30秒检查登录状态
+            if (!cookieValid) {
+                console.error('使用无头模式加载cookie后登录状态失效，请重试');
+                await browser.close();
+                process.exit(1);
+            } else {
+                console.log('无头模式下cookie验证成功，继续执行...');
+            }
         } else {
             console.error('登录失败，请重试');
             await browser.close();
@@ -278,81 +409,51 @@ async function uploadToWeixin(browser, videoFiles, options) {
             // 等待页面加载
             await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
 
-            // 根据录制的 Puppeteer 脚本，使用精确的选择器查找上传控件
-            console.log('[uploadToWeixin] 等待上传控件出现...');
-            
-            // 尝试多种选择器定位上传控件
+            // 使用Shadow DOM选择器定位上传控件
+            console.log('[uploadToWeixin] 使用Shadow DOM选择器定位上传控件...');
             try {
-                // 先尝试录制脚本中的选择器: div.material input
-                await page.waitForSelector('div.material input', { timeout: 10000 });
-                console.log('[uploadToWeixin] 找到上传控件: div.material input');
-                
-                // 使用 page.evaluate 直接在页面上传文件
-                await page.evaluate(() => {
-                    // 尝试查找所有可能的上传控件
-                    const inputs = Array.from(document.querySelectorAll('div.material input, input[type=file]'));
-                    console.log(`找到 ${inputs.length} 个可能的上传控件`);
+                let uploadInput = await page.evaluateHandle(() => {
+                    try {
+                        // 获取wujie-app的shadowRoot
+                        const wujieApp = document.querySelector("#container-wrap > div.container-center > div > wujie-app");
+                        if (wujieApp && wujieApp.shadowRoot) {
+                            // 在shadowRoot中查找上传控件
+                            const fileInput = wujieApp.shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.material > div > div > div > span > div > span > input[type=file]");
+                            if (fileInput) {
+                                console.log('在Shadow DOM中找到上传控件');
+                                return fileInput;
+                            }
+                        }
+                        return null;
+                    } catch (err) {
+                        console.error('Shadow DOM选择器错误:', err);
+                        return null;
+                    }
                 });
-                
-                // 使用 uploadFile 方法上传文件
-                const uploadInput = await page.$('div.material input');
-                if (!uploadInput) {
-                    throw new Error('找到上传控件元素，但无法获取引用');
+                    
+                const isShadowInputValid = await page.evaluate(input => input !== null, uploadInput);
+                if (!isShadowInputValid) {
+                    throw new Error('无法使用Shadow DOM选择器找到上传控件');
                 }
                 
+                console.log('[uploadToWeixin] 成功使用Shadow DOM选择器找到上传控件');
+                    
+                // 如果上传控件无效，抛出错误
+                if (!uploadInput) {
+                    throw new Error('无法找到上传控件');
+                }
+                
+                // 上传视频文件
                 console.log('[uploadToWeixin] 开始上传视频文件:', videoFile);
                 await uploadInput.uploadFile(videoFile);
                 console.log('[uploadToWeixin] 视频文件已上传，等待处理...');
                 
-            } catch (err) {
-                console.warn(`[uploadToWeixin] 使用 div.material input 选择器失败: ${err.message}`);
-                
-                // 使用Shadow DOM选择器定位上传控件
-                try {
-                    console.log('[uploadToWeixin] 使用Shadow DOM选择器定位上传控件...');
-                    let uploadInput = await page.evaluateHandle(() => {
-                        try {
-                            // 获取wujie-app的shadowRoot
-                            const wujieApp = document.querySelector("#container-wrap > div.container-center > div > wujie-app");
-                            if (wujieApp && wujieApp.shadowRoot) {
-                                // 在shadowRoot中查找上传控件
-                                const fileInput = wujieApp.shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.material > div > div > div > span > div > span > input[type=file]");
-                                if (fileInput) {
-                                    console.log('在Shadow DOM中找到上传控件');
-                                    return fileInput;
-                                }
-                            }
-                            return null;
-                        } catch (err) {
-                            console.error('Shadow DOM选择器错误:', err);
-                            return null;
-                        }
-                    });
-                    
-                    const isShadowInputValid = await page.evaluate(input => input !== null, uploadInput);
-                    if (!isShadowInputValid) {
-                        throw new Error('无法使用Shadow DOM选择器找到上传控件');
-                    }
-                    
-                    console.log('[uploadToWeixin] 成功使用Shadow DOM选择器找到上传控件');
-                    
-                    // 如果上传控件无效，抛出错误
-                    if (!uploadInput) {
-                        throw new Error('无法找到上传控件');
-                    }
-                    
-                    // 上传视频文件
-                    console.log('[uploadToWeixin] 开始上传视频文件:', videoFile);
-                    await uploadInput.uploadFile(videoFile);
-                    console.log('[uploadToWeixin] 视频文件已上传，等待处理...');
-                    
-                } catch (backupErr) {
-                    // 所有方法均失败，截图并输出页面 HTML 以便调试
-                    await page.screenshot({ path: `debug-upload-failure-${Date.now()}.png` });
-                    const html = await page.content();
-                    console.error('[uploadToWeixin] 所有上传方法均失败，页面 HTML:', html.substring(0, 1000) + '...');
-                    throw new Error(`无法上传视频文件: ${backupErr.message}`);
-                }
+            } catch (backupErr) {
+                // 所有方法均失败，截图并输出页面 HTML 以便调试
+                await page.screenshot({ path: `debug-upload-failure-${Date.now()}.png` });
+                const html = await page.content();
+                console.error('[uploadToWeixin] 所有上传方法均失败，页面 HTML:', html.substring(0, 1000) + '...');
+                throw new Error(`无法上传视频文件: ${backupErr.message}`);
             }
 
             // 等待视频处理
