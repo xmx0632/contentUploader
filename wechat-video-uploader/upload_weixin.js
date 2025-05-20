@@ -3,48 +3,81 @@ const puppeteer = require('puppeteer');
 const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARGS, BROWSER_FINGERPRINT, setupBrowserFingerprint } = require('./upload_common');
 
 /**
- * 检查微信视频号登录状态，带超时保护和详细日志
+ * 检查微信视频号登录状态，增强鲁棒性。
+ * 检查多个典型已登录元素（发表视频按钮、用户头像、昵称等），任意存在即视为已登录。
+ * 检查失败时自动截图并输出页面部分 HTML，便于调试。
  * @param {import('puppeteer').Page} page Puppeteer 页面对象
- * @param {number} maxWait 最大等待时间（毫秒），默认 15000ms
+ * @param {number} maxWait 最大等待时间（毫秒），默认 60000ms
  * @returns {Promise<boolean>} 是否已登录
  */
 async function checkLogin(page, maxWait = 60000) {
-    console.log('检查登录状态，最长等待', maxWait, '毫秒');
-    
-    const startTime = Date.now();
-    let isLoggedIn = false;
-    
-    while (Date.now() - startTime < maxWait) {
-        try {
-            // 检查是否需要登录
-            const needLogin = await page.evaluate(() => {
-                // 如果发现"发表视频"按钮，则说明已登录
-                const buttons = Array.from(document.querySelectorAll('button'));
-                return !buttons.some(button =>
-                    button.textContent.trim() === '发表视频' &&
-                    button.offsetParent !== null
-                );
-            });
-            
-            isLoggedIn = !needLogin;
-            console.log('登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
-            
-            if (isLoggedIn) {
-                break; // 如果已登录，退出循环
-            }
-        } catch (error) {
-            console.error('检查登录状态时出错:', error.message);
+  // 典型已登录元素选择器
+  const loginSelectors = [
+    // 发表视频按钮
+    'button.weui-desktop-btn_primary',
+    'button[data-type="publish"]',
+    // 用户头像
+    '.avatar', '.profile-avatar', '.weui-desktop-avatar',
+    // 用户昵称
+    '.nickname', '.profile-nickname', '.weui-desktop-user__nickname'
+  ];
+  const checkInterval = 1000; // ms
+  const startTime = Date.now();
+  let isLoggedIn = false;
+  let lastError = null;
+
+  while (Date.now() - startTime < maxWait) {
+    try {
+      // 检查所有典型 selector，只要有一个存在即视为已登录
+      for (const selector of loginSelectors) {
+        const found = await page.$(selector);
+        if (found) {
+          isLoggedIn = true;
+          console.log(`[checkLogin] 已检测到已登录元素: ${selector}`);
+          break;
         }
-        
-        // 等待 1 秒后再次检查
-        await delay(1000);
+      }
+      if (isLoggedIn) {
+        break;
+      }
+      // 兼容检查“发表视频”按钮文本（部分页面结构无 class）
+      const hasPublishBtn = await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll('button'));
+        return btns.some(btn => btn.textContent && btn.textContent.trim() === '发表视频' && btn.offsetParent !== null);
+      });
+      if (hasPublishBtn) {
+        isLoggedIn = true;
+        console.log('[checkLogin] 已检测到已登录按钮文本: 发表视频');
+        break;
+      }
+      console.log('[checkLogin] 未检测到已登录元素，继续重试...');
+    } catch (err) {
+      lastError = err;
+      console.warn('[checkLogin] 检查登录状态异常:', err.message);
     }
-    
-    if (!isLoggedIn && Date.now() - startTime >= maxWait) {
-        console.warn('检查登录状态超时，可能页面加载过慢或登录失败');
+    await delay(checkInterval);
+  }
+
+  if (!isLoggedIn) {
+    // 检查失败时，自动截图和输出页面部分 HTML，便于调试
+    try {
+      const screenshotPath = path.join(process.cwd(), 'login_check_fail.png');
+      await page.screenshot({ path: screenshotPath });
+      console.warn(`[checkLogin] 登录检测失败，已自动截图: ${screenshotPath}`);
+    } catch (e) {
+      console.warn('[checkLogin] 截图失败:', e.message);
     }
-    
-    return isLoggedIn;
+    try {
+      const html = await page.content();
+      console.warn('[checkLogin] 页面 HTML 片段:', html.substring(0, 800));
+    } catch (e) {
+      console.warn('[checkLogin] 获取页面 HTML 失败:', e.message);
+    }
+    if (lastError) {
+      console.warn('[checkLogin] 最后一次异常:', lastError.message);
+    }
+  }
+  return isLoggedIn;
 }
 
 // 获取合集名称
@@ -238,48 +271,89 @@ async function uploadToWeixin(browser, videoFiles, options) {
             console.log('等待页面加载...');
             await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
 
-            // 点击发表视频按钮
-            console.log('尝试点击发表视频按钮...');
-            try {
-                // await page.goto('https://channels.weixin.qq.com/platform/post/create');
-                await page.click('button.weui-desktop-btn.weui-desktop-btn_primary:not(.weui-desktop-btn_mini)');
-                console.log('点击发表按钮成功');
-            } catch (clickError) {
-                console.log('直接点击失败，尝试其他方法...');
-
-                const clicked = await page.evaluate(() => {
-                    const buttons = Array.from(document.querySelectorAll('button'));
-                    for (const button of buttons) {
-                        if (button.textContent.trim() === '发表视频' &&
-                            button.offsetParent !== null &&
-                            button.classList.contains('weui-desktop-btn_primary') &&
-                            !button.classList.contains('weui-desktop-btn_mini')) {
-                            button.click();
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-
-                if (!clicked) {
-                    throw new Error('找不到发表视频按钮或点击失败');
-                }
-            }
-
-            // 等待跳转到发布页面
+            // 直接跳转到发布页面，无需检测“发表视频”按钮
+            const publishUrl = 'https://channels.weixin.qq.com/platform/post/create';
+            console.log(`[uploadToWeixin] 跳转到发布页面: ${publishUrl}`);
+            await page.goto(publishUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+            // 等待页面加载
             await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
 
-            // 等待文件上传按钮
-            console.log('等待上传按钮出现...');
-            const uploadButton = await page.waitForSelector('input[type=file]', {
-                visible: false,
-                timeout: 30000
-            });
-
-            // 上传视频文件
-            console.log('开始上传视频文件:', videoFile);
-            await uploadButton.uploadFile(videoFile);
-            console.log('视频文件已上传，等待处理...');
+            // 根据录制的 Puppeteer 脚本，使用精确的选择器查找上传控件
+            console.log('[uploadToWeixin] 等待上传控件出现...');
+            
+            // 尝试多种选择器定位上传控件
+            try {
+                // 先尝试录制脚本中的选择器: div.material input
+                await page.waitForSelector('div.material input', { timeout: 10000 });
+                console.log('[uploadToWeixin] 找到上传控件: div.material input');
+                
+                // 使用 page.evaluate 直接在页面上传文件
+                await page.evaluate(() => {
+                    // 尝试查找所有可能的上传控件
+                    const inputs = Array.from(document.querySelectorAll('div.material input, input[type=file]'));
+                    console.log(`找到 ${inputs.length} 个可能的上传控件`);
+                });
+                
+                // 使用 uploadFile 方法上传文件
+                const uploadInput = await page.$('div.material input');
+                if (!uploadInput) {
+                    throw new Error('找到上传控件元素，但无法获取引用');
+                }
+                
+                console.log('[uploadToWeixin] 开始上传视频文件:', videoFile);
+                await uploadInput.uploadFile(videoFile);
+                console.log('[uploadToWeixin] 视频文件已上传，等待处理...');
+                
+            } catch (err) {
+                console.warn(`[uploadToWeixin] 使用 div.material input 选择器失败: ${err.message}`);
+                
+                // 使用Shadow DOM选择器定位上传控件
+                try {
+                    console.log('[uploadToWeixin] 使用Shadow DOM选择器定位上传控件...');
+                    let uploadInput = await page.evaluateHandle(() => {
+                        try {
+                            // 获取wujie-app的shadowRoot
+                            const wujieApp = document.querySelector("#container-wrap > div.container-center > div > wujie-app");
+                            if (wujieApp && wujieApp.shadowRoot) {
+                                // 在shadowRoot中查找上传控件
+                                const fileInput = wujieApp.shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.material > div > div > div > span > div > span > input[type=file]");
+                                if (fileInput) {
+                                    console.log('在Shadow DOM中找到上传控件');
+                                    return fileInput;
+                                }
+                            }
+                            return null;
+                        } catch (err) {
+                            console.error('Shadow DOM选择器错误:', err);
+                            return null;
+                        }
+                    });
+                    
+                    const isShadowInputValid = await page.evaluate(input => input !== null, uploadInput);
+                    if (!isShadowInputValid) {
+                        throw new Error('无法使用Shadow DOM选择器找到上传控件');
+                    }
+                    
+                    console.log('[uploadToWeixin] 成功使用Shadow DOM选择器找到上传控件');
+                    
+                    // 如果上传控件无效，抛出错误
+                    if (!uploadInput) {
+                        throw new Error('无法找到上传控件');
+                    }
+                    
+                    // 上传视频文件
+                    console.log('[uploadToWeixin] 开始上传视频文件:', videoFile);
+                    await uploadInput.uploadFile(videoFile);
+                    console.log('[uploadToWeixin] 视频文件已上传，等待处理...');
+                    
+                } catch (backupErr) {
+                    // 所有方法均失败，截图并输出页面 HTML 以便调试
+                    await page.screenshot({ path: `debug-upload-failure-${Date.now()}.png` });
+                    const html = await page.content();
+                    console.error('[uploadToWeixin] 所有上传方法均失败，页面 HTML:', html.substring(0, 1000) + '...');
+                    throw new Error(`无法上传视频文件: ${backupErr.message}`);
+                }
+            }
 
             // 等待视频处理
             await delay(parseInt(process.env.DELAY_VIDEO_PROCESS || '15000'));
@@ -323,149 +397,118 @@ async function uploadToWeixin(browser, videoFiles, options) {
             }
 
             // 填写描述
-            const editor = await page.$('div[contenteditable][data-placeholder="添加描述"]');
-            if (editor) {
-                await page.evaluate(() => {
-                    const editor = document.querySelector('div[contenteditable][data-placeholder="添加描述"]');
-                    editor.textContent = '';
-                    editor.focus();
-                });
-                await page.keyboard.type(description);
-                await page.evaluate(() => {
-                    document.body.click();
-                });
-            }
+            console.log('尝试填写视频描述...');
+            const descriptionResult = await page.evaluate((desc) => {
+                try {
+                    // 使用Shadow DOM选择器定位描述输入框
+                    const editor = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(2) > div.form-item-body > div > div.input-editor");
+                    
+                    if (editor) {
+                        console.log('找到描述输入框');
+                        // 清空内容
+                        editor.textContent = '';
+                        // 设置描述文本
+                        editor.textContent = desc;
+                        // 触发输入事件
+                        editor.dispatchEvent(new Event('input', { bubbles: true }));
+                        editor.dispatchEvent(new Event('change', { bubbles: true }));
+                        return { success: true, message: '成功填写视频描述' };
+                    }
+                    return { success: false, message: '未找到描述输入框' };
+                } catch (error) {
+                    return { success: false, message: `填写描述时出错: ${error.message}` };
+                }
+            }, description);
+            
+            console.log('描述填写结果:', descriptionResult.message);
 
             // 等待内容更新
             await delay(parseInt(process.env.DELAY_CONTENT_UPDATE || '5000'));
 
             // 如果有合集名称，选择合集
             if (collectionName) {
-                // 点击合集下拉框
-                const albumDisplay = await page.$('.post-album-display');
-                if (albumDisplay) {
-                    await albumDisplay.click();
-                    await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
-
-                    // 选择目标合集
-                    const selected = await page.evaluate(name => {
-                        const items = document.querySelectorAll('.option-item');
-                        for (const item of items) {
-                            const nameDiv = item.querySelector('.name');
+                console.log('尝试添加到合集:', collectionName);
+                
+                // 点击“添加到合集”
+                const addToCollectionResult = await page.evaluate(() => {
+                    try {
+                        // 使用Shadow DOM选择器定位“添加到合集”按钮
+                        const addToCollectionBtn = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(4) > div.form-item-body > div > div.post-album-display > div > div.tip > span");
+                        
+                        if (addToCollectionBtn) {
+                            console.log('找到“添加到合集”按钮');
+                            addToCollectionBtn.click();
+                            return { success: true, message: '已点击“添加到合集”按钮' };
+                        }
+                        return { success: false, message: '未找到“添加到合集”按钮' };
+                    } catch (error) {
+                        return { success: false, message: `点击“添加到合集”按钮时出错: ${error.message}` };
+                    }
+                });
+                
+                console.log('点击“添加到合集”结果:', addToCollectionResult.message);
+                
+                // 等待下拉框出现
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
+                
+                // 选择目标合集
+                const selectCollectionResult = await page.evaluate((name) => {
+                    try {
+                        // 使用Shadow DOM选择器定位合集选项
+                        // 注意：这里的nth-child可能需要根据实际情况调整
+                        const collectionOptions = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelectorAll("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(4) > div.form-item-body > div > div.filter-wrap > div.common-option-list-wrap.option-list-wrap > div");
+                        
+                        console.log(`找到 ${collectionOptions.length} 个合集选项`);
+                        
+                        // 遍历所有选项并查找目标合集
+                        for (const option of collectionOptions) {
+                            const nameDiv = option.querySelector('div > div.name');
                             if (nameDiv && nameDiv.textContent.trim() === name) {
-                                item.click();
-                                return true;
+                                console.log(`找到目标合集: ${name}`);
+                                nameDiv.click();
+                                return { success: true, message: `已选择合集: ${name}` };
                             }
                         }
-                        return false;
-                    }, collectionName);
-
-                    if (!selected) {
-                        console.log('警告：未找到或无法选择目标合集');
+                        
+                        return { success: false, message: `未找到目标合集: ${name}` };
+                    } catch (error) {
+                        return { success: false, message: `选择合集时出错: ${error.message}` };
                     }
-
-                    console.log('合集已选择，等待完成...');
-                    await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
-                }
+                }, collectionName);
+                
+                console.log('选择合集结果:', selectCollectionResult.message);
+                
+                // 等待选择完成
+                await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
             }
 
             // 勾选"声明原创"复选框
             console.log('尝试勾选"声明原创"复选框...');
             const declareOriginalResult = await page.evaluate(() => {
-                // 查找声明原创的复选框 - 使用多种方法尝试定位
-                let declareOriginalCheckbox = null;
-                
-                // 方法1：通过文本内容查找
-                const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
-                declareOriginalCheckbox = checkboxes.find(checkbox => {
-                    // 查找附近的文本节点或标签，包含"声明原创"文本
-                    const parent = checkbox.parentElement;
-                    if (parent && parent.textContent.includes('声明原创')) {
-                        return true;
-                    }
-                    // 向上查找两层
-                    const grandParent = parent?.parentElement;
-                    if (grandParent && grandParent.textContent.includes('声明原创')) {
-                        return true;
-                    }
-                    return false;
-                });
-                
-                // 方法2：通过标签和属性查找
-                if (!declareOriginalCheckbox) {
-                    // 查找所有label元素，可能包含"声明原创"文本
-                    const labels = Array.from(document.querySelectorAll('label'));
-                    const originalLabel = labels.find(label => 
-                        label.textContent.includes('声明原创') || 
-                        label.textContent.includes('原创')
-                    );
+                try {
+                    // 使用Shadow DOM选择器定位"声明原创"复选框
+                    const originalCheckbox = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(9) > div.form-item-body > div > label > span.ant-checkbox > input");
                     
-                    if (originalLabel) {
-                        // 如果label有for属性，通过id查找对应的复选框
-                        const forId = originalLabel.getAttribute('for');
-                        if (forId) {
-                            declareOriginalCheckbox = document.getElementById(forId);
+                    if (originalCheckbox) {
+                        console.log('找到"声明原创"复选框');
+                        // 检查复选框状态
+                        if (!originalCheckbox.checked) {
+                            // 尝试点击复选框
+                            originalCheckbox.click();
+                            // 直接设置checked属性
+                            originalCheckbox.checked = true;
+                            // 触发change事件
+                            originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                            return { success: true, message: '已勾选"声明原创"复选框' };
                         } else {
-                            // 如果label内部有复选框
-                            declareOriginalCheckbox = originalLabel.querySelector('input[type="checkbox"]');
+                            return { success: true, message: '"声明原创"复选框已经被勾选' };
                         }
                     }
-                }
-                
-                // 方法3：通过周围元素的关系查找
-                if (!declareOriginalCheckbox) {
-                    // 查找所有包含"原创"文本的元素
-                    const allElements = Array.from(document.querySelectorAll('*'));
-                    const originalElements = allElements.filter(el => 
-                        el.textContent.includes('原创') || 
-                        el.textContent.includes('声明原创')
-                    );
                     
-                    // 对于每个找到的元素，查找其附近的复选框
-                    for (const el of originalElements) {
-                        // 查找父元素下的复选框
-                        const parentCheckbox = el.parentElement?.querySelector('input[type="checkbox"]');
-                        if (parentCheckbox) {
-                            declareOriginalCheckbox = parentCheckbox;
-                            break;
-                        }
-                        
-                        // 查找相邻元素中的复选框
-                        const siblings = Array.from(el.parentElement?.children || []);
-                        for (const sibling of siblings) {
-                            const siblingCheckbox = sibling.querySelector('input[type="checkbox"]');
-                            if (siblingCheckbox) {
-                                declareOriginalCheckbox = siblingCheckbox;
-                                break;
-                            }
-                        }
-                        
-                        if (declareOriginalCheckbox) break;
-                    }
+                    return { success: false, message: '未找到"声明原创"复选框' };
+                } catch (error) {
+                    return { success: false, message: `勾选"声明原创"复选框时出错: ${error.message}` };
                 }
-
-                // 如果找到了复选框
-                if (declareOriginalCheckbox && !declareOriginalCheckbox.checked) {
-                    // 勾选复选框
-                    declareOriginalCheckbox.click();
-                    return { success: true, message: '已勾选"声明原创"复选框' };
-                } else if (declareOriginalCheckbox && declareOriginalCheckbox.checked) {
-                    return { success: true, message: '"声明原创"复选框已经被勾选' };
-                }
-                
-                // 如果所有方法都失败，记录页面中所有复选框的信息以便调试
-                const allCheckboxInfo = checkboxes.map(cb => {
-                    const parent = cb.parentElement;
-                    return {
-                        checked: cb.checked,
-                        id: cb.id,
-                        name: cb.name,
-                        parentText: parent ? parent.textContent.substring(0, 50) : 'no parent'
-                    };
-                });
-                
-                console.log('页面中的所有复选框信息:', JSON.stringify(allCheckboxInfo));
-                return { success: false, message: '未找到"声明原创"复选框', checkboxInfo: allCheckboxInfo };
             });
 
             console.log('声明原创复选框操作结果:', declareOriginalResult.message);
@@ -476,134 +519,63 @@ async function uploadToWeixin(browser, videoFiles, options) {
                 await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
                 
                 // 处理原创权益对话框
+                console.log('处理原创权益对话框...');
                 const handleOriginalDialogResult = await page.evaluate(() => {
-                    // 查找对话框中的复选框 - 使用多种方法尝试定位
-                    let agreeCheckbox = null;
-                    let dialogFound = false;
-                    
-                    // 首先确认对话框存在
-                    const dialogs = Array.from(document.querySelectorAll('.weui-desktop-dialog'));
-                    const originalDialog = dialogs.find(dialog => 
-                        dialog.textContent.includes('原创') || 
-                        dialog.textContent.includes('声明')
-                    );
-                    
-                    if (originalDialog) {
-                        dialogFound = true;
-                        console.log('找到原创权益对话框');
+                    try {
+                        // 使用Shadow DOM选择器定位对话框中的复选框
+                        const dialogCheckbox = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(9) > div.declare-original-dialog > div.weui-desktop-dialog__wrp > div > div.weui-desktop-dialog__bd > div > div.original-proto-wrapper > label > span > input");
                         
-                        // 方法1：使用特定class查找
-                        const dialogCheckboxes = originalDialog.querySelectorAll('input.ant-checkbox-input');
-                        if (dialogCheckboxes.length > 0) {
-                            agreeCheckbox = dialogCheckboxes[0];
-                            console.log('方法1找到复选框');
-                        }
-                        
-                        // 方法2：通过标准复选框类型查找
-                        if (!agreeCheckbox) {
-                            const standardCheckboxes = originalDialog.querySelectorAll('input[type="checkbox"]');
-                            if (standardCheckboxes.length > 0) {
-                                agreeCheckbox = standardCheckboxes[0];
-                                console.log('方法2找到复选框');
-                            }
-                        }
-                        
-                        // 方法3：通过文本内容查找
-                        if (!agreeCheckbox) {
-                            const allCheckboxes = Array.from(originalDialog.querySelectorAll('input[type="checkbox"]'));
-                            agreeCheckbox = allCheckboxes.find(checkbox => {
-                                // 查找附近的文本节点或标签
-                                const parent = checkbox.parentElement;
-                                const grandParent = parent?.parentElement;
-                                
-                                return (parent && (parent.textContent.includes('我已阅读') || 
-                                                parent.textContent.includes('原创声明') || 
-                                                parent.textContent.includes('同意'))) ||
-                                       (grandParent && (grandParent.textContent.includes('我已阅读') || 
-                                                      grandParent.textContent.includes('原创声明') || 
-                                                      grandParent.textContent.includes('同意')));
-                            });
+                        if (dialogCheckbox) {
+                            console.log('找到原创权益对话框中的复选框');
                             
-                            if (agreeCheckbox) {
-                                console.log('方法3找到复选框');
-                            }
-                        }
-                        
-                        // 方法4：使用模拟点击来勾选复选框的容器
-                        if (!agreeCheckbox) {
-                            // 查找可能包含复选框的容器
-                            const checkboxContainers = Array.from(originalDialog.querySelectorAll('.ant-checkbox, .weui-desktop-checkbox'));
-                            if (checkboxContainers.length > 0) {
-                                // 直接点击容器而不是复选框本身
-                                checkboxContainers[0].click();
-                                console.log('方法4点击了复选框容器');
+                            // 检查复选框状态
+                            if (!dialogCheckbox.checked) {
+                                // 尝试点击复选框
+                                dialogCheckbox.click();
+                                // 直接设置checked属性
+                                dialogCheckbox.checked = true;
+                                // 触发change事件
+                                dialogCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
                                 
-                                // 再次检查是否有复选框被勾选
-                                const allCheckboxes = Array.from(originalDialog.querySelectorAll('input[type="checkbox"]'));
-                                agreeCheckbox = allCheckboxes.find(checkbox => checkbox.checked);
+                                console.log('已勾选原创权益对话框中的复选框');
                                 
-                                if (agreeCheckbox) {
-                                    return { success: true, message: '通过点击容器勾选了复选框' };
+                                // 点击"声明原创"按钮
+                                setTimeout(() => {
+                                    try {
+                                        const declareButton = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(9) > div.declare-original-dialog > div.weui-desktop-dialog__wrp > div > div.weui-desktop-dialog__ft > div:nth-child(2) > button");
+                                        
+                                        if (declareButton) {
+                                            console.log('找到"声明原创"按钮');
+                                            declareButton.click();
+                                            console.log('已点击"声明原创"按钮');
+                                        } else {
+                                            console.log('未找到"声明原创"按钮');
+                                        }
+                                    } catch (buttonError) {
+                                        console.error('点击"声明原创"按钮时出错:', buttonError);
+                                    }
+                                }, 500);
+                                
+                                return { success: true, message: '已勾选原创权益对话框中的复选框并点击声明原创按钮' };
+                            } else {
+                                // 如果复选框已经被勾选，直接点击"声明原创"按钮
+                                const declareButton = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(9) > div.declare-original-dialog > div.weui-desktop-dialog__wrp > div > div.weui-desktop-dialog__ft > div:nth-child(2) > button");
+                                
+                                if (declareButton) {
+                                    console.log('找到"声明原创"按钮');
+                                    declareButton.click();
+                                    console.log('已点击"声明原创"按钮');
+                                    return { success: true, message: '复选框已经被勾选，已点击"声明原创"按钮' };
+                                } else {
+                                    return { success: true, message: '复选框已经被勾选，但未找到"声明原创"按钮' };
                                 }
                             }
                         }
-                    } else {
-                        // 如果没有找到对话框，尝试在整个页面中查找
-                        const allCheckboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
                         
-                        // 记录所有复选框的信息以便调试
-                        const checkboxInfo = allCheckboxes.map(cb => {
-                            const parent = cb.parentElement;
-                            return {
-                                checked: cb.checked,
-                                id: cb.id,
-                                name: cb.name,
-                                parentText: parent ? parent.textContent.substring(0, 50) : 'no parent'
-                            };
-                        });
-                        
-                        console.log('页面中的所有复选框信息:', JSON.stringify(checkboxInfo));
-                        return { success: false, message: '未找到原创权益对话框', checkboxInfo };
+                        return { success: false, message: '未找到原创权益对话框中的复选框' };
+                    } catch (error) {
+                        return { success: false, message: `处理原创权益对话框时出错: ${error.message}` };
                     }
-                    
-                    // 如果找到了复选框并且未勾选
-                    if (agreeCheckbox && !agreeCheckbox.checked) {
-                        try {
-                            // 尝试使用原生事件触发点击
-                            const clickEvent = new MouseEvent('click', {
-                                view: window,
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            agreeCheckbox.dispatchEvent(clickEvent);
-                            
-                            // 尝试直接设置 checked 属性
-                            agreeCheckbox.checked = true;
-                            
-                            // 触发 change 事件
-                            const changeEvent = new Event('change', {
-                                bubbles: true
-                            });
-                            agreeCheckbox.dispatchEvent(changeEvent);
-                            
-                            console.log('已勾选同意复选框');
-                            return { success: true, message: '已勾选同意复选框，等待按钮状态更新' };
-                        } catch (error) {
-                            console.error('勾选复选框时出错:', error);
-                            return { success: false, message: '勾选复选框时出错: ' + error.message };
-                        }
-                    } else if (agreeCheckbox && agreeCheckbox.checked) {
-                        return { success: true, message: '同意复选框已经被勾选' };
-                    }
-                    
-                    // 如果找到了对话框但没有找到复选框
-                    if (dialogFound) {
-                        // 记录对话框的HTML结构以便调试
-                        const dialogHTML = originalDialog.outerHTML.substring(0, 1000); // 限制长度
-                        return { success: false, message: '找到对话框但未找到复选框', dialogHTML };
-                    }
-                    
-                    return { success: false, message: '未找到原创权益对话框中的同意复选框' };
                 });
                 
                 console.log('原创权益对话框处理结果:', handleOriginalDialogResult.message);
@@ -611,65 +583,45 @@ async function uploadToWeixin(browser, videoFiles, options) {
                 // 等待按钮状态更新（从禁用变为可点击状态）
                 await delay(parseInt(process.env.DELAY_AFTER_CLICK || '2000'));
                 
-                // 点击"声明原创"按钮
-                const clickDeclareButtonResult = await page.evaluate(() => {
-                    // 查找并点击"声明原创"按钮 - 使用更精确的选择器
-                    // 根据weixin_readme.md中的HTML结构，按钮可能从weui-desktop-btn_disabled变为可点击状态
-                    const declareButtons = Array.from(document.querySelectorAll('button.weui-desktop-btn.weui-desktop-btn_primary:not(.weui-desktop-btn_disabled)'));
-                    const declareButton = declareButtons.find(button => button.textContent.trim() === '声明原创');
+                // 尝试勾选"声明原创"复选框
+                console.log('尝试勾选"声明原创"复选框...');
+                const originalCheckboxResult = await page.evaluate(() => {
+                    // 使用提供的Shadow DOM选择器定位"声明原创"复选框
+                    const originalCheckbox = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div:nth-child(9) > div.form-item-body > div > label > span.ant-checkbox > input");
                     
-                    if (declareButton) {
-                        declareButton.click();
-                        return { success: true, message: '已点击"声明原创"按钮' };
+                    if (originalCheckbox) {
+                        console.log('找到"声明原创"复选框');
+                        // 检查复选框状态
+                        if (!originalCheckbox.checked) {
+                            // 尝试点击复选框
+                            originalCheckbox.click();
+                            // 直接设置checked属性
+                            originalCheckbox.checked = true;
+                            // 触发change事件
+                            originalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                            return { success: true, message: '已勾选"声明原创"复选框' };
+                        } else {
+                            return { success: true, message: '"声明原创"复选框已经被勾选' };
+                        }
                     }
                     
-                    // 如果没找到可点击的按钮，检查是否有禁用状态的按钮
-                    const disabledButtons = Array.from(document.querySelectorAll('button.weui-desktop-btn.weui-desktop-btn_primary.weui-desktop-btn_disabled'));
-                    const disabledDeclareButton = disabledButtons.find(button => button.textContent.trim() === '声明原创');
-                    
-                    if (disabledDeclareButton) {
-                        return { success: false, message: '"声明原创"按钮仍处于禁用状态' };
-                    }
-                    
-                    return { success: false, message: '未找到"声明原创"按钮' };
+                    return { success: false, message: '未找到"声明原创"复选框' };
                 });
                 
-                console.log('点击声明原创按钮结果:', clickDeclareButtonResult.message);
-                
-                // 如果按钮仍处于禁用状态，等待更长时间后再次尝试
-                if (!clickDeclareButtonResult.success && clickDeclareButtonResult.message.includes('禁用状态')) {
-                    console.log('按钮仍处于禁用状态，等待更长时间后再次尝试...');
-                    await delay(parseInt(process.env.DELAY_AFTER_CLICK || '5000'));
-                    
-                    // 再次尝试点击按钮
-                    const retryClickResult = await page.evaluate(() => {
-                        const declareButtons = Array.from(document.querySelectorAll('button.weui-desktop-btn.weui-desktop-btn_primary:not(.weui-desktop-btn_disabled)'));
-                        const declareButton = declareButtons.find(button => button.textContent.trim() === '声明原创');
-                        
-                        if (declareButton) {
-                            declareButton.click();
-                            return { success: true, message: '已点击"声明原创"按钮（重试成功）' };
-                        }
-                        return { success: false, message: '重试点击"声明原创"按钮失败' };
-                    });
-                    
-                    console.log('重试点击声明原创按钮结果:', retryClickResult.message);
-                }
+                console.log('声明原创复选框操作结果:', originalCheckboxResult.message);
                 
                 // 等待对话框关闭和页面更新
                 await delay(parseInt(process.env.DELAY_AFTER_CLICK || '3000'));
             }
 
             // 尝试点击发表按钮
+            console.log('尝试点击发表按钮...');
             const publishResult = await page.evaluate(() => {
-                // 使用精确的选择器找到发表按钮
-                const publishButton = Array.from(document.querySelectorAll('button')).find(button =>
-                    button.textContent.trim() === '发表' &&
-                    button.className.includes('weui-desktop-btn_primary') &&
-                    !button.disabled
-                );
-
+                // 使用提供的Shadow DOM选择器找到发表按钮
+                const publishButton = document.querySelector("#container-wrap > div.container-center > div > wujie-app").shadowRoot.querySelector("#container-wrap > div.container-center > div > div > div.main-body-wrap.post-create > div.main-body > div > div.post-edit-wrap.material-edit-wrap > div.form > div.form-btns > div:nth-child(5) > span > div > button");
+                
                 if (publishButton) {
+                    console.log('找到发表按钮:', publishButton.textContent.trim());
                     // 使用原生事件触发点击
                     const clickEvent = new MouseEvent('click', {
                         view: window,
