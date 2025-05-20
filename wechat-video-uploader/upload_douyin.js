@@ -2,12 +2,14 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARGS, BROWSER_FINGERPRINT, setupBrowserFingerprint } = require('./upload_common');
 
-// 定义导航配置常量
-const NAVIGATION_TIMEOUT = parseInt(process.env.NAVIGATION_TIMEOUT || '120000'); // 默认120秒
-const MAX_RETRY_COUNT = parseInt(process.env.MAX_RETRY_COUNT || '3'); // 默认重试3次
-const PROTOCOL_TIMEOUT = parseInt(process.env.PROTOCOL_TIMEOUT || '120000'); // 默认120秒，用于Puppeteer协议操作超时
-const EVALUATE_TIMEOUT = parseInt(process.env.EVALUATE_TIMEOUT || '60000'); // 默认60秒，用于页面evaluate操作超时
+// 抖音上传流程相关配置常量（支持环境变量覆盖）
+const NAVIGATION_TIMEOUT = parseInt(process.env.NAVIGATION_TIMEOUT || '120000'); // 页面导航超时时间，默认120秒
+const MAX_RETRY_COUNT = parseInt(process.env.MAX_RETRY_COUNT || '3'); // 重试次数，默认3次
+const PROTOCOL_TIMEOUT = parseInt(process.env.PROTOCOL_TIMEOUT || '120000'); // Puppeteer协议操作超时，默认120秒
+const SELECTOR_TIMEOUT = parseInt(process.env.SELECTOR_TIMEOUT || '30000'); // 元素等待超时，默认30秒
 
+// 更新waitForSelector的默认超时时间
+puppeteer.defaultSelectorTimeout = SELECTOR_TIMEOUT;
 
 
 // 获取合集名称
@@ -24,9 +26,15 @@ function getCollectionName(options) {
     return null;
 }
 
-// 检查登录状态
+/**
+ * 检查抖音创作者平台登录状态，增强鲁棒性。
+ * 检查多个典型已登录元素（上传按钮、用户头像、昵称等），任意存在即视为已登录。
+ * 检查失败时自动截图并输出页面部分 HTML，便于调试。
+ * @param {import('puppeteer').Page} page Puppeteer 页面对象
+ * @returns {Promise<boolean>} 是否已登录
+ */
 async function checkLogin(page) {
-    // 添加重试逻辑
+    // 重试机制
     for (let attempt = 1; attempt <= MAX_RETRY_COUNT; attempt++) {
         try {
             console.log(`尝试导航到抖音创作者平台 (尝试 ${attempt}/${MAX_RETRY_COUNT})...`);
@@ -41,19 +49,55 @@ async function checkLogin(page) {
                 throw new Error(`导航到抖音创作者平台失败，已重试 ${MAX_RETRY_COUNT} 次: ${error.message}`);
             }
             // 等待一段时间后重试
-            console.log(`等待 5 秒后重试...`);
+            console.log('等待 5 秒后重试...');
             await delay(5000);
         }
     }
 
+    // 多 selector 检查，任意一个存在即视为已登录
+    const SELECTORS = [
+        'input[type="file"]', // 上传按钮
+        '.container-drag-info-Tl0RGH', // 上传区域
+        '.header-user-avatar', // 用户头像
+        '.header-user-nickname', // 用户昵称
+        '.creator-header-avatar', // 新版头像
+        '.creator-header-nickname' // 新版昵称
+    ];
+
     try {
-        // 如果发现上传区域，则说明已登录
-        await page.waitForSelector('.container-drag-info-Tl0RGH', { timeout: 5000 });
-        return true;
+        // 检查多个 selector
+        for (const selector of SELECTORS) {
+            try {
+                const el = await page.waitForSelector(selector, { timeout: 4000 });
+                if (el) {
+                    console.log(`[checkLogin] 检测到已登录元素: ${selector}`);
+                    return true;
+                }
+            } catch (e) {
+                // 忽略单个 selector 检查失败
+            }
+        }
+        // 全部未检测到，说明未登录
+        throw new Error('未检测到任何已登录元素');
     } catch (error) {
+        // 登录检测失败，自动截图并输出部分 HTML，便于调试
+        try {
+            const screenshotPath = path.join(__dirname, 'login_check_fail.png');
+            await page.screenshot({ path: screenshotPath });
+            console.warn(`[checkLogin] 登录检测失败，已自动截图: ${screenshotPath}`);
+        } catch (e) {
+            console.warn('[checkLogin] 截图失败:', e.message);
+        }
+        try {
+            const html = await page.content();
+            console.warn('[checkLogin] 页面 HTML 片段:', html.substring(0, 800));
+        } catch (e) {
+            console.warn('[checkLogin] 获取页面 HTML 失败:', e.message);
+        }
         return false;
     }
 }
+
 
 // 上传视频到抖音
 async function uploadToDouyin(browser, videoFiles, options) {

@@ -132,6 +132,14 @@ node main.js --platform weixin --dir /path/to/videos
 # 上传到抖音
 node main.js --platform douyin --dir /path/to/videos
 
+## 抖音登录检测机制说明
+
+新版 checkLogin 会自动检测多个典型已登录元素（如上传按钮、用户头像、昵称等），任意存在即视为已登录。
+
+- 登录检测失败时，会自动截图（login_check_fail.png）并输出页面部分 HTML，方便排查页面结构变化。
+- 如果遇到“登录失败，请重试”，请先确认 Puppeteer 弹出的浏览器窗口已完成登录。
+- 如多次失败，请将 login_check_fail.png 和 HTML 片段反馈给开发者协助定位。
+
 # 上传到快手
 node main.js --platform kuaishou --dir /path/to/videos
 
