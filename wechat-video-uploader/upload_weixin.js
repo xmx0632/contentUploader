@@ -10,7 +10,7 @@ const { delay, loadCookies, saveCookies, waitForEnter, archiveVideo, BROWSER_ARG
  * @param {number} maxWait 最大等待时间（毫秒），默认 60000ms
  * @returns {Promise<boolean>} 是否已登录
  */
-async function checkLogin(page, maxWait = 60000) {
+async function checkLogin(page, maxWait = 180000) {
   // 典型已登录元素选择器
   const loginSelectors = [
     // 发表视频按钮
@@ -44,17 +44,30 @@ async function checkLogin(page, maxWait = 60000) {
           const qrCodeSrc = await page.evaluate(el => el.src, qrCode);
           console.log(`[checkLogin] 二维码图片地址: ${qrCodeSrc}`);
           
-          // 提示用户扫码登录
+          // 提示用户扫码登录 - 使用更明显的提示
           console.log('\n\n==================================================');
-          console.log('\u8bf7使用微信扫描浏览器中的二维码登录\n');
+          console.log('请使用微信扫描浏览器中的二维码登录');
+          console.log('==================================================');
+          console.log('==================================================');
+          console.log('重要提示: 请先完成扫码并确认登录成功后再继续');
           console.log('==================================================\n\n');
           
           // 等待用户扫码登录完成
           await waitForEnter('\n扫码登录完成后请按回车键继续...');
           
-          // 等待页面跳转
-          console.log('[checkLogin] 等待页面跳转...');
-          await delay(5000);
+          // 等待页面跳转 - 增加等待时间，确保登录成功后页面完全加载
+          console.log('[checkLogin] 等待页面跳转和加载...');
+          await delay(15000); // 增加到15秒等待时间
+          
+          // 再次检查URL，确认是否已经离开登录页面
+          const newUrl = page.url();
+          if (newUrl.includes('login.html')) {
+            console.log('[checkLogin] 仍在登录页面，可能需要更多时间...');
+            await delay(10000); // 再等10秒
+          } else {
+            console.log(`[checkLogin] 已离开登录页面，当前页面: ${newUrl}`);
+          }
+          
           continue; // 继续检查登录状态
         }
       }
@@ -195,12 +208,66 @@ async function uploadToWeixin(browser, videoFiles, options) {
             timeout: 120000
         });
         
+        // 使用更明显的提示，确保用户注意到需要扫码登录
+        console.log('\n\n==================================================');
         console.log('请使用微信扫描浏览器中的二维码进行登录');
+        console.log('==================================================');
+        console.log('==================================================');
+        console.log('重要提示: 请先完成扫码并确认登录成功后再继续');
+        console.log('==================================================\n\n');
+        
+        // 等待用户确认已完成扫码
+        await waitForEnter('\n扫码登录完成后请按回车键继续...');
+        
+        // 增加等待时间，确保登录成功后页面完全加载和跳转
+        console.log('等待页面加载和跳转...');
+        await delay(30000); // 增加到30秒，给足够时间完成登录跳转
+        
+        // 检查是否仍在登录页面
+        const newUrl = page.url();
+        if (newUrl.includes('login.html')) {
+            console.log('仍在登录页面，可能需要更多时间或登录未成功，再等待30秒...');
+            await delay(30000); // 再等30秒
+            
+            // 再次检查URL
+            const finalUrl = page.url();
+            if (finalUrl.includes('login.html')) {
+                console.log('登录可能失败，请重新运行程序并确保成功扫码登录');
+                await browser.close();
+                process.exit(1);
+            } else {
+                console.log(`已离开登录页面，当前页面: ${finalUrl}`);
+            }
+        } else {
+            console.log(`已离开登录页面，当前页面: ${newUrl}`);
+        }
     }
     
     // 检查登录状态，这个函数会处理扫码登录的情况
-    const isLoggedIn = await checkLogin(page, 120000); // 增加等待时间，给用户更多时间扫码
+    let isLoggedIn = await checkLogin(page, 180000); // 增加等待时间到3分钟，给用户更多时间扫码
     console.log('7.登录状态检查结果:', isLoggedIn ? '已登录' : '未登录');
+    
+    // 如果第一次检查未登录，等待并多次重试
+    if (!isLoggedIn) {
+        console.log('首次登录检查未通过，等待20秒后再次检查...');
+        await delay(20000);
+        isLoggedIn = await checkLogin(page, 120000);
+        console.log('二次登录检查结果:', isLoggedIn ? '已登录' : '未登录');
+        
+        // 如果二次检查仍未登录，再次尝试
+        if (!isLoggedIn) {
+            console.log('二次登录检查未通过，等待30秒后第三次检查...');
+            await delay(30000);
+            isLoggedIn = await checkLogin(page, 120000);
+            console.log('三次登录检查结果:', isLoggedIn ? '已登录' : '未登录');
+            
+            if (!isLoggedIn) {
+                console.error('多次登录检查均未通过，请确保已成功登录');
+                await browser.close();
+                process.exit(1);
+            }
+        }
+    }
     
     // 如果已经登录成功，并且用户要求无头模式，则关闭当前浏览器并重新以无头模式启动
     // 这样可以确保在登录成功后始终切换回无头模式
@@ -398,17 +465,28 @@ async function uploadToWeixin(browser, videoFiles, options) {
                 }
             }
 
+            // 再次检查登录状态，确保在跳转到上传页面前已登录
+            console.log('在跳转到上传页面前再次检查登录状态...');
+            const preUploadLoginCheck = await checkLogin(page, 60000);
+            if (!preUploadLoginCheck) {
+                console.error('上传前登录检查失败，请确保已登录');
+                throw new Error('未检测到登录状态，无法继续上传视频');
+            }
+            console.log('登录状态确认，继续上传流程');
+            
             // 等待页面加载
             console.log('等待页面加载...');
-            await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
+            await delay(parseInt(process.env.DELAY_PAGE_LOAD || '12000')); // 增加默认等待时间到12秒
 
-            // 直接跳转到发布页面，无需检测“发表视频”按钮
+            // 直接跳转到发布页面，无需检测"发表视频"按钮
             const publishUrl = 'https://channels.weixin.qq.com/platform/post/create';
             console.log(`[uploadToWeixin] 跳转到发布页面: ${publishUrl}`);
             await page.goto(publishUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
-            // 等待页面加载
-            await delay(parseInt(process.env.DELAY_PAGE_LOAD || '8000'));
-
+            
+            // 等待页面加载 - 增加等待时间
+            console.log('等待发布页面完全加载...');
+            await delay(parseInt(process.env.DELAY_PAGE_LOAD || '15000')); // 增加到至少15秒
+            
             // 使用Shadow DOM选择器定位上传控件
             console.log('[uploadToWeixin] 使用Shadow DOM选择器定位上传控件...');
             try {
